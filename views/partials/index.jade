@@ -1,0 +1,9 @@
+p(style="margin-left:45px") There are {{jobs.length}} jobs
+div(ng-repeat='job in jobs', style="margin-left:45px")
+	h3 {{job.title}}
+	div {{job.text}}
+	a(href='readJob/{{job.id}}') More
+	|  -
+	a(href='deleteJob/{{job.id}}') Delete
+  
+

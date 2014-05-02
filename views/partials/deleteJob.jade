@@ -1,0 +1,8 @@
+h2 {{job.title}}
+div {{job.text}}
+p
+	| Are you sure you want to delete this job?
+	button(ng-click='deleteJob()') Yes
+	|  -
+	button(ng-click='home()') No thanks
+

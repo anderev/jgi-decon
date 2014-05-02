@@ -2,26 +2,45 @@
 
 /* Controllers */
 
-angular.module('myApp.controllers', []).
-  controller('AppCtrl', function ($scope, $http) {
+function IndexCtrl($scope, $http) {
+	$http.get('/api/jobs').
+		success(function(data, status, headers, config) {
+			$scope.jobs = data.jobs;
+		});
+}
 
-    $http({
-      method: 'GET',
-      url: '/api/name'
-    }).
-    success(function (data, status, headers, config) {
-      $scope.name = data.name;
-    }).
-    error(function (data, status, headers, config) {
-      $scope.name = 'Error!';
-    });
+function AddJobCtrl($scope, $http, $location) {
+	$scope.form = {};
+	$scope.submitJob = function() {
+    $http.post('/api/job', $scope.form).
+      success(function(data) {
+          $location.path('/');
+        });
+  };
+}
 
-  }).
-  controller('MyCtrl1', function ($scope) {
-    // write Ctrl here
+function ReadJobCtrl($scope, $http, $routeParams) {
+	$http.get('/api/job/' + $routeParams.id).
+		success(function(data) {
+			$scope.job = data.job;
+		});
+}
 
-  }).
-  controller('MyCtrl2', function ($scope) {
-    // write Ctrl here
+function DeleteJobCtrl($scope, $http, $location, $routeParams) {
+	$http.get('/api/job/' + $routeParams.id).
+		success(function(data) {
+			$scope.job = data.job;
+		});
 
-  });
+  $scope.deleteJob = function() {
+    $http.delete('/api/job/' + $routeParams.id).
+      success(function(data) {
+        $location.url('/');
+      });
+  };
+
+  $scope.home = function() {
+    $location.url('/');
+  };
+}
+
