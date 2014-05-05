@@ -1,8 +1,51 @@
-h2 Create a new job
-label(for='title') Title:
-input(ng-model='form.title', name='title')
-p Body:
-textarea(ng-model='form.text', cols='50', rows='15')
-p
-	button(ng-click='submitJob()') Submit Job
+div(align="center")
+  h2 Create a New Job
+  table
+    tr(align="right")
+      td
+        label(for='project_id') Project:
+        select(ng-model='form.project_id', ng-options='project.project_id as project.taxon_display_name for project in projects ', name='project_id')
+          
+    tr(align="right")
+      td
+        label(for='job_name') Job Name:
+        input(ng-model='form.job_name', name='job_name')
+    tr(align="right")
+      td
+        label(for='install_location') Install Location:
+        input(ng-model='form.install_location', name='install_location')
+    tr(align="right")
+      td
+        label(for='nt_location') NT Location:
+        input(ng-model='form.nt_location', name='nt_location')
+    tr(align="right")
+      td
+        label(for='working_dir') Working Directory:
+        input(ng-model='form.working_dir', name='working_dir')
+    tr(align="right")
+      td
+        label(for='in_fasta') Fasta Input:
+        input(ng-model='form.in_fasta', name='in_fasta')
+    tr(align="right")
+      td
+        label(for='run_genecall') Run GeneCall:
+        input(ng-model='form.run_genecall', name='run_genecall')
+    tr(align="right")
+      td
+        label(for='run_blast') Run Blast:
+        input(ng-model='form.run_blast', name='run_blast')
+    tr(align="right")
+      td
+        label(for='run_classify') Run Classify:
+        input(ng-model='form.run_classify', name='run_classify')
+    tr(align="right")
+      td
+        label(for='run_accuracy') Run Accuracy:
+        input(ng-model='form.run_accuracy', name='run_accuracy')
+    tr(align="right")
+      td
+        label(for='blast_threads') Number of Blast Threads:
+        input(ng-model='form.blast_threads', name='blast_threads')
+  p
+    button(ng-click='submitJob()') Submit Job
 

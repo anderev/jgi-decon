@@ -47,10 +47,15 @@ app.get('/partials/:name', routes.partials);
 // JSON API
 
 app.get('/api/jobs', api.jobs);
-
+app.get('/api/jobsInProject/:id', api.jobsInProject);
 app.get('/api/job/:id', api.job);
 app.post('/api/job', api.addJob);
 app.delete('/api/job/:id', api.deleteJob);
+
+app.get('/api/projects', api.projects);
+app.get('/api/project/:id', api.project);
+app.post('/api/project', api.addProject);
+app.delete('/api/project/:id', api.deleteProject);
 
 // redirect all others to the index (HTML5 history)
 app.get('*', routes.index);

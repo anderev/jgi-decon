@@ -3,14 +3,18 @@
 /* Controllers */
 
 function IndexCtrl($scope, $http) {
-	$http.get('/api/jobs').
+	$http.get('/api/projects').
 		success(function(data, status, headers, config) {
-			$scope.jobs = data.jobs;
+			$scope.projects = data.projects;
 		});
 }
 
 function AddJobCtrl($scope, $http, $location) {
 	$scope.form = {};
+	$http.get('/api/projects').
+		success(function(data, status, headers, config) {
+			$scope.projects = data.projects;
+		});
 	$scope.submitJob = function() {
     $http.post('/api/job', $scope.form).
       success(function(data) {
@@ -34,6 +38,45 @@ function DeleteJobCtrl($scope, $http, $location, $routeParams) {
 
   $scope.deleteJob = function() {
     $http.delete('/api/job/' + $routeParams.id).
+      success(function(data) {
+        $location.url('/');
+      });
+  };
+
+  $scope.home = function() {
+    $location.url('/');
+  };
+}
+
+function AddProjectCtrl($scope, $http, $location) {
+	$scope.form = {};
+	$scope.submitProject = function() {
+    $http.post('/api/project', $scope.form).
+      success(function(data) {
+          $location.path('/');
+        });
+  };
+}
+
+function ReadProjectCtrl($scope, $http, $routeParams) {
+	$http.get('/api/jobsInProject/' + $routeParams.id).
+		success(function(data) {
+			$scope.jobs = data.jobs;
+		});
+	$http.get('/api/project/' + $routeParams.id).
+		success(function(data) {
+			$scope.project = data.project;
+		});
+}
+
+function DeleteProjectCtrl($scope, $http, $location, $routeParams) {
+	$http.get('/api/project/' + $routeParams.id).
+		success(function(data) {
+			$scope.project = data.project;
+		});
+
+  $scope.deleteProject = function() {
+    $http.delete('/api/project/' + $routeParams.id).
       success(function(data) {
         $location.url('/');
       });
