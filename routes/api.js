@@ -1,6 +1,7 @@
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database('scd.db');
 var spawn = require('child_process').spawn;
+var fs = require('fs');
 
 db.serialize(function() {
   db.run("CREATE TABLE IF NOT EXISTS project (project_id INTEGER PRIMARY KEY AUTOINCREMENT, taxon_display_name TEXT, taxon_domain TEXT, taxon_phylum TEXT, taxon_class TEXT, taxon_order TEXT, taxon_family TEXT, taxon_genus TEXT, taxon_species TEXT)");
@@ -84,7 +85,7 @@ exports.jobsInProject = function(req, res) {
 
 exports.job = function(req, res) {
   var id = req.params.id;
-	db.each("SELECT * FROM job WHERE job_id = ?", [id], function(err, row) {
+	db.get("SELECT * FROM job WHERE job_id = ?", [id], function(err, row) {
     if(!err) {
       res.json({
         job: row
@@ -102,18 +103,74 @@ exports.addProject = function(req, res) {
 };
 
 exports.addJob = function(req, res) {
-  var process = spawn('find', ['~ewanders']);
-  var pid = process.pid;
   var now = new Date();
   var start_time = now.toDateString() + ' ' + now.toTimeString();
-  db.run("INSERT INTO job VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", [req.body.project_id,pid,start_time,null,req.body.install_location,req.body.nt_location,req.body.working_dir,req.body.in_fasta,req.body.job_name,req.body.run_genecall,req.body.run_blast,req.body.run_classify,req.body.run_accuracy,req.body.blast_threads] );
-  res.json(req.body);
+  db.run("INSERT INTO job VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", [req.body.project_id,null,start_time,null,req.body.install_location,req.body.nt_location,req.body.working_dir,req.body.in_fasta,req.body.job_name,req.body.run_genecall,req.body.run_blast,req.body.run_classify,req.body.run_accuracy,req.body.blast_threads], function(err) {
+    if(!err) {
+      db.get("SELECT last_insert_rowid()", function(err,row) {
+        if(row) {
+          var job_id = row['last_insert_rowid()'];
+          db.get("SELECT * FROM job natural join project WHERE job_id = ?", [job_id], function(err, row) {
+            if(row) {
+              var working_dir = '/global/homes/e/ewanders/dev/scd-viz-3/working_dirs/' + job_id;
+              row.working_dir = working_dir;
+              var config_data = "";
+              var config_keys = ['taxon_display_name','taxon_domain','taxon_phylum','taxon_class','taxon_order','taxon_family','taxon_genus','taxon_species','install_location','nt_location','working_dir','in_fasta','job_name','run_genecall','run_blast','run_classify','run_accuracy','blast_threads'];
+              for (var k=0; k<config_keys.length; ++k) {
+                var key = config_keys[k];
+                var value = row[key];
+                if(value || (key == 'nt_location' || key.indexOf('run_' >= 0) || key.indexOf('taxon_') >= 0)) {
+                  config_data = config_data + key.toUpperCase() + '="' + value + '"\n';
+                } else {
+                  res.json(false);
+                  console.log(key+'='+value);
+                  console.log(row);
+                  return;
+                }
+              }
+              fs.mkdirSync(working_dir);
+              var new_config_filename = working_dir+'/job.conf';
+              var new_config = fs.openSync(new_config_filename, 'w');
+              fs.writeSync(new_config, config_data);
+              fs.closeSync(new_config);
+
+              var process = spawn('/global/homes/e/ewanders/scd-1.3.1/bin/scd.sh', [new_config_filename]);
+              process.stdout.on('data', function(data) {
+                console.log('stdout: ' + data);
+              });
+              process.stderr.on('data', function(data) {
+                console.log('stderr: ' + data);
+              });
+              process.on('close', function(code) {
+                console.log('child process exited with status: ' + code);
+              });
+              var pid = process.pid;
+              db.run("UPDATE job SET process_id = ?, working_dir = ? WHERE job_id = ?", pid, working_dir, job_id, function(err) {
+                if(!err) {
+                  res.json(req.body);
+                } else {
+                  res.jason(false);
+                }
+              });
+            } else {
+              console.log('Failed to find new row.');
+            }
+          });
+      } else {
+        console.log('Failed to get last inserted row id.');
+      }
+    });
+  } else {
+    console.log('Failed to insert new job into table.');
+  }
+  });
 };
 
 // DELETE
 exports.deleteProject = function(req, res) {
   var id = req.params.id;
   db.run("DELETE FROM project WHERE project_id = ?", [id]);
+  db.run("DELETE FROM job WHERE project_id = ?", [id]);
   res.json(true);
 };
 

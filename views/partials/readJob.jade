@@ -1,2 +1,47 @@
 h3 {{job.job_name}}
-
+table
+  tr
+    td
+      | Install Location:
+    td
+      | {{job.install_location}}
+  tr
+    td
+      | NT Location:
+    td
+      | {{job.nt_location}}
+  tr
+    td
+      | Working Directory:
+    td
+      | {{job.working_dir}}
+  tr
+    td
+      | Input Fasta:
+    td
+      | {{job.in_fasta}}
+  tr
+    td
+      | Run GeneCall:
+    td
+      | {{job.run_genecall}}
+  tr
+    td
+      | Run Blast:
+    td
+      | {{job.run_genecall}}
+  tr
+    td
+      | Run Classify:
+    td
+      | {{job.run_classify}}
+  tr
+    td
+      | Run Accuracy:
+    td
+      | {{job.run_accuracy}}
+  tr
+    td
+      | Blast Threads:
+    td
+      | {{job.blast_threads}}
