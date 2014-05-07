@@ -1,35 +1,43 @@
 div(align="center")
   h2 Create a New Job
   table
-    tr(align="right")
-      td
+    tr
+      td(align="right")
         label(for='project_id') Project:
+      td
         select(ng-model='form.project_id', ng-options='project.project_id as project.taxon_display_name for project in projects ', name='project_id')
-          
-    tr(align="right")
-      td
+    tr
+      td(align="right")
         label(for='in_fasta') Fasta Input:
+      td
         input(ng-model='form.in_fasta', name='in_fasta')
-    tr(align="right")
-      td
+    tr
+      td(align="right")
         label(for='run_genecall') Run GeneCall:
-        input(ng-model='form.run_genecall', name='run_genecall')
-    tr(align="right")
       td
+        input(ng-model='form.run_genecall', type='checkbox', name='run_genecall')
+    tr
+      td(align="right")
         label(for='run_blast') Run Blast:
-        input(ng-model='form.run_blast', name='run_blast')
-    tr(align="right")
       td
+        input(ng-model='form.run_blast', type='checkbox', name='run_blast')
+    tr
+      td(align="right")
         label(for='run_classify') Run Classify:
-        input(ng-model='form.run_classify', name='run_classify')
-    tr(align="right")
       td
+        input(ng-model='form.run_classify', type='checkbox', name='run_classify')
+    tr
+      td(align="right")
         label(for='run_accuracy') Run Accuracy:
-        input(ng-model='form.run_accuracy', name='run_accuracy')
-    tr(align="right")
       td
+        input(ng-model='form.run_accuracy', type='checkbox', name='run_accuracy')
+    tr
+      td(align="right")
         label(for='blast_threads') Number of Blast Threads:
-        input(ng-model='form.blast_threads', name='blast_threads')
+      td
+        select(ng-model='form.blast_threads', name='blast_threads')
+          each i in [1,2,3,4,5,6,7,8]
+            option= i
   p
     button(ng-click='submitJob()') Submit Job
 

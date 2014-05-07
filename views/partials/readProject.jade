@@ -1,8 +1,9 @@
-h3 {{project.taxon_display_name}}
-div(ng-repeat='job in jobs', style="margin-left:45px")
-  | {{job.job_name}}
-  |  - 
-  a(href='readJob/{{job.job_id}}') More
-  |  - 
-  a(href='deleteJob/{{job.job_id}}') Delete
+div(align="center")
+  h3 {{project.taxon_display_name}}
+  div(ng-repeat='job in jobs')
+    | {{job.start_time}}
+    |  -  
+    a(href='readJob/{{job.job_id}}') [explore]
+    |  -  
+    a(href='deleteJob/{{job.job_id}}') [delete]
 

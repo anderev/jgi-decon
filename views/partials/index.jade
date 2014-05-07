@@ -1,6 +1,7 @@
-div(ng-repeat='project in projects', style="margin-left:45px")
+div(ng-repeat='project in projects', align="center")
   h3 {{project.taxon_display_name}}
-  a(href='readProject/{{project.project_id}}') More
-  |  -
-  a(href='deleteProject/{{project.project_id}}') Delete
+
+  a(href='readProject/{{project.project_id}}') [explore]
+  |  -  
+  a(href='deleteProject/{{project.project_id}}') [delete]
 
