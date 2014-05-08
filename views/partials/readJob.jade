@@ -1,11 +1,17 @@
 div(align="center")
-  h3 {{job.start_time}}
+  h3 {{job.taxon_display_name}}
+  h4 {{job.start_time}}
   table
     tr
       td
-        | Working Directory:
+        | Clean Data:
       td
-        | {{job.working_dir}}
+        a(target="_self",href='getCleanFasta/{{job.job_id}}') Fasta
+    tr
+      td
+        | Contaminant Data:
+      td
+        a(target="_self",href='getContamFasta/{{job.job_id}}') Fasta
     tr
       td
         | Input Fasta:

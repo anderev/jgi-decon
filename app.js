@@ -17,7 +17,7 @@ var app = module.exports = express();
  */
 
 // all environments
-app.set('port', process.env.PORT || 3000);
+app.set('port', process.env.PORT || 2999);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
 app.use(express.logger('dev'));
@@ -43,6 +43,8 @@ if (app.get('env') === 'production') {
 
 app.get('/', routes.index);
 app.get('/partials/:name', routes.partials);
+app.get('/getCleanFasta/:id', routes.getCleanFasta);
+app.get('/getContamFasta/:id', routes.getContamFasta);
 
 // JSON API
 

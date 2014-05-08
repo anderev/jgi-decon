@@ -93,7 +93,7 @@ exports.jobsInProject = function(req, res) {
 
 exports.job = function(req, res) {
   var id = req.params.id;
-	db.get("SELECT * FROM job WHERE job_id = ?", [id], function(err, row) {
+	db.get("SELECT * FROM job NATURAL JOIN project WHERE job_id = ?", [id], function(err, row) {
     if(!err) {
       res.json({
         job: row
