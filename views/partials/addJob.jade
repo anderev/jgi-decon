@@ -13,30 +13,10 @@ div(align="center")
         input(ng-model='form.in_fasta', name='in_fasta')
     tr
       td(align="right")
-        label(for='run_genecall') Run GeneCall:
-      td
-        input(ng-model='form.run_genecall', type='checkbox', name='run_genecall')
-    tr
-      td(align="right")
-        label(for='run_blast') Run Blast:
-      td
-        input(ng-model='form.run_blast', type='checkbox', name='run_blast')
-    tr
-      td(align="right")
-        label(for='run_classify') Run Classify:
-      td
-        input(ng-model='form.run_classify', type='checkbox', name='run_classify')
-    tr
-      td(align="right")
-        label(for='run_accuracy') Run Accuracy:
-      td
-        input(ng-model='form.run_accuracy', type='checkbox', name='run_accuracy')
-    tr
-      td(align="right")
         label(for='blast_threads') Number of Blast Threads:
       td
         select(ng-model='form.blast_threads', name='blast_threads')
-          each i in [1,2,3,4,5,6,7,8]
+          each i in [1,8,16]
             option= i
   p
     button(ng-click='submitJob()') Submit Job

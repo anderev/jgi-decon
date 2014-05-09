@@ -19,26 +19,6 @@ div(align="center")
         | {{job.in_fasta}}
     tr
       td
-        | Run GeneCall:
-      td
-        input(type="checkbox", checked="{{job.run_genecall==1}}", disabled="true")
-    tr
-      td
-        | Run Blast:
-      td
-        input(type="checkbox", checked="{{job.run_blast==1}}", disabled="true")
-    tr
-      td
-        | Run Classify:
-      td
-        input(type="checkbox", checked="{{job.run_classify==1}}", disabled="true")
-    tr
-      td
-        | Run Accuracy:
-      td
-        input(type="checkbox", checked="{{job.run_accuracy==1}}", disabled="true")
-    tr
-      td
         | Blast Threads:
       td
         | {{job.blast_threads}}
