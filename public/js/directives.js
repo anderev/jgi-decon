@@ -3,8 +3,8 @@
 /* Directives */
 
 angular.module('myApp.directives', []).
-  directive('appVersion', function (version) {
+directive('appVersion', function (version) {
     return function(scope, elm, attrs) {
-      elm.text(version);
+    elm.text(version);
     };
-  });
+    });
