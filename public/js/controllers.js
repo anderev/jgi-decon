@@ -9,7 +9,7 @@ function IndexCtrl($scope, $http) {
 		});
 }
 
-function AddJobCtrl($scope, $http, $location) {
+function AddJobCtrl($scope, $http, $location, plotService) {
 	$scope.form = {};
 	$http.get('/api/projects').
 		success(function(data, status, headers, config) {
