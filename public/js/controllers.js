@@ -9,7 +9,7 @@ function IndexCtrl($scope, $http) {
         });
 }
 
-function AddJobCtrl($scope, $http, $location, plotService) {
+function AddJobCtrl($scope, $http, $location) {
   $scope.form = {};
   $http.get('/api/projects').
     success(function(data, status, headers, config) {
@@ -23,10 +23,12 @@ function AddJobCtrl($scope, $http, $location, plotService) {
   };
 }
 
-function ReadJobCtrl($scope, $http, $routeParams) {
+function ReadJobCtrl($scope, $http, $routeParams, plotService) {
   $http.get('/api/job/' + $routeParams.id).
     success(function(data) {
         $scope.job = data.job;
+        $scope.plotService = plotService;
+        $scope.plotService.init();
         });
 }
 
