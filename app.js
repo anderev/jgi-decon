@@ -51,6 +51,7 @@ app.get('/getContamFasta/:id', routes.getContamFasta);
 app.get('/api/jobs', api.jobs);
 app.get('/api/jobsInProject/:id', api.jobsInProject);
 app.get('/api/job/:id', api.job);
+app.get('/api/getPCA/:id', api.getPCA);
 app.post('/api/job', api.addJob);
 app.delete('/api/job/:id', api.deleteJob);
 
