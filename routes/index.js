@@ -23,10 +23,10 @@ exports.getContamFasta = function(req, res) {
 };
 
 getFasta = function(type, req, res) {
-  var id = req.params.id;
-	db.get("SELECT * FROM job NATURAL JOIN project WHERE job_id = ?", [id], function(err, row) {
+  var id = parseInt(req.params.id);
+  db.get("SELECT * FROM config", function(err, row) {
     if(!err) {
-      res.download(row.working_dir+'/job_'+row.job_id+'_output_'+type+'.fna');
+      res.download(row.working_dir+'/job_'+id+'/job_'+id+'_output_'+type+'.fna');
     } else {
       res.json(false);
     }

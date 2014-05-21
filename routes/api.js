@@ -13,7 +13,7 @@ db.serialize(function() {
     }
   });
   db.run("CREATE TABLE IF NOT EXISTS project (project_id INTEGER PRIMARY KEY AUTOINCREMENT, taxon_display_name TEXT, taxon_domain TEXT, taxon_phylum TEXT, taxon_class TEXT, taxon_order TEXT, taxon_family TEXT, taxon_genus TEXT, taxon_species TEXT)");
-  db.run("CREATE TABLE IF NOT EXISTS job (job_id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INT, process_id INT, start_time INT, end_time INT, working_dir TEXT, in_fasta TEXT, job_name TEXT, blast_threads INT)");
+  db.run("CREATE TABLE IF NOT EXISTS job (job_id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INT, process_id INT, start_time INT, end_time INT, in_fasta TEXT, blast_threads INT)");
 });
 
 // GET
@@ -193,7 +193,7 @@ exports.addJob = function(req, res) {
                 console.log('child process exited with status: ' + code);
               });
               var pid = process.pid;
-              db.run("UPDATE job SET process_id = ?, working_dir = ?, job_name = ? WHERE job_id = ?", pid, cfg.working_dir+'/'+cfg.job_name, cfg.job_name, job_id, function(err) {
+              db.run("UPDATE job SET process_id = ?, working_dir = ? = ? WHERE job_id = ?", pid, cfg.working_dir+'/'+cfg.job_name, job_id, function(err) {
                 if(!err) {
                   res.json(req.body);
                 } else {
