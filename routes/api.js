@@ -106,19 +106,20 @@ exports.job = function(req, res) {
 
 exports.getPCA = function(req, res) {
 	var pointData = [];
-	for(var i=0; i<2000; ++i) {
+	var numTypes = 10.0;
+	for(var i=0; i<5000; ++i) {
 		var point = {};
 		var phi = Math.random() * 2.0 * Math.PI;
 		var theta = Math.random() * Math.PI;
 		var r = Math.ceil(Math.random() * 2.0);
-		point.id = Math.floor((Math.random()*10.0) + 1);
+		point.id = Math.floor((Math.random()*numTypes) + 1);
 		point.x = r * Math.sin(theta) * Math.cos(phi);
 		point.y = r * Math.sin(theta) * Math.sin(phi);
 		point.z = r * Math.cos(theta);
 		pointData.push(point);
 	}
 	res.json({
-		numTypes: 10,
+		numTypes: numTypes,
 		points: pointData
 	})
 }
