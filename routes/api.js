@@ -6,10 +6,11 @@ var fs = require('fs');
 db.serialize(function() {
   var install_location = '/global/homes/e/ewanders/scd-1.3.1';
   var nt_location = '/global/dna/shared/rqc/ref_databases/ncbi/CURRENT/nt/nt';
-  var working_dir = '/global/homes/e/ewanders/dev/scd-viz-3/working_dirs';
-  db.run("CREATE TABLE IF NOT EXISTS config (config_id INTEGER PRIMARY KEY, install_location TEXT, nt_location TEXT, working_dir TEXT)", function(err) {
+  var working_dir = '/global/homes/e/ewanders/dev/scd-viz/working_dirs';
+  var scd_exe = 'qsub -N JOBNAME -j y -R y -V -o LOGFILE -l h_rt=12:00:00 -l exclusive.c /global/homes/e/ewanders/scd-1.3.1/bin/scd.sh';
+  db.run("CREATE TABLE IF NOT EXISTS config (config_id INTEGER PRIMARY KEY, install_location TEXT, nt_location TEXT, working_dir TEXT, scd_exe TEXT)", function(err) {
     if(!err) {
-      db.run("INSERT OR IGNORE INTO config VALUES (1,?,?,?)", [install_location, nt_location, working_dir]);
+      db.run("INSERT OR IGNORE INTO config VALUES (1,?,?,?,?)", [install_location, nt_location, working_dir, scd_exe]);
     }
   });
   db.run("CREATE TABLE IF NOT EXISTS project (project_id INTEGER PRIMARY KEY AUTOINCREMENT, taxon_display_name TEXT, taxon_domain TEXT, taxon_phylum TEXT, taxon_class TEXT, taxon_order TEXT, taxon_family TEXT, taxon_genus TEXT, taxon_species TEXT)");
@@ -183,7 +184,10 @@ exports.addJob = function(req, res) {
               fs.writeSync(new_config, config_data);
               fs.closeSync(new_config);
 
-              var process = spawn('/global/homes/e/ewanders/scd-1.3.1/bin/scd.sh', [new_config_filename]);
+              var cmd_line = config.scd_exe.replace("JOBNAME", "SCD_VIZ-"+cfg.job_name).replace("LOGFILE", cfg.working_dir+'/'+cfg.job_name+'/qsub.log')+' '+new_config_filename;
+              var cmd_args = cmd_line.split(' ');
+              var cmd_exe = cmd_args.shift();
+              var process = spawn(cmd_exe, cmd_args);
               process.stdout.on('data', function(data) {
                 console.log('stdout: ' + data);
               });
