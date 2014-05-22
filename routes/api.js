@@ -13,7 +13,20 @@ db.serialize(function() {
       db.run("INSERT OR IGNORE INTO config VALUES (1,?,?,?,?)", [install_location, nt_location, working_dir, scd_exe]);
     }
   });
-  db.run("CREATE TABLE IF NOT EXISTS project (project_id INTEGER PRIMARY KEY AUTOINCREMENT, taxon_display_name TEXT, taxon_domain TEXT, taxon_phylum TEXT, taxon_class TEXT, taxon_order TEXT, taxon_family TEXT, taxon_genus TEXT, taxon_species TEXT)");
+  db.run("CREATE TABLE IF NOT EXISTS project (project_id INTEGER PRIMARY KEY AUTOINCREMENT, taxon_display_name TEXT, taxon_domain TEXT, taxon_phylum TEXT, taxon_class TEXT, taxon_order TEXT, taxon_family TEXT, taxon_genus TEXT, taxon_species TEXT)", function(err) {
+    if(!err) {
+      db.run("INSERT OR IGNORE INTO project VALUES (1,?,?,?,?,?,?,?,?)", [
+          'Propionibacteriaceae bacterium P6A17',
+          'Bacteria',
+          'Actinobacteria',
+          'Actinobacteria',
+          'Actinomycetales',
+          'Propionibacteriaceae',
+          null,
+          null
+        ]);
+    }
+  });
   db.run("CREATE TABLE IF NOT EXISTS job (job_id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INT, process_id INT, start_time INT, end_time INT, in_fasta TEXT, blast_threads INT)");
 });
 
@@ -141,7 +154,7 @@ exports.addJob = function(req, res) {
     }});
   var now = new Date();
   var start_time = now.toDateString() + ' ' + now.toTimeString();
-  db.run("INSERT INTO job VALUES (NULL,?,?,?,?,?,?,?,?)", [req.body.project_id,null,start_time,null,null,req.body.in_fasta,'',req.body.blast_threads], function(err) {
+  db.run("INSERT INTO job VALUES (NULL,?,?,?,?,?,?)", [req.body.project_id,null,start_time,null,req.body.in_fasta,req.body.blast_threads], function(err) {
     if(!err) {
       db.get("SELECT last_insert_rowid()", function(err,row) {
         if(row) {
@@ -202,7 +215,7 @@ exports.addJob = function(req, res) {
                 if(!err) {
                   res.json(req.body);
                 } else {
-                  res.jason(false);
+                  res.json(false);
                 }
               });
             } else {
@@ -211,10 +224,12 @@ exports.addJob = function(req, res) {
           });
       } else {
         console.log('Failed to get last inserted row id.');
+        console.log(err);
       }
     });
   } else {
     console.log('Failed to insert new job into table.');
+    console.log(err);
   }
   });
 };
