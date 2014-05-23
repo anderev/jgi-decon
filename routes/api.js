@@ -203,20 +203,26 @@ exports.addJob = function(req, res) {
               var process = spawn(cmd_exe, cmd_args);
               process.stdout.on('data', function(data) {
                 console.log('stdout: ' + data);
+                var parsed = data.match(/Your job ([0-9]+)/);
+                if(parsed.length == 2) {
+                  var process_id = parseInt(parsed[1]);
+                  console.log('Parsed job id: ' + process_id);
+                  db.run("UPDATE job SET process_id = ?, working_dir = ? WHERE job_id = ?", pid, cfg.working_dir+'/'+cfg.job_name, job_id, function(err) {
+                    if(!err) {
+                      res.json(req.body);
+                    } else {
+                      console.log('Failed to update job with process_id and working_dir.');
+                      console.log(err);
+                      res.json(false);
+                    }
+                  });
+                }
               });
               process.stderr.on('data', function(data) {
                 console.log('stderr: ' + data);
               });
               process.on('close', function(code) {
                 console.log('child process exited with status: ' + code);
-              });
-              var pid = process.pid;
-              db.run("UPDATE job SET process_id = ?, working_dir = ? = ? WHERE job_id = ?", pid, cfg.working_dir+'/'+cfg.job_name, job_id, function(err) {
-                if(!err) {
-                  res.json(req.body);
-                } else {
-                  res.json(false);
-                }
               });
             } else {
               console.log('Failed to find new row.');
