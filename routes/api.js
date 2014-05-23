@@ -7,7 +7,7 @@ db.serialize(function() {
   var install_location = '/global/homes/e/ewanders/scd-1.3.1';
   var nt_location = '/global/dna/shared/rqc/ref_databases/ncbi/CURRENT/nt/nt';
   var working_dir = '/global/homes/e/ewanders/dev/scd-viz/working_dirs';
-  var scd_exe = 'qsub -N JOBNAME -j y -R y -V -o LOGFILE -l h_rt=12:00:00 -l exclusive.c /global/homes/e/ewanders/scd-1.3.1/bin/scd.sh';
+  var scd_exe = 'qsub -N JOBNAME -j y -R y -V -o LOGFILE -l h_rt=12:00:00 -l ram.c=48G /global/homes/e/ewanders/scd-1.3.1/bin/scd.sh';
   db.run("CREATE TABLE IF NOT EXISTS config (config_id INTEGER PRIMARY KEY, install_location TEXT, nt_location TEXT, working_dir TEXT, scd_exe TEXT)", function(err) {
     if(!err) {
       db.run("INSERT OR IGNORE INTO config VALUES (1,?,?,?,?)", [install_location, nt_location, working_dir, scd_exe]);
