@@ -1,16 +1,7 @@
 extends layout
 
-block body
+block content
   div
-    p(align='center')
-      | JGI Single-Cell Decontamination
-    p(align='center')
-      a(href='/') Home
-      |  |  
-      a(href='/addProject') New Project
-      |  |  
-      a(href='/addJob') New Job
-
     div(ng-view)
 
   script(src='js/lib/angular/angular.js')

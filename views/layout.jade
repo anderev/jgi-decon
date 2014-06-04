@@ -5,103 +5,93 @@ html(ng-app="myApp")
     base(href='/')
     title JGI Single-Cell Decontamination
     link(rel='stylesheet', href='http://jgi.doe.gov/wp-content/themes/jgi-apps/style.css')
-.site-container
-  header.site-header
-    .wrap
-      .title-area
-        a.mainsite-link(href='http://jgi.doe.gov/') Joint Genome Institute
-      aside.widget-area.header-widget-area
-        section#text-2.widget.widget_text
-          .widget-wrap
-            .textwidget
-              form.search-form(method='get', action='http://jgi.doe.gov/search-results')
-                input(type='search', placeholder='Search JGI websites …', name='q')
-                input(type='submit', value='Search')
-        section#nav_menu-2.widget.widget_nav_menu
-          .widget-wrap
-            nav.nav-header
-              ul#menu-header-menu.menu
-                li#menu-item-9.menu-item.menu-item-type-custom.menu-item-object-custom.current-menu-item.current_page_item.menu-item-9
-                  a(href='/')
-                    | Item
-                    | 1
-                li#menu-item-10.menu-item.menu-item-type-custom.menu-item-object-custom.menu-item-10
-                  a(href='http://www.jgi.doe.gov/contact-us/')
-                    | Contact
-                    | Us
-  .home-link
-    .wrap
-      h1.site-title
-        a(title='App Template (header/footer)', href='/')
-          | App Template
-          | (header/footer)
-  nav.nav-primary
-    .wrap
-      ul#menu-sample-menu.menu.menu-primary
-        li#menu-item-4.menu-item.current-menu-item
-          a(href='/') Main Link 1
-        li#menu-item-5.menu-item.menu-item-has-children
-          a(href='/') Item with Drop-down
-          ul.sub-menu
-            li#menu-item-6.menu-item
-              a(href='/') Sub-item 1
-            li#menu-item-7.menu-item
-              a(href='/') Sub-Item 2
-        li#menu-item-8.menu-item
-          a(href='/') Another Menu Item
-  .site-inner
-    // add your content here
-    block body
-  footer.site-footer
-    .wrap
-      .footer-widgets
-        .wrap
-          .footer-widgets-1.widget-area
-            section#nav_menu-4.widget.widget_nav_menu
-              .widget-wrap
-                .menu-footer-menu-2-container
-                  ul#menu-footer-menu-2.menu
-                    li#menu-item-28.menu-item.menu-item-type-custom.menu-item-object-custom.menu-item-28
-                      a(href='http://www.jgi.doe.gov/accessibility-section-508-statement/')
-                        | Accessibility / Section 508
-                        | Statement
-            section#nav_menu-3.widget.widget_nav_menu
-              .widget-wrap
-                .menu-footer-menu-1-container
-                  ul#menu-footer-menu-1.menu
-                    li#menu-item-26.menu-item.menu-item-type-custom.menu-item-object-custom.menu-item-26
-                      a(href='http://www.jgi.doe.gov/contact-us/')
-                        | Contact Us
-                    li#menu-item-27.menu-item.menu-item-type-custom.menu-item-object-custom.menu-item-27
-                      a(href='http://www.jgi.doe.gov/disclaimer/')
-                        | Disclaimer
-          .footer-widgets-2.widget-area
-            section#text-3.widget.widget_text
-              .widget-wrap
-                .textwidget
-                  ul.smedia_icons.horizontal
-                    li
-                      a(href='https://twitter.com/doe_jgi')
-                        img(src='images/twitter_icon.png')
-                    li
-                      a(href='http://www.flickr.com/photos/doe_jgi/')
-                        img(src='images/flickr_icon.png')
-                    li
-                      a(href='https://www.facebook.com/JointGenomeInstitute')
-                        img(src='images/fb_icon.png')
-                    li
-                      a(href='http://www.youtube.com/user/JointGenomeInstitute')
-                        img(src='images/yt_icon.png')
-                    li
-                      a(href='http://www.linkedin.com/groups/DOE-Joint-Genome-Institute-4080297/about')
-                        img(src='images/li_icon.png')
-                    // <li><a href="http://www.scivee.tv/user/7476"><img src='http://jgi.doe.gov/wp-content/uploads/2013/11/Scivee_logo_gray_transparent.png'></a></li>
-          .footer-widgets-3.widget-area
-            section#widget_sp_image-2.widget.widget_sp_image
-              .widget-wrap
-                a.widget_sp_image-image-link(title='Department of Energy | Office of Science', target='_blank', href='http://doe.gov')
-                  img.attachment-full.alignright(width='232', height='39', style='max-width: 100%;', src='images/DOE_logo.png', alt='')
-      #footer-left
-        p.copyright
-          | © 1997-2014 The Regents of the
-          | University of California
+  .site-container
+    header.site-header
+      .wrap
+        .title-area
+          a.mainsite-link(href='http://jgi.doe.gov/') Joint Genome Institute
+        aside.widget-area.header-widget-area
+          section#text-2.widget.widget_text
+            .widget-wrap
+              .textwidget
+                form.search-form(method='get', action='http://jgi.doe.gov/search-results')
+                  input(type='search', placeholder='Search JGI websites …', name='q')
+                  input(type='submit', value='Search')
+          section#nav_menu-2.widget.widget_nav_menu
+            .widget-wrap
+              nav.nav-header
+                ul#menu-header-menu.menu
+                  li#menu-item-10.menu-item.menu-item-type-custom.menu-item-object-custom.menu-item-10
+                    a(href='http://www.jgi.doe.gov/contact-us/')
+                      | Contact
+                      | Us
+    .home-link
+      .wrap
+        h1.site-title
+          a(title='Single-Cell Decontamination', href='/')
+            | Single-Cell Decontamination
+    nav.nav-primary
+      .wrap
+        ul#menu-sample-menu.menu.menu-primary
+          li#menu-item-4.menu-item.current-menu-item
+            a(href='/') Home
+          li#menu-item-5.menu-item
+            a(href='/addProject') New Project
+          li#menu-item-8.menu-item
+            a(href='/addJob') New Job
+    .site-inner
+      // add your content here
+      block content
+    footer.site-footer
+      .wrap
+        .footer-widgets
+          .wrap
+            .footer-widgets-1.widget-area
+              section#nav_menu-4.widget.widget_nav_menu
+                .widget-wrap
+                  .menu-footer-menu-2-container
+                    ul#menu-footer-menu-2.menu
+                      li#menu-item-28.menu-item.menu-item-type-custom.menu-item-object-custom.menu-item-28
+                        a(href='http://www.jgi.doe.gov/accessibility-section-508-statement/')
+                          | Accessibility / Section 508
+                          | Statement
+              section#nav_menu-3.widget.widget_nav_menu
+                .widget-wrap
+                  .menu-footer-menu-1-container
+                    ul#menu-footer-menu-1.menu
+                      li#menu-item-26.menu-item.menu-item-type-custom.menu-item-object-custom.menu-item-26
+                        a(href='http://www.jgi.doe.gov/contact-us/')
+                          | Contact Us
+                      li#menu-item-27.menu-item.menu-item-type-custom.menu-item-object-custom.menu-item-27
+                        a(href='http://www.jgi.doe.gov/disclaimer/')
+                          | Disclaimer
+            .footer-widgets-2.widget-area
+              section#text-3.widget.widget_text
+                .widget-wrap
+                  .textwidget
+                    ul.smedia_icons.horizontal
+                      li
+                        a(href='https://twitter.com/doe_jgi')
+                          img(src='images/twitter_icon.png')
+                      li
+                        a(href='http://www.flickr.com/photos/doe_jgi/')
+                          img(src='images/flickr_icon.png')
+                      li
+                        a(href='https://www.facebook.com/JointGenomeInstitute')
+                          img(src='images/fb_icon.png')
+                      li
+                        a(href='http://www.youtube.com/user/JointGenomeInstitute')
+                          img(src='images/yt_icon.png')
+                      li
+                        a(href='http://www.linkedin.com/groups/DOE-Joint-Genome-Institute-4080297/about')
+                          img(src='images/li_icon.png')
+                      // <li><a href="http://www.scivee.tv/user/7476"><img src='http://jgi.doe.gov/wp-content/uploads/2013/11/Scivee_logo_gray_transparent.png'></a></li>
+            .footer-widgets-3.widget-area
+              section#widget_sp_image-2.widget.widget_sp_image
+                .widget-wrap
+                  a.widget_sp_image-image-link(title='Department of Energy | Office of Science', target='_blank', href='http://doe.gov')
+                    img.attachment-full.alignright(width='232', height='39', style='max-width: 100%;', src='images/DOE_logo.png', alt='')
+        #footer-left
+          p.copyright
+            | © 1997-2014 The Regents of the
+            | University of California
