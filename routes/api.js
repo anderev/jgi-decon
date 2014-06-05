@@ -112,15 +112,46 @@ exports.job = function(req, res) {
       var process = spawn('qs', ['-j', row.process_id, '--style', 'json']);
       process.stdout.on('data', function(data) {
         console.log('qs stdout: ' + data);
-        var status = JSON.parse(new String(data));
+        var status = JSON.parse(new String(data).split('\n')[0]);
         if(status.length == 1) {
-          row.process_status = status;
+          if(status[0].state.match(/qw/)) {
+            row.process_status = 'Waiting in Queue';
+          } else if(status[0].state.match(/r/)) {
+            row.process_status = 'Running';
+          } else if(status[0].state.match(/t/)) {
+            row.process_status = 'Transfer';
+          } else {
+            row.process_status = 'Unknown';
+          }
+          if(status[0].state.match(/E/)) {
+            row.process_status = row.process_status + ' (ERROR)';
+          }
+          if(status[0].state.match(/h/)) {
+            row.process_status = row.process_status + ' (HOLD)';
+          }
+          if(status[0].state.match(/R/)) {
+            row.process_status = row.process_status + ' (RESUBMITTED)';
+          }
+          res.json({
+            job: row
+          });
         } else {
-          row.process_status = 'unknown';
+          var config;
+          db.get("SELECT * FROM config", function(err,config) {
+            if(!err) {
+              if(fs.existsSync(config.working_dir+'/job_'+row.job_id)) {
+                row.process_status = 'Complete';
+              } else {
+                row.process_status = 'unknown';
+              }
+              res.json({
+                job: row
+              });
+            } else {
+              console.log("Failed to read config from database.");
+              res.json(false);
+            }});
         }
-        res.json({
-          job: row
-        });
       });
       process.stderr.on('data', function(data) {
         console.log('qs stderr: ' + data);
@@ -213,7 +244,7 @@ exports.addJob = function(req, res) {
               fs.writeSync(new_config, config_data);
               fs.closeSync(new_config);
 
-              var cmd_line = config.scd_exe.replace("JOBNAME", "SCD_VIZ-"+cfg.job_name).replace("LOGFILE", cfg.working_dir+'/'+cfg.job_name+'/qsub.log')+' '+new_config_filename;
+              var cmd_line = config.scd_exe.replace("JOBNAME", "SCD_VIZ-"+cfg.job_name).replace("LOGFILE", cfg.working_dir+'/'+cfg.job_name+'-qsub.log')+' '+new_config_filename;
               var cmd_args = cmd_line.split(' ');
               var cmd_exe = cmd_args.shift();
               var process = spawn(cmd_exe, cmd_args);
