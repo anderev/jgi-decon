@@ -13,11 +13,9 @@ div(align="center")
         input(ng-model='form.in_fasta', name='in_fasta')
     tr
       td(align="right")
-        label(for='blast_threads') Blast Threads:
+        label(for='notes') Notes:
       td
-        select(ng-model='form.blast_threads', name='blast_threads')
-          each i in [1,8,16]
-            option= i
+        textarea(ng-model='form.notes', name='notes')
   p
     button(ng-click='submitJob()') Submit Job
 

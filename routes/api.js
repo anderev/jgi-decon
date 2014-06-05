@@ -27,7 +27,7 @@ db.serialize(function() {
         ]);
     }
   });
-  db.run("CREATE TABLE IF NOT EXISTS job (job_id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INT, process_id INT, start_time INT, end_time INT, in_fasta TEXT, blast_threads INT)");
+  db.run("CREATE TABLE IF NOT EXISTS job (job_id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INT, process_id INT, start_time INT, in_fasta TEXT, notes TEXT)");
 });
 
 // GET
@@ -201,7 +201,7 @@ exports.addJob = function(req, res) {
     }});
   var now = new Date();
   var start_time = now.toDateString() + ' ' + now.toTimeString();
-  db.run("INSERT INTO job VALUES (NULL,?,?,?,?,?,?)", [req.body.project_id,null,start_time,null,req.body.in_fasta,req.body.blast_threads], function(err) {
+  db.run("INSERT INTO job VALUES (NULL,?,?,?,?,?)", [req.body.project_id,null,start_time,req.body.in_fasta,req.body.notes], function(err) {
     if(!err) {
       db.get("SELECT last_insert_rowid()", function(err,row) {
         if(row) {
@@ -217,6 +217,7 @@ exports.addJob = function(req, res) {
               cfg.run_blast = 1;
               cfg.run_classify = 1;
               cfg.run_accuracy = 0;
+              cfg.blast_threads = 8;
               var config_data = "";
               var config_keys = ['taxon_display_name','taxon_domain','taxon_phylum','taxon_class','taxon_order','taxon_family','taxon_genus','taxon_species','install_location','nt_location','working_dir','in_fasta','job_name','run_genecall','run_blast','run_classify','run_accuracy','blast_threads'];
               for (var k=0; k<config_keys.length; ++k) {
