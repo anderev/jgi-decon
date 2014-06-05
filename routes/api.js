@@ -109,8 +109,24 @@ exports.job = function(req, res) {
   var id = req.params.id;
 	db.get("SELECT * FROM job NATURAL JOIN project WHERE job_id = ?", [id], function(err, row) {
     if(!err) {
-      res.json({
-        job: row
+      var process = spawn('qs', ['-j', row.process_id, '--style', 'json']);
+      process.stdout.on('data', function(data) {
+        console.log('qs stdout: ' + data);
+        var status = JSON.parse(new String(data));
+        if(status.length == 1) {
+          row.process_status = status;
+        } else {
+          row.process_status = 'unknown';
+        }
+        res.json({
+          job: row
+        });
+      });
+      process.stderr.on('data', function(data) {
+        console.log('qs stderr: ' + data);
+      });
+      process.on('close', function(code) {
+        console.log('qs exited with status: ' + code);
       });
     } else {
       res.json(false);
