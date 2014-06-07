@@ -3,6 +3,8 @@ div(align="center")
   div(ng-repeat='job in jobs')
     | {{job.start_time}}
     |  -  
+    | {{job.notes.substr(0,50)+'...'}}
+    |  -  
     a(href='readJob/{{job.job_id}}') [explore]
     |  -  
     a(href='deleteJob/{{job.job_id}}') [delete]
