@@ -30,8 +30,8 @@ angular.module('myApp.services').service('plotService', function() {
     	color: { type: 'c', value: []}
     };
     var particles = new THREE.Geometry();
-    for(var type_i=0.0; type_i<data.numTypes; ++type_i) {
-    	var hue = type_i / data.numTypes;
+    for(var type_i=0.0; type_i<data.points.length; ++type_i) {
+    	var hue = type_i / data.points.length;
     	var typeColor = new THREE.Color();
     	typeColor.setHSL(hue, 0.75, 0.5);
         typeColors.push(typeColor);
@@ -40,7 +40,7 @@ angular.module('myApp.services').service('plotService', function() {
     	var p = data.points[p_i];
     	var particle = new THREE.Vector3(p.x, p.y, p.z);
     	particles.vertices.push(particle);
-    	attributes.color.value.push(typeColors[p.id-1]);
+    	attributes.color.value.push(typeColors[p_i]);
     }
     var material = new THREE.ShaderMaterial({
     	attributes: attributes,
@@ -50,7 +50,7 @@ angular.module('myApp.services').service('plotService', function() {
     var particleSystem = new THREE.ParticleSystem(particles, material);
     scene.add(particleSystem);
 
-    camera.position.z = 5;
+    camera.position.z = 0.25;
 
     var render = function() {
       requestAnimationFrame(render);

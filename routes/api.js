@@ -166,23 +166,38 @@ exports.job = function(req, res) {
 };
 
 exports.getPCA = function(req, res) {
-	var pointData = [];
-	var numTypes = 10.0;
-	for(var i=0; i<5000; ++i) {
-		var point = {};
-		var phi = Math.random() * 2.0 * Math.PI;
-		var theta = Math.random() * Math.PI;
-		var r = Math.ceil(Math.random() * 2.0);
-		point.id = Math.floor((Math.random()*numTypes) + 1);
-		point.x = r * Math.sin(theta) * Math.cos(phi);
-		point.y = r * Math.sin(theta) * Math.sin(phi);
-		point.z = r * Math.cos(theta);
-		pointData.push(point);
-	}
-	res.json({
-		numTypes: numTypes,
-		points: pointData
-	})
+  db.get("SELECT * FROM config", function(err,config) {
+    if(!err) {
+      var job_name = 'job_' + req.params.id;
+      var filename_pca = config.working_dir + '/' + job_name + '/' + job_name + '_Intermediate/' + job_name + '_contigs_9mer.pca';
+      fs.readFile(filename_pca, function(err, data) {
+        if(!err) {
+          var lines = data.toString().split('\n');
+          var pointData = [];
+          var num_lines = lines.length;
+          for(var i=0; i<num_lines; ++i) {
+            var line = lines[i].split('\t');
+            var point = {};
+            point.x = line[0];
+            point.y = line[1];
+            point.z = line[2];
+            pointData.push(point);
+          }
+
+          res.json({
+            points: pointData
+          })
+        } else {
+          console.log(err);
+          console.log('While opening' + filename_pca);
+          res.json(false);
+        }
+      });
+    } else {
+      console.log(err);
+      res.json(false);
+    }
+  });
 }
 // POST
 exports.addProject = function(req, res) {
