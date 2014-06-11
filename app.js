@@ -7,7 +7,8 @@ var express = require('express'),
   routes = require('./routes'),
   api = require('./routes/api'),
   http = require('http'),
-  path = require('path');
+  path = require('path'),
+  cookieParser = require('cookie-parser');
 
 var app = module.exports = express();
 
@@ -41,6 +42,19 @@ if (app.get('env') === 'production') {
  * Routes
  */
 
+app.get('*', cookieParser('secret string'));
+app.get('*', function(req, res, next) {
+  if( req.cookies && 'jgi_session' in req.cookies) {
+    console.log(req.cookies);
+    next();
+  } else {
+    console.log('Cookies: ' + JSON.stringify(req.cookies));
+	var jgi_return = 'http://mgs.jgi-psf.org' + req.originalUrl;
+	console.log('Redirecting with jgi_return: ' + jgi_return);
+    res.cookie('jgi_return', jgi_return);
+    res.redirect('https://signon2.jgi-psf.org');
+  }
+});
 app.get('/', routes.index);
 app.get('/partials/:name', routes.partials);
 app.get('/getCleanFasta/:id', routes.getCleanFasta);
