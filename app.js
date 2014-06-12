@@ -7,7 +7,6 @@ var express = require('express'),
   routes = require('./routes'),
   api = require('./routes/api'),
   http = require('http'),
-  https = require('https'),
   path = require('path'),
   cookieParser = require('cookie-parser');
 
@@ -44,31 +43,7 @@ if (app.get('env') === 'production') {
  */
 
 app.get('*', cookieParser('secret string'));
-app.get('*', function(req, res, next) {
-  if( req.cookies && 'jgi_session' in req.cookies) {
-    console.log('jgi_session: ' + req.cookies.jgi_session);
-    var session_req = https.request({hostname:'signon.jgi-psf.org', path: req.cookies.jgi_session}, function(session_res) {
-      if(session_res.statusCode == 200) {
-          next();
-      } else {
-        console.log('session_res.statusCode: ' + session_res.statusCode);
-        console.log(JSON.stringify(session_res.headers));
-        var jgi_return = 'http://' + req.host + ':' + app.get('port').toString() + req.originalUrl;
-        res.cookie('jgi_return', jgi_return, {domain: '.jgi-psf.org'});
-        res.redirect('https://signon2.jgi-psf.org');
-      }
-    });
-    session_req.on('error', function(e) {
-      console.log('Error checking session against Caliban: ' + e);
-    });
-    session_req.write('session status\n');
-    session_req.end();
-  } else {
-    var jgi_return = 'http://' + req.host + ':' + app.get('port').toString() + req.originalUrl;
-    res.cookie('jgi_return', jgi_return, {domain: '.jgi-psf.org'});
-    res.redirect('https://signon2.jgi-psf.org');
-  }
-});
+app.get('*', Caliban(app.get('port').toString()));
 app.get('/', routes.index);
 app.get('/partials/:name', routes.partials);
 app.get('/getCleanFasta/:id', routes.getCleanFasta);
