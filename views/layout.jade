@@ -21,11 +21,16 @@ html(ng-app="myApp")
             section#nav_menu-2.widget.widget_nav_menu
               .widget-wrap
                 nav.nav-header
-                  ul#menu-header-menu.menu
-                    li#menu-item-10.menu-item.menu-item-type-custom.menu-item-object-custom.menu-item-10
-                      a(href='http://www.jgi.doe.gov/contact-us/')
-                        | Contact
-                        | Us
+                  div(ng-controller="IndexCtrl")
+                    ul#menu-header-menu.menu
+                      li#menu-item-10.menu-item.menu-item-type-custom.menu-item-object-custom.menu-item-10
+                        | {{ssoUser.login}}
+                      li#menu-item-10.menu-item.menu-item-type-custom.menu-item-object-custom.menu-item-10
+                        a(href="javascript: document.cookie='jgi_return=' + escape(top.window.location.href) + '; domain=.jgi-psf.org; path=/;'; top.window.location.href='https://signon.jgi-psf.org/signon/destroy';")
+                          | Sign Out
+                      li#menu-item-10.menu-item.menu-item-type-custom.menu-item-object-custom.menu-item-10
+                        a(href='http://www.jgi.doe.gov/contact-us/')
+                          | Contact Us
       .home-link
         .wrap
           h1.site-title

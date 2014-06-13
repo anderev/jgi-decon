@@ -3,6 +3,10 @@
 /* Controllers */
 
 function IndexCtrl($scope, $http) {
+  $http.get('/api/ssoUser').
+    success(function(data, status, headers, config) {
+        $scope.ssoUser = data.user;
+        });
   $http.get('/api/projects').
     success(function(data, status, headers, config) {
         $scope.projects = data.projects;

@@ -43,7 +43,7 @@ if (app.get('env') === 'production') {
  */
 
 app.get('*', cookieParser('secret string'));
-app.get('*', Caliban(app.get('port').toString()));
+app.get('*', routes.caliban(app.get('port').toString()));
 app.get('/', routes.index);
 app.get('/partials/:name', routes.partials);
 app.get('/getCleanFasta/:id', routes.getCleanFasta);
@@ -55,6 +55,7 @@ app.get('/api/jobs', api.jobs);
 app.get('/api/jobsInProject/:id', api.jobsInProject);
 app.get('/api/job/:id', api.job);
 app.get('/api/getPCA/:id', api.getPCA);
+app.get('/api/ssoUser', api.getSsoUser);
 app.post('/api/job', api.addJob);
 app.delete('/api/job/:id', api.deleteJob);
 

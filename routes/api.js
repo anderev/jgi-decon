@@ -2,6 +2,8 @@ var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database('scd.db');
 var spawn = require('child_process').spawn;
 var fs = require('fs');
+var https = require('https');
+var xml2js = require('xml2js');
 
 db.serialize(function() {
   var install_location = '/global/homes/e/ewanders/scd-1.3.1';
@@ -158,6 +160,44 @@ exports.job = function(req, res) {
       });
       process.on('close', function(code) {
         console.log('qs exited with status: ' + code);
+      });
+    } else {
+      res.json(false);
+    }
+  });
+};
+
+exports.getSsoUser = function(req, res) {
+  var session_req = https.get({hostname:'signon.jgi-psf.org', path: req.cookies.jgi_session}, function(session_res) {
+    if(session_res.statusCode == 200) {
+      session_res.on('data', function(chunk) {
+        //console.log('Session BODY: ' + chunk);
+        xml2js.parseString(chunk, function(err, session_info) {
+          if(err) {
+            res.statusCode = 500;
+            res.send(err);
+            res.end();
+            console.log(err);
+          } else {
+            //console.log(JSON.stringify(session_info));
+            var user_url = session_info.session.user;
+            var user_req = https.get({hostname:'signon.jgi-psf.org', path: user_url}, function(user_res) {
+              user_res.on('data', function(user_chunk) {
+                //console.log('User BODY: ' + user_chunk);
+                xml2js.parseString(user_chunk, function(e2, user_info) {
+                  if(e2) {
+                    res.statusCode = 500;
+                    res.send(e2);
+                    res.end();
+                    console.log(e2);
+                  } else {
+                    res.json(user_info);
+                  }
+                });
+              });
+            });
+          }
+        });
       });
     } else {
       res.json(false);
