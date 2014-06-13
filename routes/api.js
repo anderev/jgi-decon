@@ -5,6 +5,42 @@ var fs = require('fs');
 var https = require('https');
 var xml2js = require('xml2js');
 
+var userCache = {}; // jgi_session_id -> userObject
+getUserObject = function(jgi_session, callback) { // callback = function(err, user)
+  var jgi_session_id = jgi_session.split('/')[3];
+  if( jgi_session_id in userCache ) {
+    callback( null, userCache[jgi_session_id] );
+  } else {
+    var session_req = https.get({hostname:'signon.jgi-psf.org', path: jgi_session}, function(session_res) {
+      if(session_res.statusCode == 200) {
+        session_res.on('data', function(chunk) {
+          console.log('Session BODY: ' + chunk);
+          xml2js.parseString(chunk, function(err, session_info) {
+            if(!err) {
+              var user_url = session_info.session.user;
+              var user_req = https.get({hostname:'signon.jgi-psf.org', path: user_url}, function(user_res) {
+                user_res.on('data', function(user_chunk) {
+                  console.log('User BODY: ' + user_chunk);
+                  xml2js.parseString(user_chunk, function(err2, user_info) {
+                    if(!err2) {
+                      userCache[jgi_session_id] = user_info;
+                      callback( null, user_info );
+                    } else {
+                      callback( err2, null );
+                    }
+                  });
+                });
+              });
+            } else {
+              callback( err, null );
+            }
+          });
+        });
+      }
+    });
+  }
+};
+
 db.serialize(function() {
   var install_location = '/global/homes/e/ewanders/scd-1.3.1';
   var nt_location = '/global/dna/shared/rqc/ref_databases/ncbi/CURRENT/nt/nt';
@@ -15,7 +51,7 @@ db.serialize(function() {
       db.run("INSERT OR IGNORE INTO config VALUES (1,?,?,?,?)", [install_location, nt_location, working_dir, scd_exe]);
     }
   });
-  db.run("CREATE TABLE IF NOT EXISTS project (project_id INTEGER PRIMARY KEY AUTOINCREMENT, taxon_display_name TEXT, taxon_domain TEXT, taxon_phylum TEXT, taxon_class TEXT, taxon_order TEXT, taxon_family TEXT, taxon_genus TEXT, taxon_species TEXT)", function(err) {
+  db.run("CREATE TABLE IF NOT EXISTS project (project_id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, taxon_display_name TEXT, taxon_domain TEXT, taxon_phylum TEXT, taxon_class TEXT, taxon_order TEXT, taxon_family TEXT, taxon_genus TEXT, taxon_species TEXT)", function(err) {
     if(!err) {
       db.run("INSERT OR IGNORE INTO project VALUES (1,?,?,?,?,?,?,?,?)", [
           'Propionibacteriaceae bacterium P6A17',
@@ -29,7 +65,7 @@ db.serialize(function() {
         ]);
     }
   });
-  db.run("CREATE TABLE IF NOT EXISTS job (job_id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INT, process_id INT, start_time INT, in_fasta TEXT, notes TEXT)");
+  db.run("CREATE TABLE IF NOT EXISTS job (job_id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INT, user_id INTEGER, process_id INT, start_time INT, in_fasta TEXT, notes TEXT)");
 });
 
 // GET
@@ -168,39 +204,13 @@ exports.job = function(req, res) {
 };
 
 exports.getSsoUser = function(req, res) {
-  var session_req = https.get({hostname:'signon.jgi-psf.org', path: req.cookies.jgi_session}, function(session_res) {
-    if(session_res.statusCode == 200) {
-      session_res.on('data', function(chunk) {
-        //console.log('Session BODY: ' + chunk);
-        xml2js.parseString(chunk, function(err, session_info) {
-          if(err) {
-            res.statusCode = 500;
-            res.send(err);
-            res.end();
-            console.log(err);
-          } else {
-            //console.log(JSON.stringify(session_info));
-            var user_url = session_info.session.user;
-            var user_req = https.get({hostname:'signon.jgi-psf.org', path: user_url}, function(user_res) {
-              user_res.on('data', function(user_chunk) {
-                //console.log('User BODY: ' + user_chunk);
-                xml2js.parseString(user_chunk, function(e2, user_info) {
-                  if(e2) {
-                    res.statusCode = 500;
-                    res.send(e2);
-                    res.end();
-                    console.log(e2);
-                  } else {
-                    res.json(user_info);
-                  }
-                });
-              });
-            });
-          }
-        });
-      });
+  var user = getUserObject(req.cookies.jgi_session, function(err, user) {
+    if(!err) {
+      res.json(user);
+      console.log('user: ' + JSON.stringify(user));
     } else {
       res.json(false);
+      console.log('error: ' + err);
     }
   });
 };

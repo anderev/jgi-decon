@@ -35,27 +35,35 @@ getFasta = function(type, req, res) {
   });
 };
 
+redirectToCaliban = function(appPort, req, res) {
+  var jgi_return = 'http://' + req.host + ':' + appPort + req.originalUrl;
+  res.cookie('jgi_return', jgi_return, {domain: '.jgi-psf.org'});
+  res.redirect('https://signon2.jgi-psf.org');
+}
+
+var session_cache = {}; // jgi_session_id -> expiration (when we refresh from Caliban)
 exports.caliban = function(appPort) {
   return function(req, res, next) {
     if( req.cookies && 'jgi_session' in req.cookies) {
       console.log('jgi_session: ' + req.cookies.jgi_session);
-      var session_req = https.get({hostname:'signon.jgi-psf.org', path: req.cookies.jgi_session}, function(session_res) {
-        if(session_res.statusCode == 200) {
-            next();
-        } else {
-          console.log('session_res.statusCode: ' + session_res.statusCode);
-          console.log(JSON.stringify(session_res.headers));
-          var jgi_return = 'http://' + req.host + ':' + appPort + req.originalUrl;
-          res.cookie('jgi_return', jgi_return, {domain: '.jgi-psf.org'});
-          res.redirect('https://signon2.jgi-psf.org');
-        }
-      }).on('error', function(e) {
-        console.log('Error checking session against Caliban: ' + e);
-      });
+      var session_id = req.cookies.jgi_session.split('/')[3];
+      if( session_id in session_cache && session_cache[session_id] > Date.now() ) {
+        next();
+      } else {
+        var session_req = https.get({hostname:'signon.jgi-psf.org', path: req.cookies.jgi_session}, function(session_res) {
+          if(session_res.statusCode == 200) {
+              session_cache[session_id] = Date.now() + 60000;
+              next();
+          } else {
+            console.log('session_res.statusCode: ' + session_res.statusCode);
+            redirectToCaliban(appPort, req, res);
+          }
+        }).on('error', function(e) {
+          console.log('Error checking session against Caliban: ' + e);
+        });
+      }
     } else {
-      var jgi_return = 'http://' + req.host + ':' + appPort + req.originalUrl;
-      res.cookie('jgi_return', jgi_return, {domain: '.jgi-psf.org'});
-      res.redirect('https://signon2.jgi-psf.org');
+      redirectToCaliban(appPort, req, res);
     }
   }
 }
