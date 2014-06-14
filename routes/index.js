@@ -44,10 +44,18 @@ redirectToCaliban = function(appPort, req, res) {
 var session_cache = {}; // jgi_session_id -> expiration (when we refresh from Caliban)
 exports.caliban = function(appPort) {
   return function(req, res, next) {
+
+    //remove expired entries first
+    for( var session in session_cache ) {
+      if( session_cache[session] < Date.now() ) {
+        delete session_cache[session];
+      }
+    }
+
     if( req.cookies && 'jgi_session' in req.cookies) {
       console.log('jgi_session: ' + req.cookies.jgi_session);
       var session_id = req.cookies.jgi_session.split('/')[3];
-      if( session_id in session_cache && session_cache[session_id] > Date.now() ) {
+      if( session_id in session_cache ) {
         next();
       } else {
         var session_req = https.get({hostname:'signon.jgi-psf.org', path: req.cookies.jgi_session}, function(session_res) {

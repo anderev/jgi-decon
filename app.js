@@ -8,7 +8,7 @@ var express = require('express'),
   api = require('./routes/api'),
   http = require('http'),
   path = require('path'),
-  cookieParser = require('cookie-parser');
+  cookie_parser = require('cookie-parser');
 
 var app = module.exports = express();
 
@@ -42,8 +42,15 @@ if (app.get('env') === 'production') {
  * Routes
  */
 
-app.get('*', cookieParser('secret string'));
-app.get('*', routes.caliban(app.get('port').toString()));
+var cookieParser = cookie_parser('secret string');
+var caliban = routes.caliban(app.get('port').toString());
+app.get('*', cookieParser);
+app.get('*', caliban);
+app.post('*', cookieParser);
+app.post('*', caliban);
+app.delete('*', cookieParser);
+app.delete('*', caliban);
+
 app.get('/', routes.index);
 app.get('/partials/:name', routes.partials);
 app.get('/getCleanFasta/:id', routes.getCleanFasta);
