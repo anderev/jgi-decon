@@ -5,7 +5,7 @@
 function IndexCtrl($scope, $http) {
   $http.get('/api/ssoUser').
     success(function(data, status, headers, config) {
-        $scope.ssoUser = data.user;
+        $scope.ssoUser = data;
         });
   $http.get('/api/projects').
     success(function(data, status, headers, config) {

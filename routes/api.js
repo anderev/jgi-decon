@@ -23,8 +23,8 @@ getUserObject = function(jgi_session, callback) { // callback = function(err, us
                   console.log('User BODY: ' + user_chunk);
                   xml2js.parseString(user_chunk, function(err2, user_info) {
                     if(!err2) {
-                      userCache[jgi_session_id] = user_info;
-                      callback( null, user_info );
+                      userCache[jgi_session_id] = user_info.user;
+                      callback( null, user_info.user );
                     } else {
                       callback( err2, null );
                     }
@@ -41,8 +41,13 @@ getUserObject = function(jgi_session, callback) { // callback = function(err, us
   }
 };
 
+db.on('trace', function(query) {
+  console.log('SQLite: ' + query);
+});
+
 db.serialize(function() {
-  var install_location = '/global/homes/e/ewanders/scd-1.3.1';
+
+  var install_location = '/global/homes/e/ewanders/scd-1.3.2';
   var nt_location = '/global/dna/shared/rqc/ref_databases/ncbi/CURRENT/nt/nt';
   var working_dir = '/global/homes/e/ewanders/dev/scd-viz/working_dirs';
   var scd_exe = 'qsub -N JOBNAME -j y -R y -V -o LOGFILE -l h_rt=12:00:00 -l ram.c=48G -pe pe_slots 8 /global/homes/e/ewanders/scd-1.3.2/bin/scd.sh';
@@ -74,7 +79,7 @@ exports.projects = function(req, res) {
   getUserObject(req.cookies.jgi_session, function(user_err, user) {
     if(!user_err) {
       var projects = [];
-      db.each("SELECT project_id,taxon_display_name FROM project WHERE user_id = ?", user.id, function(err, row) {
+      db.each("SELECT project_id,taxon_display_name FROM project WHERE user_id = ?", [user.id[0]], function(err, row) {
         if(err) {
           console.log(err);
         } else {
@@ -97,7 +102,7 @@ exports.project = function(req, res) {
   getUserObject(req.cookies.jgi_session, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id;
-            db.each("SELECT * FROM project WHERE project_id = ? AND user_id = ?", [id, user.id], function(err, row) {
+            db.each("SELECT * FROM project WHERE project_id = ? AND user_id = ?", [id, user.id[0]], function(err, row) {
         if(!err) {
           res.json({
             project: row
@@ -117,7 +122,7 @@ exports.jobs = function(req, res) {
   getUserObject(req.cookies.jgi_session, function(user_err, user) {
     if(!user_err) {
       var jobs = [];
-            db.each("SELECT * FROM job WHERE user_id = ?", [user.id], function(err, row) {
+            db.each("SELECT * FROM job WHERE user_id = ?", [user.id[0]], function(err, row) {
         if(err) {
           console.log(err);
         } else {
@@ -145,7 +150,7 @@ exports.jobsInProject = function(req, res) {
     if(!user_err) {
       var id = req.params.id
       var jobs = [];
-            db.each("SELECT * FROM job WHERE project_id = ? AND user_id = ?", [id, user.id], function(err, row) {
+            db.each("SELECT * FROM job WHERE project_id = ? AND user_id = ?", [id, user.id[0]], function(err, row) {
         if(err) {
           console.log(err);
         } else {
@@ -172,8 +177,8 @@ exports.job = function(req, res) {
   getUserObject(req.cookies.jgi_session, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id;
-      db.get("SELECT * FROM job NATURAL JOIN project WHERE job_id = ? AND user_id = ?", [id, user.id], function(err, row) {
-        if(!err) {
+      db.get("SELECT * FROM job NATURAL JOIN project WHERE job_id = ? AND user_id = ?", [id, user.id[0]], function(err, row) {
+        if(!err && row) {
           var process = spawn('qs', ['-j', row.process_id, '--style', 'json']);
           process.stdout.on('data', function(data) {
             console.log('qs stdout: ' + data);
@@ -204,7 +209,7 @@ exports.job = function(req, res) {
               var config;
               db.get("SELECT * FROM config", function(err,config) {
                 if(!err) {
-                  if(fs.existsSync(config.working_dir+'/job_'+row.job_id)) {
+                  if(fs.existsSync(config.working_dir+'/sso_'+user.id[0]+'/job_'+row.job_id)) {
                     row.process_status = 'Complete';
                   } else {
                     row.process_status = 'unknown';
@@ -239,7 +244,6 @@ exports.getSsoUser = function(req, res) {
   var user = getUserObject(req.cookies.jgi_session, function(user_err, user) {
     if(!user_err) {
       res.json(user);
-      console.log('user: ' + JSON.stringify(user));
     } else {
       res.json(false);
       console.log('error: ' + err);
@@ -247,13 +251,34 @@ exports.getSsoUser = function(req, res) {
   });
 };
 
-exports.getPCA = function(req, res) {
-  db.get("SELECT * FROM config", function(err,config) {
+getConfig = function(callback) { // callback(err,config)
+  db.get("SELECT * FROM config", callback);
+}
+
+getWorkingDir = function(req, callback) { // callback(err,workingdir)
+  getConfig(function(err,config) {
     if(!err) {
       getUserObject(req.cookies.jgi_session, function(user_err, user) {
         if(!user_err) {
-          var job_name = 'job_' + req.params.id;
-          var filename_pca = config.working_dir + '/' + job_name + '/' + job_name + '_Intermediate/' + job_name + '_contigs_9mer.pca';
+          callback(null, config.working_dir + '/sso_' + user.id[0]);
+        } else {
+          callback(user_err, null);
+        }
+      });
+    } else {
+      callback(err, null);
+    }
+  });
+};
+
+exports.getPCA = function(req, res) {
+  getWorkingDir(req, function(err, workingDir) {
+    if(!err) {
+      var job_name = 'job_' + req.params.id;
+      var filename_pca = workingDir + '/' + job_name + '/' + job_name + '_Intermediate/' + job_name + '_contigs_9mer.pca';
+      fs.exists(filename_pca, function(exists) {
+        if(exists) {
+
           fs.readFile(filename_pca, function(err, data) {
             if(!err) {
               var lines = data.toString().split('\n');
@@ -278,12 +303,12 @@ exports.getPCA = function(req, res) {
             }
           });
         } else {
-          console.log(err);
+          console.log(filename_pca + ' does not exist for getPCA!');
           res.json(false);
         }
       });
     } else {
-      console.log(user_err);
+      console.log(err);
       res.json(false);
     }
   });
@@ -292,7 +317,7 @@ exports.getPCA = function(req, res) {
 exports.addProject = function(req, res) {
   getUserObject(req.cookies.jgi_session, function(user_err, user) {
     if(!user_err) {
-      db.run("INSERT INTO project VALUES (NULL,?,?,?,?,?,?,?,?,?)", [user.id, req.body.taxon_display_name, req.body.taxon_domain, req.body.taxon_phylum, req.body.taxon_class, req.body.taxon_order, req.body.taxon_family, req.body.taxon_genus, req.body.taxon_species] );
+      db.run("INSERT INTO project VALUES (NULL,?,?,?,?,?,?,?,?,?)", [user.id[0], req.body.taxon_display_name, req.body.taxon_domain, req.body.taxon_phylum, req.body.taxon_class, req.body.taxon_order, req.body.taxon_family, req.body.taxon_genus, req.body.taxon_species] );
       res.json(req.body);
     } else {
       console.log(user_err);
@@ -304,19 +329,19 @@ exports.addProject = function(req, res) {
 exports.addJob = function(req, res) {
   getUserObject(req.cookies.jgi_session, function(user_err, user) {
     if(!user_err) {
-      db.get("SELECT * FROM config", function(err,config) {
+      getConfig( function(err,config) {
         if(!err) {
           var now = new Date();
           var start_time = now.toDateString() + ' ' + now.toTimeString();
-          db.run("INSERT INTO job VALUES (NULL,?,?,?,?,?,?)", [req.body.project_id,user.id,null,start_time,req.body.in_fasta,req.body.notes], function(err) {
+          db.run("INSERT INTO job VALUES (NULL,?,?,?,?,?,?)", [req.body.project_id,user.id[0],null,start_time,req.body.in_fasta,req.body.notes], function(err) {
             if(!err) {
             db.get("SELECT last_insert_rowid()", function(err,row) {
               if(row) {
               var job_id = row['last_insert_rowid()'];
-              db.get("SELECT * FROM job natural join project WHERE job_id = ? AND user_id = ?", [job_id, user.id], function(err, row) {
+              db.get("SELECT * FROM job natural join project WHERE job_id = ? AND user_id = ?", [job_id, user.id[0]], function(err, row) {
                 if(row) {
                 var cfg = row;
-                cfg.working_dir = config.working_dir;
+                cfg.working_dir = config.working_dir + '/sso_' + user.id[0];
                 cfg.job_name = 'job_'+job_id;
                 cfg.install_location = config.install_location;
                 cfg.nt_location = config.nt_location;
@@ -409,8 +434,8 @@ exports.deleteProject = function(req, res) {
   getUserObject(req.cookies.jgi_session, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id;
-      db.run("DELETE FROM project WHERE project_id = ? AND user_id = ?", [id, user.id]);
-      db.run("DELETE FROM job WHERE project_id = ? AND user_id = ?", [id, user.id]);
+      db.run("DELETE FROM project WHERE project_id = ? AND user_id = ?", [id, user.id[0]]);
+      db.run("DELETE FROM job WHERE project_id = ? AND user_id = ?", [id, user.id[0]]);
       res.json(true);
     } else {
       console.log(user_err);
@@ -423,7 +448,7 @@ exports.deleteJob = function(req, res) {
   getUserObject(req.cookies.jgi_session, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id;
-      db.run("DELETE FROM job WHERE job_id = ? AND user_id = ?", [id, user.id]);
+      db.run("DELETE FROM job WHERE job_id = ? AND user_id = ?", [id, user.id[0]]);
       res.json(true);
     } else {
       console.log(user_err);

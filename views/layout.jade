@@ -26,7 +26,7 @@ html(ng-app="myApp")
                       li#menu-item-10.menu-item.menu-item-type-custom.menu-item-object-custom.menu-item-10
                         | {{ssoUser.login[0]}}
                       li#menu-item-10.menu-item.menu-item-type-custom.menu-item-object-custom.menu-item-10
-                        a(href="javascript: document.cookie='jgi_return=' + escape(top.window.location.href) + '; domain=.jgi-psf.org; path=/;'; top.window.location.href='https://signon.jgi-psf.org/signon/destroy';")
+                        a(href="javascript: document.cookie='jgi_return=http://' + top.window.location.host + '; domain=.jgi-psf.org; path=/;'; top.window.location.href='https://signon.jgi-psf.org/signon/destroy';")
                           | Sign Out
                       li#menu-item-10.menu-item.menu-item-type-custom.menu-item-object-custom.menu-item-10
                         a(href='http://www.jgi.doe.gov/contact-us/')

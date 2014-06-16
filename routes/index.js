@@ -2,10 +2,7 @@ var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database('scd.db');
 var https = require('https');
 var xml2js = require('xml2js');
-
-/*
- * GET home page.
- */
+var fs = require('fs');
 
 exports.index = function(req, res){
   res.render('index');
@@ -26,10 +23,21 @@ exports.getContamFasta = function(req, res) {
 
 getFasta = function(type, req, res) {
   var id = parseInt(req.params.id);
-  db.get("SELECT * FROM config", function(err, row) {
+  getWorkingDir( req, function(err, workingDir) {
     if(!err) {
-      res.download(row.working_dir+'/job_'+id+'/job_'+id+'_output_'+type+'.fna');
+      var filename = workingDir+'/job_'+id+'/job_'+id+'_output_'+type+'.fna';
+      fs.exists(filename, function(exists) {
+        if(exists) {
+          res.download(filename);
+        } else {
+          console.log('getFasta: ' + filename + ' does not exist.');
+          res.statusCode = 404;
+          res.json(false);
+        }
+      });
     } else {
+      console.log(err);
+      res.statusCode = 404;
       res.json(false);
     }
   });
