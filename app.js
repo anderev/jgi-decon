@@ -18,7 +18,7 @@ var app = module.exports = express();
  */
 
 // all environments
-app.set('port', process.env.PORT || 2999);
+app.set('port', process.env.PORT || 3051);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
 app.use(express.logger('dev'));
