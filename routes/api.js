@@ -6,12 +6,12 @@ var https = require('https');
 var xml2js = require('xml2js');
 
 var userCache = {}; // jgi_session_id -> userObject
-getUserObject = function(jgi_session, callback) { // callback = function(err, user)
-  var jgi_session_id = jgi_session.split('/')[3];
+var getUser = function(req, callback) { // callback = function(err, user)
+  var jgi_session_id = req.cookies.jgi_session.split('/')[3];
   if( jgi_session_id in userCache ) {
     callback( null, userCache[jgi_session_id] );
   } else {
-    var session_req = https.get({hostname:'signon.jgi-psf.org', path: jgi_session}, function(session_res) {
+    var session_req = https.get({hostname:'signon.jgi-psf.org', path: req.cookies.jgi_session}, function(session_res) {
       if(session_res.statusCode == 200) {
         session_res.on('data', function(chunk) {
           console.log('Session BODY: ' + chunk);
@@ -45,6 +45,8 @@ db.on('trace', function(query) {
   console.log('SQLite: ' + query);
 });
 
+var config = null;
+
 db.serialize(function() {
 
   var install_location = '/global/homes/e/ewanders/scd-1.3.2';
@@ -54,12 +56,20 @@ db.serialize(function() {
   db.run("CREATE TABLE IF NOT EXISTS config (config_id INTEGER PRIMARY KEY, install_location TEXT, nt_location TEXT, working_dir TEXT, scd_exe TEXT)", function(err) {
     if(!err) {
       db.run("INSERT OR IGNORE INTO config VALUES (1,?,?,?,?)", [install_location, nt_location, working_dir, scd_exe]);
+      db.get("SELECT * FROM config", function(err, config_row) {
+        if(!err) {
+          config = config_row;
+          console.log('Config: ' + JSON.stringify(config));
+        } else {
+          console.log(err);
+        }
+      });
     }
   });
   db.run("CREATE TABLE IF NOT EXISTS project (project_id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, taxon_display_name TEXT, taxon_domain TEXT, taxon_phylum TEXT, taxon_class TEXT, taxon_order TEXT, taxon_family TEXT, taxon_genus TEXT, taxon_species TEXT)", function(err) {
     if(!err) {
       db.run("INSERT OR IGNORE INTO project VALUES (1,?,?,?,?,?,?,?,?,?)", [
-          5381,
+          0,
           'Propionibacteriaceae bacterium P6A17',
           'Bacteria',
           'Actinobacteria',
@@ -76,10 +86,10 @@ db.serialize(function() {
 
 // GET
 exports.projects = function(req, res) {
-  getUserObject(req.cookies.jgi_session, function(user_err, user) {
+  getUser(req, function(user_err, user) {
     if(!user_err) {
       var projects = [];
-      db.each("SELECT project_id,taxon_display_name FROM project WHERE user_id = ?", [user.id[0]], function(err, row) {
+      db.each("SELECT project_id,taxon_display_name FROM project WHERE user_id IN (?,0)", [user.id[0]], function(err, row) {
         if(err) {
           console.log(err);
         } else {
@@ -99,14 +109,12 @@ exports.projects = function(req, res) {
 };
 
 exports.project = function(req, res) {
-  getUserObject(req.cookies.jgi_session, function(user_err, user) {
+  getUser(req, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id;
-            db.each("SELECT * FROM project WHERE project_id = ? AND user_id = ?", [id, user.id[0]], function(err, row) {
+            db.each("SELECT * FROM project WHERE project_id = ? AND user_id IN (?,0)", [id, user.id[0]], function(err, row) {
         if(!err) {
-          res.json({
-            project: row
-          });
+          res.json({ project: row });
         } else {
           res.json(false);
         }
@@ -119,10 +127,10 @@ exports.project = function(req, res) {
 };
 
 exports.jobs = function(req, res) {
-  getUserObject(req.cookies.jgi_session, function(user_err, user) {
+  getUser(req, function(user_err, user) {
     if(!user_err) {
       var jobs = [];
-            db.each("SELECT * FROM job WHERE user_id = ?", [user.id[0]], function(err, row) {
+            db.each("SELECT * FROM job WHERE user_id IN (?,0)", [user.id[0]], function(err, row) {
         if(err) {
           console.log(err);
         } else {
@@ -134,9 +142,7 @@ exports.jobs = function(req, res) {
         if(err) {
           console.log(err);
         }
-        res.json({
-          jobs: jobs
-          });
+        res.json({ jobs: jobs });
         });
     } else {
       console.log(user_err);
@@ -146,11 +152,11 @@ exports.jobs = function(req, res) {
 };
 
 exports.jobsInProject = function(req, res) {
-  getUserObject(req.cookies.jgi_session, function(user_err, user) {
+  getUser(req, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id
       var jobs = [];
-            db.each("SELECT * FROM job WHERE project_id = ? AND user_id = ?", [id, user.id[0]], function(err, row) {
+            db.each("SELECT * FROM job WHERE project_id = ? AND user_id IN (?,0)", [id, user.id[0]], function(err, row) {
         if(err) {
           console.log(err);
         } else {
@@ -162,9 +168,7 @@ exports.jobsInProject = function(req, res) {
         if(err) {
           console.log(err);
         }
-        res.json({
-          jobs: jobs
-          });
+        res.json({ jobs: jobs });
         });
     } else {
       console.log(user_err);
@@ -174,10 +178,10 @@ exports.jobsInProject = function(req, res) {
 };
 
 exports.job = function(req, res) {
-  getUserObject(req.cookies.jgi_session, function(user_err, user) {
+  getUser(req, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id;
-      db.get("SELECT * FROM job NATURAL JOIN project WHERE job_id = ? AND user_id = ?", [id, user.id[0]], function(err, row) {
+      db.get("SELECT * FROM job NATURAL JOIN project WHERE job_id = ? AND user_id IN (?,0)", [id, user.id[0]], function(err, row) {
         if(!err && row) {
           var process = spawn('qs', ['-j', row.process_id, '--style', 'json']);
           process.stdout.on('data', function(data) {
@@ -202,25 +206,16 @@ exports.job = function(req, res) {
               if(status[0].state.match(/R/)) {
                 row.process_status = row.process_status + ' (RESUBMITTED)';
               }
-              res.json({
-                job: row
-              });
+              res.json({ job: row });
             } else {
-              var config;
-              db.get("SELECT * FROM config", function(err,config) {
-                if(!err) {
-                  if(fs.existsSync(config.working_dir+'/sso_'+user.id[0]+'/job_'+row.job_id)) {
-                    row.process_status = 'Complete';
-                  } else {
-                    row.process_status = 'unknown';
-                  }
-                  res.json({
-                    job: row
-                  });
+              fs.exists(config.working_dir+'/sso_'+user.id[0]+'/job_'+row.job_id, function(exists) {
+                if(exists) {
+                  row.process_status = 'Complete';
                 } else {
-                  console.log("Failed to read config from database.");
-                  res.json(false);
-                }});
+                  row.process_status = 'unknown';
+                }
+                res.json({ job: row });
+              });
             }
           });
           process.stderr.on('data', function(data) {
@@ -241,7 +236,7 @@ exports.job = function(req, res) {
 };
 
 exports.getSsoUser = function(req, res) {
-  var user = getUserObject(req.cookies.jgi_session, function(user_err, user) {
+  getUser(req, function(user_err, user) {
     if(!user_err) {
       res.json(user);
     } else {
@@ -251,22 +246,12 @@ exports.getSsoUser = function(req, res) {
   });
 };
 
-getConfig = function(callback) { // callback(err,config)
-  db.get("SELECT * FROM config", callback);
-}
-
 getWorkingDir = function(req, callback) { // callback(err,workingdir)
-  getConfig(function(err,config) {
-    if(!err) {
-      getUserObject(req.cookies.jgi_session, function(user_err, user) {
-        if(!user_err) {
-          callback(null, config.working_dir + '/sso_' + user.id[0]);
-        } else {
-          callback(user_err, null);
-        }
-      });
+  getUser(req, function(user_err, user) {
+    if(!user_err) {
+      callback(null, config.working_dir + '/sso_' + user.id[0]);
     } else {
-      callback(err, null);
+      callback(user_err, null);
     }
   });
 };
@@ -315,7 +300,7 @@ exports.getPCA = function(req, res) {
 }
 // POST
 exports.addProject = function(req, res) {
-  getUserObject(req.cookies.jgi_session, function(user_err, user) {
+  getUser(req, function(user_err, user) {
     if(!user_err) {
       db.run("INSERT INTO project VALUES (NULL,?,?,?,?,?,?,?,?,?)", [user.id[0], req.body.taxon_display_name, req.body.taxon_domain, req.body.taxon_phylum, req.body.taxon_class, req.body.taxon_order, req.body.taxon_family, req.body.taxon_genus, req.body.taxon_species] );
       res.json(req.body);
@@ -327,16 +312,14 @@ exports.addProject = function(req, res) {
 };
 
 exports.addJob = function(req, res) {
-  getUserObject(req.cookies.jgi_session, function(user_err, user) {
+  getUser(req, function(user_err, user) {
     if(!user_err) {
-      getConfig( function(err,config) {
+      var now = new Date();
+      var start_time = now.toDateString() + ' ' + now.toTimeString();
+      db.run("INSERT INTO job VALUES (NULL,?,?,?,?,?,?)", [req.body.project_id,user.id[0],null,start_time,req.body.in_fasta,req.body.notes], function(err) {
         if(!err) {
-          var now = new Date();
-          var start_time = now.toDateString() + ' ' + now.toTimeString();
-          db.run("INSERT INTO job VALUES (NULL,?,?,?,?,?,?)", [req.body.project_id,user.id[0],null,start_time,req.body.in_fasta,req.body.notes], function(err) {
-            if(!err) {
-            db.get("SELECT last_insert_rowid()", function(err,row) {
-              if(row) {
+          db.get("SELECT last_insert_rowid()", function(err,row) {
+            if(row) {
               var job_id = row['last_insert_rowid()'];
               db.get("SELECT * FROM job natural join project WHERE job_id = ? AND user_id = ?", [job_id, user.id[0]], function(err, row) {
                 if(row) {
@@ -408,20 +391,16 @@ exports.addJob = function(req, res) {
                   console.log('Failed to find new row.');
                 }
               });
-              } else {
-                console.log('Failed to get last inserted row id.');
-                console.log(err);
-              }
-            });
             } else {
-              console.log('Failed to insert new job into table.');
+              console.log('Failed to get last inserted row id.');
               console.log(err);
             }
           });
         } else {
-          console.log("Failed to read config from database.");
-          res.json(false);
-        }});
+          console.log('Failed to insert new job into table.');
+          console.log(err);
+        }
+      });
     } else {
       console.log(user_err);
       res.json(false);
@@ -431,7 +410,7 @@ exports.addJob = function(req, res) {
 
 // DELETE
 exports.deleteProject = function(req, res) {
-  getUserObject(req.cookies.jgi_session, function(user_err, user) {
+  getUser(req, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id;
       db.run("DELETE FROM project WHERE project_id = ? AND user_id = ?", [id, user.id[0]]);
@@ -445,7 +424,7 @@ exports.deleteProject = function(req, res) {
 };
 
 exports.deleteJob = function(req, res) {
-  getUserObject(req.cookies.jgi_session, function(user_err, user) {
+  getUser(req, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id;
       db.run("DELETE FROM job WHERE job_id = ? AND user_id = ?", [id, user.id[0]]);
