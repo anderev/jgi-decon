@@ -43,7 +43,7 @@ if (app.get('env') === 'production') {
  */
 
 var cookieParser = cookie_parser('secret string');
-var caliban = routes.caliban(app.get('port').toString());
+var caliban = routes.caliban;
 app.get('*', cookieParser);
 app.get('*', caliban);
 app.post('*', cookieParser);
