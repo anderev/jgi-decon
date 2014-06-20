@@ -16,6 +16,11 @@ div(align="center")
         label(for='notes') Notes:
       td
         textarea(ng-model='form.notes', name='notes')
+    tr
+      td(align="right")
+        label(for='is_public') Public:
+      td
+        input(ng-model='form.is_public', name='is_public', type='checkbox')
   p
     button(ng-click='submitJob()') Submit Job
 

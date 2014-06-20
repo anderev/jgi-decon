@@ -67,7 +67,7 @@ db.serialize(function() {
   db.run("CREATE TABLE IF NOT EXISTS project (project_id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, taxon_display_name TEXT, taxon_domain TEXT, taxon_phylum TEXT, taxon_class TEXT, taxon_order TEXT, taxon_family TEXT, taxon_genus TEXT, taxon_species TEXT)", function(err) {
     if(!err) {
       db.run("INSERT OR IGNORE INTO project VALUES (1,?,?,?,?,?,?,?,?,?)", [
-          5538,
+          5381,
           'Bradyrhizobium sp. JGI 001005-E20',
           'Bacteria',
           'Proteobacteria',
@@ -79,17 +79,15 @@ db.serialize(function() {
         ]);
     }
   });
-  db.run("CREATE TABLE IF NOT EXISTS job (job_id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INT, user_id INTEGER, process_id INT, start_time INT, in_fasta TEXT, notes TEXT)");
+  db.run("CREATE TABLE IF NOT EXISTS job (job_id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INT, user_id INTEGER, process_id INT, start_time INT, in_fasta TEXT, notes TEXT, is_public INT)");
 });
-
-var public_user_id = '5538';
 
 // GET
 exports.projects = function(req, res) {
   getUser(req, function(user_err, user) {
     if(!user_err) {
       var projects = [];
-      db.each("SELECT project_id,taxon_display_name FROM project WHERE user_id IN (?,?)", [user.id[0], public_user_id], function(err, row) {
+      db.each("SELECT project_id,taxon_display_name FROM project WHERE user_id = ?", [user.id[0]], function(err, row) {
         if(err) {
           console.log(err);
         } else {
@@ -112,7 +110,7 @@ exports.project = function(req, res) {
   getUser(req, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id;
-            db.each("SELECT * FROM project WHERE project_id = ? AND user_id IN (?,?)", [id, user.id[0], public_user_id], function(err, row) {
+      db.each("SELECT * FROM project WHERE project_id = ? AND user_id = ?", [id, user.id[0]], function(err, row) {
         if(!err) {
           res.json({ project: row });
         } else {
@@ -130,7 +128,7 @@ exports.jobs = function(req, res) {
   getUser(req, function(user_err, user) {
     if(!user_err) {
       var jobs = [];
-            db.each("SELECT * FROM job WHERE user_id IN (?,?)", [user.id[0], public_user_id], function(err, row) {
+      db.each("SELECT * FROM job WHERE user_id = ? OR is_public = 1", [user.id[0]], function(err, row) {
         if(err) {
           console.log(err);
         } else {
@@ -156,7 +154,7 @@ exports.jobsInProject = function(req, res) {
     if(!user_err) {
       var id = req.params.id
       var jobs = [];
-            db.each("SELECT * FROM job WHERE project_id = ? AND user_id IN (?,?)", [id, user.id[0], public_user_id], function(err, row) {
+            db.each("SELECT * FROM job WHERE project_id = ? AND user_id = ?", [id, user.id[0]], function(err, row) {
         if(err) {
           console.log(err);
         } else {
@@ -181,7 +179,7 @@ exports.job = function(req, res) {
   getUser(req, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id;
-      db.get("SELECT * FROM job NATURAL JOIN project WHERE job_id = ? AND user_id IN (?,?)", [id, user.id[0], public_user_id], function(err, row) {
+      db.get("SELECT * FROM job NATURAL JOIN project WHERE job_id = ? AND (user_id = ? OR is_public = 1)", [id, user.id[0]], function(err, row) {
         if(!err && row) {
           var process = spawn('qs', ['-j', row.process_id, '--style', 'json']);
           process.stdout.on('data', function(data) {
@@ -266,12 +264,12 @@ exports.getContamFasta = function(req, res) {
 
 getFasta = function(type, req, res) {
   var id = parseInt(req.params.id);
-  db.get('SELECT user_id FROM job WHERE job_id = ?', [id], function(err, row) {
+  db.get('SELECT user_id,is_public FROM job WHERE job_id = ?', [id], function(err, row) {
     if(!err) {
       getUser(req, function(err, user) {
         if(!err) {
-          if( user.id[0] == row.user_id || public_user_id == row.user_id ) {
-            var workingDir = config.working_dir + '/sso_' + ((public_user_id == row.user_id) ? public_user_id : user.id[0]);
+          if( user.id[0] == row.user_id || row.is_public ) {
+            var workingDir = config.working_dir + '/sso_' + row.user_id;
             var filename = workingDir+'/job_'+id+'/job_'+id+'_output_'+type+'.fna';
             fs.exists(filename, function(exists) {
               if(exists) {
@@ -301,12 +299,12 @@ getFasta = function(type, req, res) {
 };
 
 exports.getPCA = function(req, res) {
-  db.get('SELECT user_id FROM job WHERE job_id = ?', [req.params.id], function(err, row) {
+  db.get('SELECT user_id,is_public FROM job WHERE job_id = ?', [req.params.id], function(err, row) {
     if(!err) {
       getUser(req, function(err, user) {
         if(!err) {
-          if( user.id[0] == row.user_id || public_user_id == row.user_id ) {
-            var workingDir = config.working_dir + '/sso_' + ((public_user_id == row.user_id) ? public_user_id : user.id[0]);
+          if( user.id[0] == row.user_id || row.is_public ) {
+            var workingDir = config.working_dir + '/sso_' + row.user_id;
             var job_name = 'job_' + req.params.id;
             var filename_pca = workingDir + '/' + job_name + '/' + job_name + '_Intermediate/' + job_name + '_contigs_9mer.pca';
             fs.exists(filename_pca, function(exists) {
@@ -370,7 +368,7 @@ exports.addJob = function(req, res) {
     if(!user_err) {
       var now = new Date();
       var start_time = now.toDateString() + ' ' + now.toTimeString();
-      db.run("INSERT INTO job VALUES (NULL,?,?,?,?,?,?)", [req.body.project_id,user.id[0],null,start_time,req.body.in_fasta,req.body.notes], function(err) {
+      db.run("INSERT INTO job VALUES (NULL,?,?,?,?,?,?,?)", [req.body.project_id,user.id[0],null,start_time,req.body.in_fasta,req.body.notes,req.body.is_public], function(err) {
         if(!err) {
           db.get("SELECT last_insert_rowid()", function(err,row) {
             if(row) {
