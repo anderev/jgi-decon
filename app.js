@@ -53,11 +53,11 @@ app.delete('*', caliban);
 
 app.get('/', routes.index);
 app.get('/partials/:name', routes.partials);
-app.get('/getCleanFasta/:id', routes.getCleanFasta);
-app.get('/getContamFasta/:id', routes.getContamFasta);
 
 // JSON API
 
+app.get('/api/getCleanFasta/:id', api.getCleanFasta);
+app.get('/api/getContamFasta/:id', api.getContamFasta);
 app.get('/api/jobs', api.jobs);
 app.get('/api/jobsInProject/:id', api.jobsInProject);
 app.get('/api/job/:id', api.job);
@@ -80,5 +80,5 @@ app.get('*', routes.index);
  */
 
 http.createServer(app).listen(app.get('port'), function () {
-  console.log('Express server listening on port ' + app.get('port'));
+  console.log('SCD server listening on port ' + app.get('port'));
 });

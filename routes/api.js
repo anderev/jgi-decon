@@ -256,6 +256,50 @@ getWorkingDir = function(req, callback) { // callback(err,workingdir)
   });
 };
 
+exports.getCleanFasta = function(req, res) {
+  getFasta('clean', req, res);
+};
+
+exports.getContamFasta = function(req, res) {
+  getFasta('contam', req, res);
+};
+
+getFasta = function(type, req, res) {
+  var id = parseInt(req.params.id);
+  db.get('SELECT user_id FROM job WHERE job_id = ?', [id], function(err, row) {
+    if(!err) {
+      getUser(req, function(err, user) {
+        if(!err) {
+          if( user.id[0] == row.user_id || public_user_id == row.user_id ) {
+            var workingDir = config.working_dir + '/sso_' + ((public_user_id == row.user_id) ? public_user_id : user.id[0]);
+            var filename = workingDir+'/job_'+id+'/job_'+id+'_output_'+type+'.fna';
+            fs.exists(filename, function(exists) {
+              if(exists) {
+                res.download(filename);
+              } else {
+                console.log('getFasta: ' + filename + ' does not exist.');
+                res.statusCode = 404;
+                res.json(false);
+              }
+            });
+          } else {
+            console.log(user.id[0] + ' attempted to access PCA for job ' + req.params.id + ', owned by ' + row.user_id);
+            res.statusCode = 404;
+            res.json(false);
+          }
+        } else {
+          console.log(err);
+          res.json(false);
+        }
+      });
+    } else {
+      console.log(err);
+      res.statusCode = 404;
+      res.json(false);
+    }
+  });
+};
+
 exports.getPCA = function(req, res) {
   db.get('SELECT user_id FROM job WHERE job_id = ?', [req.params.id], function(err, row) {
     if(!err) {
