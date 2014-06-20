@@ -134,28 +134,43 @@ exports.project = function(req, res) {
 };
 
 exports.jobs = function(req, res) {
-  getUser(req, function(user_err, user) {
-    if(!user_err) {
-      var jobs = [];
-      db.each("SELECT * FROM job WHERE user_id = ? OR is_public = 1", [user.id[0]], function(err, row) {
-        if(err) {
-          console.log(err);
-        } else {
-          console.log(row);
-        }
-        jobs.push(row);
-        console.log(jobs);
-      }, function(err) {
-        if(err) {
-          console.log(err);
-        }
-        res.json({ jobs: jobs });
-        });
-    } else {
-      console.log(user_err);
-      res.json(false);
-    }
-  });
+
+  var getJobs = function(req, res, query, params) {
+    var jobs = [];
+    console.log('query: '+query);
+    console.log('params: '+params);
+    db.each(query, params, function(err, row) {
+      if(err) {
+        console.log(err);
+      } else {
+        console.log(row);
+      }
+      jobs.push(row);
+      console.log(jobs);
+    }, function(err) {
+      if(err) {
+        console.log(err);
+      }
+      res.json({ jobs: jobs });
+    });
+  };
+
+  if( req.query.is_public ) {
+    var query_str = "SELECT * FROM job WHERE is_public = 1";
+    var query_param = [];
+    getJobs(req, res, query_str, query_param);
+  } else {
+    getUser(req, function(user_err, user) {
+      if(!user_err) {
+        var query_str = "SELECT * FROM job WHERE user_id = ?";
+        var query_param = [user.id[0]];
+        getJobs(req, res, query_str, query_param);
+      } else {
+        console.log(user_err);
+        res.json(false);
+      }
+    });
+  }
 };
 
 exports.jobsInProject = function(req, res) {
