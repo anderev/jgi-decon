@@ -14,13 +14,11 @@ var getUser = function(req, callback) { // callback = function(err, user)
     var session_req = https.get({hostname:'signon.jgi-psf.org', path: req.cookies.jgi_session}, function(session_res) {
       if(session_res.statusCode == 200) {
         session_res.on('data', function(chunk) {
-          console.log('Session BODY: ' + chunk);
           xml2js.parseString(chunk, function(err, session_info) {
             if(!err) {
               var user_url = session_info.session.user;
               var user_req = https.get({hostname:'signon.jgi-psf.org', path: user_url}, function(user_res) {
                 user_res.on('data', function(user_chunk) {
-                  console.log('User BODY: ' + user_chunk);
                   xml2js.parseString(user_chunk, function(err2, user_info) {
                     if(!err2) {
                       userCache[jgi_session_id] = user_info.user;
@@ -69,14 +67,14 @@ db.serialize(function() {
   db.run("CREATE TABLE IF NOT EXISTS project (project_id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, taxon_display_name TEXT, taxon_domain TEXT, taxon_phylum TEXT, taxon_class TEXT, taxon_order TEXT, taxon_family TEXT, taxon_genus TEXT, taxon_species TEXT)", function(err) {
     if(!err) {
       db.run("INSERT OR IGNORE INTO project VALUES (1,?,?,?,?,?,?,?,?,?)", [
-          0,
-          'Propionibacteriaceae bacterium P6A17',
+          5538,
+          'Bradyrhizobium sp. JGI 001005-E20',
           'Bacteria',
-          'Actinobacteria',
-          'Actinobacteria',
-          'Actinomycetales',
-          'Propionibacteriaceae',
-          null,
+          'Proteobacteria',
+          'Alphaproteobacteria',
+          'Rhizobiales',
+          'Bradyrhizobiaceae',
+          'Bradyrhizobium',
           null
         ]);
     }
@@ -84,12 +82,14 @@ db.serialize(function() {
   db.run("CREATE TABLE IF NOT EXISTS job (job_id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INT, user_id INTEGER, process_id INT, start_time INT, in_fasta TEXT, notes TEXT)");
 });
 
+var public_user_id = '5538';
+
 // GET
 exports.projects = function(req, res) {
   getUser(req, function(user_err, user) {
     if(!user_err) {
       var projects = [];
-      db.each("SELECT project_id,taxon_display_name FROM project WHERE user_id IN (?,0)", [user.id[0]], function(err, row) {
+      db.each("SELECT project_id,taxon_display_name FROM project WHERE user_id IN (?,?)", [user.id[0], public_user_id], function(err, row) {
         if(err) {
           console.log(err);
         } else {
@@ -112,7 +112,7 @@ exports.project = function(req, res) {
   getUser(req, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id;
-            db.each("SELECT * FROM project WHERE project_id = ? AND user_id IN (?,0)", [id, user.id[0]], function(err, row) {
+            db.each("SELECT * FROM project WHERE project_id = ? AND user_id IN (?,?)", [id, user.id[0], public_user_id], function(err, row) {
         if(!err) {
           res.json({ project: row });
         } else {
@@ -130,7 +130,7 @@ exports.jobs = function(req, res) {
   getUser(req, function(user_err, user) {
     if(!user_err) {
       var jobs = [];
-            db.each("SELECT * FROM job WHERE user_id IN (?,0)", [user.id[0]], function(err, row) {
+            db.each("SELECT * FROM job WHERE user_id IN (?,?)", [user.id[0], public_user_id], function(err, row) {
         if(err) {
           console.log(err);
         } else {
@@ -156,7 +156,7 @@ exports.jobsInProject = function(req, res) {
     if(!user_err) {
       var id = req.params.id
       var jobs = [];
-            db.each("SELECT * FROM job WHERE project_id = ? AND user_id IN (?,0)", [id, user.id[0]], function(err, row) {
+            db.each("SELECT * FROM job WHERE project_id = ? AND user_id IN (?,?)", [id, user.id[0], public_user_id], function(err, row) {
         if(err) {
           console.log(err);
         } else {
@@ -181,7 +181,7 @@ exports.job = function(req, res) {
   getUser(req, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id;
-      db.get("SELECT * FROM job NATURAL JOIN project WHERE job_id = ? AND user_id IN (?,0)", [id, user.id[0]], function(err, row) {
+      db.get("SELECT * FROM job NATURAL JOIN project WHERE job_id = ? AND user_id IN (?,?)", [id, user.id[0], public_user_id], function(err, row) {
         if(!err && row) {
           var process = spawn('qs', ['-j', row.process_id, '--style', 'json']);
           process.stdout.on('data', function(data) {
@@ -257,44 +257,54 @@ getWorkingDir = function(req, callback) { // callback(err,workingdir)
 };
 
 exports.getPCA = function(req, res) {
-  getWorkingDir(req, function(err, workingDir) {
+  db.get('SELECT user_id FROM job WHERE job_id = ?', [req.params.id], function(err, row) {
     if(!err) {
-      var job_name = 'job_' + req.params.id;
-      var filename_pca = workingDir + '/' + job_name + '/' + job_name + '_Intermediate/' + job_name + '_contigs_9mer.pca';
-      fs.exists(filename_pca, function(exists) {
-        if(exists) {
+      getUser(req, function(err, user) {
+        if(!err) {
+          if( user.id[0] == row.user_id || public_user_id == row.user_id ) {
+            var workingDir = config.working_dir + '/sso_' + ((public_user_id == row.user_id) ? public_user_id : user.id[0]);
+            var job_name = 'job_' + req.params.id;
+            var filename_pca = workingDir + '/' + job_name + '/' + job_name + '_Intermediate/' + job_name + '_contigs_9mer.pca';
+            fs.exists(filename_pca, function(exists) {
+              if(exists) {
+                fs.readFile(filename_pca, function(err, data) {
+                  if(!err) {
+                    var lines = data.toString().split('\n');
+                    var pointData = [];
+                    var num_lines = lines.length;
+                    for(var i=0; i<num_lines; ++i) {
+                      var line = lines[i].split('\t');
+                      var point = {};
+                      point.x = line[0];
+                      point.y = line[1];
+                      point.z = line[2];
+                      pointData.push(point);
+                    }
 
-          fs.readFile(filename_pca, function(err, data) {
-            if(!err) {
-              var lines = data.toString().split('\n');
-              var pointData = [];
-              var num_lines = lines.length;
-              for(var i=0; i<num_lines; ++i) {
-                var line = lines[i].split('\t');
-                var point = {};
-                point.x = line[0];
-                point.y = line[1];
-                point.z = line[2];
-                pointData.push(point);
+                    res.json({
+                      points: pointData
+                    })
+                  } else {
+                    console.log(err);
+                    console.log('While opening' + filename_pca);
+                    res.json(false);
+                  }
+                });
+              } else {
+                console.log(filename_pca + ' does not exist for getPCA!');
+                res.json(false);
               }
-
-              res.json({
-                points: pointData
-              })
-            } else {
-              console.log(err);
-              console.log('While opening' + filename_pca);
-              res.json(false);
-            }
-          });
+            });
+          } else {
+            console.log(user.id[0] + ' attempted to access PCA for job ' + req.params.id + ', owned by ' + row.user_id);
+            res.statusCode = 401;
+            res.json(false);
+          }
         } else {
-          console.log(filename_pca + ' does not exist for getPCA!');
+          console.log(err);
           res.json(false);
         }
       });
-    } else {
-      console.log(err);
-      res.json(false);
     }
   });
 }

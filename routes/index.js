@@ -23,15 +23,29 @@ exports.getContamFasta = function(req, res) {
 
 getFasta = function(type, req, res) {
   var id = parseInt(req.params.id);
-  getWorkingDir( req, function(err, workingDir) {
+  db.get('SELECT user_id FROM job WHERE job_id = ?', [id], function(err, row) {
     if(!err) {
-      var filename = workingDir+'/job_'+id+'/job_'+id+'_output_'+type+'.fna';
-      fs.exists(filename, function(exists) {
-        if(exists) {
-          res.download(filename);
+      getUser(req, function(err, user) {
+        if(!err) {
+          if( user.id[0] == row.user_id || public_user_id == row.user_id ) {
+            var workingDir = config.working_dir + '/sso_' + ((public_user_id == row.user_id) ? public_user_id : user.id[0]);
+            var filename = workingDir+'/job_'+id+'/job_'+id+'_output_'+type+'.fna';
+            fs.exists(filename, function(exists) {
+              if(exists) {
+                res.download(filename);
+              } else {
+                console.log('getFasta: ' + filename + ' does not exist.');
+                res.statusCode = 404;
+                res.json(false);
+              }
+            });
+          } else {
+            console.log(user.id[0] + ' attempted to access PCA for job ' + req.params.id + ', owned by ' + row.user_id);
+            res.statusCode = 401;
+            res.json(false);
+          }
         } else {
-          console.log('getFasta: ' + filename + ' does not exist.');
-          res.statusCode = 404;
+          console.log(err);
           res.json(false);
         }
       });
@@ -45,7 +59,6 @@ getFasta = function(type, req, res) {
 
 redirectToCaliban = function(req, res) {
   var jgi_return = 'http://scd.jgi-psf.org/';// + req.get('Host') + req.originalUrl; // req is mangled by Apache
-  console.log('Setting jgi_return: ' + jgi_return);
   res.cookie('jgi_return', jgi_return, {domain: '.jgi-psf.org'});
   res.redirect('https://signon2.jgi-psf.org');
 }
