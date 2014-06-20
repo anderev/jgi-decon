@@ -50,6 +50,15 @@ db.serialize(function() {
   var install_location = '/global/homes/e/ewanders/scd-1.3.2';
   var nt_location = '/global/dna/shared/rqc/ref_databases/ncbi/CURRENT/nt/nt';
   var working_dir = '/global/homes/e/ewanders/dev/scd-viz/working_dirs';
+  fs.exists(working_dir, function(exists) {
+    if(!exists) {
+      fs.mkdir(working_dir, function(err) {
+        if(err) {
+          console.log(err);
+        }
+      });
+    }
+  });
   var scd_exe = 'qsub -N JOBNAME -j y -R y -V -o LOGFILE -l h_rt=12:00:00 -l ram.c=48G -pe pe_slots 8 /global/homes/e/ewanders/scd-1.3.2/bin/scd.sh';
   db.run("CREATE TABLE IF NOT EXISTS config (config_id INTEGER PRIMARY KEY, install_location TEXT, nt_location TEXT, working_dir TEXT, scd_exe TEXT)", function(err) {
     if(!err) {
