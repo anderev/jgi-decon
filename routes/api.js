@@ -178,7 +178,7 @@ exports.jobsInProject = function(req, res) {
     if(!user_err) {
       var id = req.params.id
       var jobs = [];
-            db.each("SELECT * FROM job WHERE project_id = ? AND user_id = ?", [id, user.id[0]], function(err, row) {
+        db.each("SELECT * FROM job WHERE project_id = ? AND user_id = ?", [id, user.id[0]], function(err, row) {
         if(err) {
           console.log(err);
         } else {

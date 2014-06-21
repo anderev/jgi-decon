@@ -7,9 +7,19 @@ function IndexCtrl($scope, $http) {
     success(function(data, status, headers, config) {
         $scope.ssoUser = data;
         });
-  $http.get('/api/projects').
+}
+
+function MyJobsCtrl($scope, $http) {
+  $http.get('/api/jobs').
     success(function(data, status, headers, config) {
-        $scope.projects = data.projects;
+        $scope.jobs = data.jobs;
+        });
+}
+
+function PublicJobsCtrl($scope, $http) {
+  $http.get('/api/jobs?is_public=1').
+    success(function(data, status, headers, config) {
+        $scope.jobs = data.jobs;
         });
 }
 

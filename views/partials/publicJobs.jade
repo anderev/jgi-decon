@@ -1,0 +1,6 @@
+div(ng-repeat='job in jobs', align="center")
+  p
+    "{{job.notes}}"
+    | 
+    a(href='readJob/{{job.job_id}}') [explore]
+

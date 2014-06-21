@@ -13,6 +13,14 @@ config(['$routeProvider', '$locationProvider', function ($routeProvider, $locati
       templateUrl: 'partials/index',
       controller: 'IndexCtrl'
     }).
+    when('/myJobs', {
+      templateUrl: 'partials/myJobs',
+      controller: 'MyJobsCtrl'
+    }).
+    when('/publicJobs', {
+      templateUrl: 'partials/publicJobs',
+      controller: 'PublicJobsCtrl'
+    }).
     when('/addJob', {
       templateUrl: 'partials/addJob',
       controller: 'AddJobCtrl'
