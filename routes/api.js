@@ -156,13 +156,13 @@ exports.jobs = function(req, res) {
   };
 
   if( req.query.is_public ) {
-    var query_str = "SELECT * FROM job WHERE is_public = 1";
+    var query_str = "SELECT * FROM job NATURAL JOIN project WHERE is_public = 1";
     var query_param = [];
     getJobs(req, res, query_str, query_param);
   } else {
     getUser(req, function(user_err, user) {
       if(!user_err) {
-        var query_str = "SELECT * FROM job WHERE user_id = ?";
+        var query_str = "SELECT * FROM job NATURAL JOIN project WHERE user_id = ?";
         var query_param = [user.id[0]];
         getJobs(req, res, query_str, query_param);
       } else {

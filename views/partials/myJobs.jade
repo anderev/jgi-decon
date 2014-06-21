@@ -1,8 +1,10 @@
-div(ng-repeat='job in jobs', align="center")
+div(ng-repeat='job in jobs')
   p
-    "{{job.notes}}"
-    | 
-    a(href='readJob/{{job.job_id}}') [explore]
+    a(href='readJob/{{job.job_id}}')
+      {{job.taxon_display_name}}
+      | 
+      "{{job.notes}}"
+
     | 
     a(href='deleteJob/{{job.job_id}}') [delete]
 
