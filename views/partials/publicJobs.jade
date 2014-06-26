@@ -1,7 +1,17 @@
-div(ng-repeat='job in jobs')
-  p
-    a(href='readJob/{{job.job_id}}')
-      {{job.taxon_display_name}}
-      | 
-      "{{job.notes}}"
+div(align="center")
+  h2
+    | Public Jobs
+  table
+    tr
+      th
+        | Notes
+      th
+        | Project
+    tr(ng-repeat='job in jobs')
+      td
+        a(href='readJob/{{job.job_id}}')
+          {{job.notes}}
+      td
+        a(href='readProject/{{job.project_id}}')
+          {{job.taxon_display_name}}
 

@@ -1,11 +1,11 @@
 div(align="center")
-  h3 {{project.taxon_display_name}}
-  div(ng-repeat='job in jobs')
-    | {{job.start_time}}
-    |  -  
-    | {{job.notes.substr(0,50)+'...'}}
-    |  -  
-    a(href='readJob/{{job.job_id}}') [explore]
-    |  -  
-    a(href='deleteJob/{{job.job_id}}') [delete]
-
+  h2
+    | Jobs in {{project.taxon_display_name}}
+  table
+    tr
+      th
+        | Notes
+    tr(ng-repeat='job in jobs')
+      td
+        a(href='readJob/{{job.job_id}}')
+          {{job.notes}}
