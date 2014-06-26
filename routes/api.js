@@ -305,7 +305,7 @@ getFasta = function(type, req, res) {
               }
             });
           } else {
-            console.log(user.id[0] + ' attempted to access PCA for job ' + req.params.id + ', owned by ' + row.user_id);
+            console.log(user.id[0] + ' attempted to access fasta for job ' + req.params.id + ', owned by ' + row.user_id);
             res.statusCode = 404;
             res.json(false);
           }
@@ -328,39 +328,65 @@ exports.getPCA = function(req, res) {
       getUser(req, function(err, user) {
         if(!err) {
           if( user.id[0] == row.user_id || row.is_public ) {
+            var pointData = [];
             var workingDir = config.working_dir + '/sso_' + row.user_id;
             var job_name = 'job_' + req.params.id;
-            var filename_pca = workingDir + '/' + job_name + '/' + job_name + '_Intermediate/' + job_name + '_contigs_9mer.pca';
-            fs.exists(filename_pca, function(exists) {
-              if(exists) {
-                fs.readFile(filename_pca, function(err, data) {
-                  if(!err) {
-                    var lines = data.toString().split('\n');
-                    var pointData = [];
-                    var num_lines = lines.length;
-                    for(var i=0; i<num_lines; ++i) {
-                      var line = lines[i].split('\t');
-                      var point = {};
-                      point.x = line[0];
-                      point.y = line[1];
-                      point.z = line[2];
-                      pointData.push(point);
-                    }
+            var intermediate_dir = workingDir + '/' + job_name + '/' + job_name + '_Intermediate/';
+            fs.readdir(intermediate_dir, function(err, files) {
+              var filename_pca = null;
+              var filename_names = null;
+              files.map(function(filename) {
 
-                    res.json({
-                      points: pointData
-                    })
-                  } else {
-                    console.log(err);
-                    console.log('While opening' + filename_pca);
-                    res.json(false);
+                if(filename.match(/\.pca$/g)) {
+                  filename_pca = intermediate_dir + filename;
+                } else if (filename.match(/_names$/g)) {
+                  filename_names = intermediate_dir + filename;
+                }
+              });
+
+              fs.readFile(filename_pca, function(err, data) {
+                if(!err) {
+                  var lines = data.toString().split('\n');
+                  var num_lines = lines.length;
+                  for(var i=0; i<num_lines; ++i) {
+                    var line = lines[i].split('\t');
+                    var point = {};
+                    point.x = line[0];
+                    point.y = line[1];
+                    point.z = line[2];
+                    pointData.push(point);
                   }
-                });
-              } else {
-                console.log(filename_pca + ' does not exist for getPCA!');
-                res.json(false);
-              }
+
+                  fs.readFile(filename_names, function(err, data) {
+                    if(!err) {
+                      var lines = data.toString().split('\n');
+                      var num_lines = lines.length;
+                      for(var i=0; i<num_lines; ++i) {
+                        pointData[i].name = lines[i];
+                      }
+
+                      res.json({
+                        points: pointData
+                      });
+
+                    } else {
+                      console.log(err);
+                      console.log('While opening' + filename_names);
+                      res.json(false);
+                    }
+                  });
+
+                } else {
+                  console.log(err);
+                  console.log('While opening' + filename_pca);
+                  res.json(false);
+                }
+
+              });
+
             });
+
+
           } else {
             console.log(user.id[0] + ' attempted to access PCA for job ' + req.params.id + ', owned by ' + row.user_id);
             res.statusCode = 401;
