@@ -6,7 +6,7 @@ angular.module('myApp.services').service('plotService', function() {
     var scene = new THREE.Scene();
     var width = 512;
     var height = 512;
-    var camera = new THREE.PerspectiveCamera(75, width/height, 0.1, 1000);
+    var camera = new THREE.PerspectiveCamera(15, width/height, 0.1, 1000);
 
     renderer.setSize(width, height);
     plot_area.appendChild(renderer.domElement);
@@ -24,8 +24,10 @@ angular.module('myApp.services').service('plotService', function() {
     	varying vec3 vColor;\
     	void main() {\
                 vec2 r = gl_PointCoord - vec2(0.5,0.5);\
-                if(length(r) <= 0.5) {\
+                if(length(r) <= 0.45) {\
                   gl_FragColor = vec4(vColor, 1.0);\
+                } else if(length(r) <= 0.5) {\
+                  gl_FragColor = vec4(1,1,1, 1.0);\
                 } else {\
                   gl_FragColor = vec4(0,0,0,0.0);\
                 }\
@@ -36,16 +38,16 @@ angular.module('myApp.services').service('plotService', function() {
     var particles = new THREE.Geometry();
     for(var p_i=0; p_i<data.points.length; ++p_i) {
     	var p = data.points[p_i];
-    	var particle = new THREE.Vector3(p.x, p.y, p.z);
-    	//var particle = new THREE.Vector3(0, 0, p.z);
         var typeColor = null;
-    	particles.vertices.push(particle);
-        if( data.points[p_i].name.match(/clean/g) ) {
+    	particles.vertices.push(new THREE.Vector3(p.x, p.y, p.z));
+        if( p.name.match(/clean/g) ) {
           typeColor = new THREE.Color(0,1,0);
-        } else if( data.points[p_i].name.match(/hybrid/g) ) {
+        } else if( p.name.match(/hybrid/g) ) {
           typeColor = new THREE.Color(0,0,1);
-        } else {
+        } else if( p.name.match(/contam/g) ) {
           typeColor = new THREE.Color(1,0,0);
+        } else  {
+          typeColor = new THREE.Color(1,1,0);
         }
         attributes.color.value.push(typeColor);
     }
@@ -53,16 +55,13 @@ angular.module('myApp.services').service('plotService', function() {
     	attributes: attributes,
     	vertexShader: vertexShaderSource,
     	fragmentShader: fragmentShaderSource,
-        //blending: THREE.CustomBlending,
-        //alphaTest: 1,
         transparent: true
-        //depthTest: false
     });
     var particleSystem = new THREE.ParticleSystem(particles, material);
     particleSystem.sortParticles = true;
     scene.add(particleSystem);
 
-    camera.position.z = 0.25;
+    camera.position.z = 0.2;
 
     var render = function() {
       requestAnimationFrame(render);
