@@ -6,7 +6,17 @@ angular.module('myApp.services').service('plotService', function() {
     var scene = new THREE.Scene();
     var width = 512;
     var height = 512;
-    var camera = new THREE.PerspectiveCamera(15, width/height, 0.1, 1000);
+    var camera = new THREE.PerspectiveCamera(60, width/height, 0.1, 1000);
+    var controls = new THREE.TrackballControls(camera);
+
+    controls.rotateSpeed = 5.0;
+    controls.zoomSpeed = 1.0;
+    controls.panSpeed = 1.0;
+    controls.noZoom = false;
+    controls.noPan = false;
+    controls.staticMoving = true;
+    controls.dynamicDampingFactor = 0.3;
+    controls.keys = [65, 83, 68];
 
     renderer.setSize(width, height);
     plot_area.appendChild(renderer.domElement);
@@ -64,15 +74,18 @@ angular.module('myApp.services').service('plotService', function() {
     camera.position.z = 0.2;
 
     var render = function() {
-      requestAnimationFrame(render);
-
-      particleSystem.rotation.x += 0.01;
-      particleSystem.rotation.y += 0.01;
-
       renderer.render(scene, camera);
     };
 
-    render();
+    var animate = function() {
+      render();
+      requestAnimationFrame(animate);
+      controls.update();
+    };
+
+    controls.addEventListener('change', render);
+
+    animate();
   };
 });
 
