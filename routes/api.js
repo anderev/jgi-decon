@@ -39,9 +39,11 @@ var getUser = function(req, callback) { // callback = function(err, user)
   }
 };
 
+/*
 db.on('trace', function(query) {
   console.log('SQLite: ' + query);
 });
+*/
 
 var config = null;
 
@@ -137,16 +139,20 @@ exports.jobs = function(req, res) {
 
   var getJobs = function(req, res, query, params) {
     var jobs = [];
+    /*
     console.log('query: '+query);
     console.log('params: '+params);
+    */
     db.each(query, params, function(err, row) {
       if(err) {
         console.log(err);
+      /*
       } else {
         console.log(row);
+        */
       }
       jobs.push(row);
-      console.log(jobs);
+      //console.log(jobs);
     }, function(err) {
       if(err) {
         console.log(err);
@@ -181,11 +187,13 @@ exports.jobsInProject = function(req, res) {
         db.each("SELECT * FROM job WHERE project_id = ? AND user_id = ?", [id, user.id[0]], function(err, row) {
         if(err) {
           console.log(err);
+        /*
         } else {
           console.log(row);
+          */
         }
         jobs.push(row);
-        console.log(jobs);
+        //console.log(jobs);
       }, function(err) {
         if(err) {
           console.log(err);
@@ -207,7 +215,7 @@ exports.job = function(req, res) {
         if(!err && row) {
           var process = spawn('qs', ['-j', row.process_id, '--style', 'json']);
           process.stdout.on('data', function(data) {
-            console.log('qs stdout: ' + data);
+            //console.log('qs stdout: ' + data);
             var status = JSON.parse(new String(data).split('\n')[0]);
             if(status.length == 1) {
               if(status[0].state.match(/qw/)) {
@@ -243,9 +251,11 @@ exports.job = function(req, res) {
           process.stderr.on('data', function(data) {
             console.log('qs stderr: ' + data);
           });
+          /*
           process.on('close', function(code) {
             console.log('qs exited with status: ' + code);
           });
+          */
         } else {
           res.json(false);
         }
@@ -464,7 +474,7 @@ exports.addJob = function(req, res) {
                         var cmd_exe = cmd_args.shift();
                         var process = spawn(cmd_exe, cmd_args);
                         process.stdout.on('data', function(data) {
-                          console.log('stdout: ' + data);
+                          //console.log('stdout: ' + data);
                           var parsed = (new String(data)).match(/Your job ([0-9]+)/);
                           if(parsed.length == 2) {
                             var process_id = parseInt(parsed[1]);
@@ -483,9 +493,11 @@ exports.addJob = function(req, res) {
                         process.stderr.on('data', function(data) {
                           console.log('stderr: ' + data);
                         });
+                        /*
                         process.on('close', function(code) {
                           console.log('child process exited with status: ' + code);
                         });
+                        */
                       }
                     });
                   }
