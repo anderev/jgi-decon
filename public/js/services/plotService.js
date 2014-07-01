@@ -7,7 +7,11 @@ angular.module('myApp.services').service('plotService', function() {
     var width = 512;
     var height = 512;
     var camera = new THREE.PerspectiveCamera(60, width/height, 0.1, 1000);
-    var controls = new THREE.TrackballControls(camera);
+
+    renderer.setSize(width, height);
+    plot_area.appendChild(renderer.domElement);
+
+    var controls = new THREE.TrackballControls(camera, renderer.domElement);
 
     controls.rotateSpeed = 5.0;
     controls.zoomSpeed = 1.0;
@@ -17,9 +21,6 @@ angular.module('myApp.services').service('plotService', function() {
     controls.staticMoving = true;
     controls.dynamicDampingFactor = 0.3;
     controls.keys = [65, 83, 68];
-
-    renderer.setSize(width, height);
-    plot_area.appendChild(renderer.domElement);
 
     var vertexShaderSource = '\
     	attribute vec3 color;\
