@@ -1,12 +1,31 @@
 angular.module('myApp.services').service('plotService', function() {
 	
+  addAxes = function(scene) {
+    var line_mat = new THREE.LineBasicMaterial({ color: 0xffffff });
+    var line_geom = new THREE.Geometry();
+    line_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+    line_geom.vertices.push(new THREE.Vector3(0.25, 0, 0));
+    line = new THREE.Line(line_geom, line_mat);
+    scene.add(line);
+    line_geom = new THREE.Geometry();
+    line_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+    line_geom.vertices.push(new THREE.Vector3(0, 0.25, 0));
+    line = new THREE.Line(line_geom, line_mat);
+    scene.add(line);
+    line_geom = new THREE.Geometry();
+    line_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+    line_geom.vertices.push(new THREE.Vector3(0, 0, 0.25));
+    line = new THREE.Line(line_geom, line_mat);
+    scene.add(line);
+  }
+
   this.init = function(data) {
     var plot_area = document.getElementById("plot_area");
     var renderer = new THREE.WebGLRenderer({clearAlpha:1});
     var scene = new THREE.Scene();
     var width = 512;
     var height = 512;
-    var camera = new THREE.PerspectiveCamera(60, width/height, 0.1, 1000);
+    var camera = new THREE.PerspectiveCamera(60, width/height, 0.0001, 1000);
 
     renderer.setSize(width, height);
     plot_area.appendChild(renderer.domElement);
@@ -29,7 +48,7 @@ angular.module('myApp.services').service('plotService', function() {
     		vColor = color;\
     		vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\
     		gl_Position = projectionMatrix * mvPosition;\
-    		gl_PointSize = 32.0 * (1.0 - 8.0*gl_Position.z);\
+    		gl_PointSize = 32.0;\
         }';
     var fragmentShaderSource = '\
     	varying vec3 vColor;\
@@ -71,6 +90,8 @@ angular.module('myApp.services').service('plotService', function() {
     var particleSystem = new THREE.ParticleSystem(particles, material);
     particleSystem.sortParticles = true;
     scene.add(particleSystem);
+
+    addAxes(scene);
 
     camera.position.z = 0.2;
 
