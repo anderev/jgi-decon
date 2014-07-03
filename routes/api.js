@@ -73,19 +73,21 @@ db.serialize(function() {
           console.log(err);
         }
       });
+    } else {
+      console.log(err);
     }
   });
   db.run("CREATE TABLE IF NOT EXISTS project (project_id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, taxon_display_name TEXT, taxon_domain TEXT, taxon_phylum TEXT, taxon_class TEXT, taxon_order TEXT, taxon_family TEXT, taxon_genus TEXT, taxon_species TEXT)", function(err) {
     if(!err) {
       db.run("INSERT OR IGNORE INTO project VALUES (1,?,?,?,?,?,?,?,?,?)", [
           5381,
-          'Bradyrhizobium sp. JGI 001005-E20',
+          'MDM',
           'Bacteria',
-          'Proteobacteria',
-          'Alphaproteobacteria',
-          'Rhizobiales',
-          'Bradyrhizobiaceae',
-          'Bradyrhizobium',
+          null,
+          null,
+          null,
+          null,
+          null,
           null
         ]);
     }
@@ -345,6 +347,11 @@ exports.getPCA = function(req, res) {
             fs.readdir(intermediate_dir, function(err, files) {
               var filename_pca = null;
               var filename_names = null;
+              if( !files ) {
+                res.json(false);
+                return;
+              }
+
               files.map(function(filename) {
 
                 if(filename.match(/\.pca$/g)) {
@@ -353,6 +360,11 @@ exports.getPCA = function(req, res) {
                   filename_names = intermediate_dir + filename;
                 }
               });
+
+              if( !filename_pca || !filename_names ) {
+                res.json(false);
+                return;
+              }
 
               fs.readFile(filename_pca, function(err, data) {
                 if(!err) {
