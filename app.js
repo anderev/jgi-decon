@@ -11,6 +11,7 @@ var express = require('express'),
   cookie_parser = require('cookie-parser');
 
 var app = module.exports = express();
+var config = require('./config.js').Config;
 
 
 /**
@@ -18,7 +19,7 @@ var app = module.exports = express();
  */
 
 // all environments
-app.set('port', process.env.PORT || 3051);
+app.set('port', config.port);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
 app.use(express.logger('dev'));
@@ -28,12 +29,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(app.router);
 
 // development only
-if (app.get('env') === 'development') {
+if (config.env === 'development') {
   app.use(express.errorHandler());
 }
 
 // production only
-if (app.get('env') === 'production') {
+if (config.env === 'production') {
   // TODO
 }
 
