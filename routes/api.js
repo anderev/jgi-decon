@@ -51,7 +51,7 @@ db.serialize(function() {
 
   var install_location = '/global/homes/e/ewanders/scd-1.3.2';
   var nt_location = '/global/dna/shared/rqc/ref_databases/ncbi/CURRENT/nt/nt';
-  var working_dir = '/global/homes/e/ewanders/dev/scd-viz/working_dirs';
+  var working_dir = '/global/homes/e/ewanders/prod/scd-viz/working_dirs';
   fs.exists(working_dir, function(exists) {
     if(!exists) {
       fs.mkdir(working_dir, function(err) {
