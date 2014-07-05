@@ -45,19 +45,19 @@ angular.module('myApp.services').service('plotService', function() {
     	attribute vec3 color;\
     	varying vec3 vColor;\
     	void main() {\
-    		vColor = color;\
     		vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\
     		gl_Position = projectionMatrix * mvPosition;\
     		gl_PointSize = 32.0;\
+    		vColor = color;\
         }';
     var fragmentShaderSource = '\
     	varying vec3 vColor;\
     	void main() {\
                 vec2 r = gl_PointCoord - vec2(0.5,0.5);\
-                if(length(r) <= 0.45) {\
+                if(length(r) <= 0.3) {\
                   gl_FragColor = vec4(vColor, 1.0);\
                 } else if(length(r) <= 0.5) {\
-                  gl_FragColor = vec4(1,1,1, 1.0);\
+                  gl_FragColor = vec4(0,0,0, 0.75*(1.0 - 5.0*(length(r)-0.3)));\
                 } else {\
                   gl_FragColor = vec4(0,0,0,0.0);\
                 }\
