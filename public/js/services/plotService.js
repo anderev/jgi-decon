@@ -53,11 +53,12 @@ angular.module('myApp.services').service('plotService', function() {
     var programStroke = function(ctx) {
       ctx.lineWidth = 0.025;
       ctx.beginPath();
-      ctx.arc( 0, 0, 0.5, PI2, true );
+      ctx.arc( 0, 0, 0.5, 0, PI2, true );
       ctx.stroke();
     }
 
     var mouse = {x:0, y:0};
+    var INTERSECTED;
 
     var particles = new THREE.Geometry();
     for(var p_i=0; p_i<data.points.length; ++p_i) {
@@ -84,8 +85,28 @@ angular.module('myApp.services').service('plotService', function() {
     addAxes(scene);
 
     camera.position.z = 0.2;
+    var savedColor, selectedColor = new THREE.Color(1,1,0);
 
     var render = function() {
+      var vector = new THREE.Vector3( mouse.x, mouse.y, 0.5 );
+      projector.unprojectVector( vector, camera );
+      var raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
+
+      var intersects = raycaster.intersectObjects( scene.children );
+
+      if( intersects.length > 0 ) {
+        if( INTERSECTED != intersects[ 0 ].object ) {
+          if( INTERSECTED ) INTERSECTED.material.color = savedColor;
+
+          INTERSECTED = intersects[0].object;
+          savedColor = INTERSECTED.material.color;
+          INTERSECTED.material.color = selectedColor;
+        }
+      } else {
+        if( INTERSECTED ) INTERSECTED.material.color = savedColor;
+        INTERSECTED = null;
+      }
+
       renderer.render(scene, camera);
     };
 
@@ -96,16 +117,32 @@ angular.module('myApp.services').service('plotService', function() {
     };
 
     controls.addEventListener('change', render);
-    plot_area.addEventListener('mousemove', onPlotMouseMove, false);
+    renderer.domElement.addEventListener('mousemove', onPlotMouseMove, false);
+
+    var screen = {};
+
+    function onPlotMouseMove(event) {
+      var relx = ( event.pageX - screen.left ) / screen.width;
+      var rely = ( event.pageY - screen.top ) / screen.height;
+      event.preventDefault();
+      mouse.x = relx * 2 - 1;
+      mouse.y = - rely * 2 + 1;
+    }
+
+    function handleResize() {
+      var box = renderer.domElement.getBoundingClientRect();
+      var d = plot_area.ownerDocument.documentElement;
+      screen.left = box.left + window.pageXOffset - d.clientLeft;
+      screen.top = box.top + window.pageYOffset - d.clientTop;
+      screen.width = box.width;
+      screen.height = box.height;
+    };
+
+    handleResize();
 
     animate();
-  };
 
-  function onPlotMouseMove(event) {
-    event.preventDefault();
-    mouse.x = (event.clientX / plot_area.innerWidth) * 2 - 1;
-    mouse.y = - (event.clientY / plot_area.innerHeight) * 2 + 1;
-  }
+  };
 
 });
 
