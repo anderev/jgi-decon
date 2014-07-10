@@ -19,13 +19,13 @@ angular.module('myApp.services').service('plotService', function() {
     scene.add(line);
   }
 
-  this.init = function(data) {
+  this.init = function(data, $scope) {
     var plot_area = document.getElementById("plot_area");
     //var renderer = new THREE.WebGLRenderer({clearAlpha:1});
     var renderer = new THREE.CanvasRenderer();
     var scene = new THREE.Scene();
-    var width = 512;
-    var height = 512;
+    var width = 1024;
+    var height = 1024;
     var camera = new THREE.PerspectiveCamera(60, width/height, 0.0001, 1000);
     var projector = new THREE.Projector();
 
@@ -79,6 +79,7 @@ angular.module('myApp.services').service('plotService', function() {
         particle.position.y = p.y;
         particle.position.z = p.z;
         particle.scale.x = particle.scale.y = 0.001;
+        particle.name = p.name;
         scene.add( particle );
     }
 
@@ -101,6 +102,8 @@ angular.module('myApp.services').service('plotService', function() {
           INTERSECTED = intersects[0].object;
           savedColor = INTERSECTED.material.color;
           INTERSECTED.material.color = selectedColor;
+          $scope.contig = INTERSECTED;
+          $scope.$apply();
         }
       } else {
         if( INTERSECTED ) INTERSECTED.material.color = savedColor;

@@ -14,11 +14,6 @@ div(align="center")
         a(target="_self",href='api/getContamFasta/{{job.job_id}}') Fasta
     tr
       td
-        | Input Fasta:
-      td
-        | {{job.in_fasta}}
-    tr
-      td
         | Notes:
       td
         | {{job.notes}}
@@ -33,4 +28,44 @@ div(align="center")
       td
         | {{job.process_status}}
 
-div(align="center", id="plot_area")
+table(align='center')
+  tr
+    td
+      div(align='left', id='plot_area')
+    td
+      table(id='contig_info')
+        tr
+          td
+            | Contig Name:
+          td
+            | {{contig.name}}
+        tr
+          td
+            | GC %:
+          td
+            | Unknown
+        tr
+          td
+            | Nuc Sequence:
+          td
+            | Unknown
+        tr
+          td
+            | Assigned Phylogeny:
+          td
+            | Unknown
+        tr
+          td
+            | Support Blast hits:
+          td
+            | Unknown
+        tr
+          td
+            | Length of Query:
+          td
+            | Unknown
+        tr
+          td
+            | Length of Subject:
+          td
+            | Unknown

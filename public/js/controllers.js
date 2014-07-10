@@ -58,10 +58,11 @@ function ReadJobCtrl($scope, $http, $routeParams, plotService) {
     success(function(data) {
         $scope.job = data.job;
         $scope.plotService = plotService;
+        $scope.contig = null;
         $http.get('/api/getPCA/' + $routeParams.id).
         	success(function(data) {
                   if(data.points) {
-                    $scope.plotService.init(data);
+                    $scope.plotService.init(data, $scope);
                   }
         	});
         });
