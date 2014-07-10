@@ -5,7 +5,8 @@
 angular.module('myApp', [
   'myApp.filters',
   'myApp.services',
-  'myApp.directives'
+  'myApp.directives',
+  'angularFileUpload'
 ]).
 config(['$routeProvider', '$locationProvider', function ($routeProvider, $locationProvider) {
   $routeProvider.

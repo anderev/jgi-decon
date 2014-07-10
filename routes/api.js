@@ -417,6 +417,23 @@ exports.addProject = function(req, res) {
   });
 };
 
+exports.uploadFasta = function(req, res) {
+  getUser(req, function(user_err, user) {
+    if(!user_err) {
+      var file = req.files.file;
+      var newFilename = config.working_dir + '/sso_' + user.id[0] + '/upload.fasta';
+      console.log('rename: ' + file.path + ' => ' + newFilename);
+      fs.createReadStream(file.path).pipe(fs.createWriteStream(newFilename).on('finish', function() {
+        console.log('File upload received: ' + newFilename);
+        res.json(req.body);
+      }));
+    } else {
+      console.log(user_err);
+      res.json(false);
+    }
+  });
+};
+
 exports.addJob = function(req, res) {
   getUser(req, function(user_err, user) {
     if(!user_err) {
@@ -430,84 +447,110 @@ exports.addJob = function(req, res) {
               db.get("SELECT * FROM job natural join project WHERE job_id = ? AND user_id = ?", [job_id, user.id[0]], function(err, row) {
                 if(row) {
                   var cfg = row;
-                  cfg.working_dir = config.working_dir + '/sso_' + user.id[0];
-                  cfg.job_name = 'job_'+job_id;
-                  cfg.install_location = config.install_location;
-                  cfg.nt_location = config.nt_location;
-                  cfg.run_genecall = 1;
-                  cfg.run_blast = 1;
-                  cfg.run_classify = 1;
-                  cfg.run_accuracy = 0;
-                  cfg.blast_threads = 8;
-                  var config_data = "";
-                  var config_keys = ['taxon_display_name','taxon_domain','taxon_phylum','taxon_class','taxon_order','taxon_family','taxon_genus','taxon_species','install_location','nt_location','working_dir','in_fasta','job_name','run_genecall','run_blast','run_classify','run_accuracy','blast_threads'];
-                  for (var k=0; k<config_keys.length; ++k) {
-                    var key = config_keys[k];
-                    var value = cfg[key];
-                    if(value || (key.indexOf('run_' >= 0) || key.indexOf('taxon_') >= 0)) {
-                      config_data = config_data + key.toUpperCase() + '=';
-                      if(value != null) {
-                        config_data = config_data + '"' + value + '"\n';
-                      } else {
-                        config_data = config_data + '\n';
-                      }
-                    } else {
-                      res.json(false);
-                      console.log(key+'='+value);
-                      console.log(cfg);
-                      return;
-                    }
-                  }
-
-                  var startJob = function() {
-                    var new_config_filename = cfg.working_dir+'/'+cfg.job_name+'_config.cnf';
-                    fs.writeFile(new_config_filename, config_data, function(err) {
-                      if(!err) {
-                        var cmd_line = config.scd_exe.replace("JOBNAME", "SCD_VIZ-"+cfg.job_name).replace("LOGFILE", cfg.working_dir+'/'+cfg.job_name+'-qsub.log')+' '+new_config_filename;
-                        var cmd_args = cmd_line.split(' ');
-                        var cmd_exe = cmd_args.shift();
-                        var process = spawn(cmd_exe, cmd_args);
-                        process.stdout.on('data', function(data) {
-                          //console.log('stdout: ' + data);
-                          var parsed = (new String(data)).match(/Your job ([0-9]+)/);
-                          if(parsed.length == 2) {
-                            var process_id = parseInt(parsed[1]);
-                            console.log('Parsed job id: ' + process_id);
-                            db.run("UPDATE job SET process_id = ? WHERE job_id = ?", [process_id, job_id], function(err) {
-                              if(!err) {
-                                res.json(req.body);
-                              } else {
-                                console.log('Failed to update job with process_id and working_dir.');
-                                console.log(err);
-                                res.json(false);
-                              }
-                            });
+                  if(!req.body.in_fasta) {
+                    var uploadedFilename = config.working_dir + '/sso_' + user.id[0] + '/upload.fasta';
+                    fs.exists(uploadedFilename, function(exists) {
+                      if(exists) {
+                        var permanentFilename = config.working_dir + '/sso_' + user.id[0] + '/uploaded_job_' + job_id + '.fasta';
+                        console.log('rename: ' + uploadedFilename + ' => ' + permanentFilename);
+                        fs.rename(uploadedFilename, permanentFilename, function(err) {
+                          if(err) {
+                            console.log(err);
+                            res.json(false);
+                          } else {
+                            prepareJob(permanentFilename);
                           }
                         });
-                        process.stderr.on('data', function(data) {
-                          console.log('stderr: ' + data);
-                        });
-                        /*
-                        process.on('close', function(code) {
-                          console.log('child process exited with status: ' + code);
-                        });
-                        */
+                      } else {
+                        console.log('Missing in_fasta.');
+                        res.json(false);
                       }
                     });
+                  } else {
+                    prepareJob(req.body.in_fasta);
                   }
 
-                  fs.exists(cfg.working_dir, function(exists) {
-                    if(!exists) {
-                      fs.mkdir(cfg.working_dir, function(err) {
+                  function prepareJob(in_fasta) {
+                    cfg.in_fasta = in_fasta;
+                    cfg.working_dir = config.working_dir + '/sso_' + user.id[0];
+                    cfg.job_name = 'job_'+job_id;
+                    cfg.install_location = config.install_location;
+                    cfg.nt_location = config.nt_location;
+                    cfg.run_genecall = 1;
+                    cfg.run_blast = 1;
+                    cfg.run_classify = 1;
+                    cfg.run_accuracy = 0;
+                    cfg.blast_threads = 8;
+                    var config_data = "";
+                    var config_keys = ['taxon_display_name','taxon_domain','taxon_phylum','taxon_class','taxon_order','taxon_family','taxon_genus','taxon_species','install_location','nt_location','working_dir','in_fasta','job_name','run_genecall','run_blast','run_classify','run_accuracy','blast_threads'];
+                    for (var k=0; k<config_keys.length; ++k) {
+                      var key = config_keys[k];
+                      var value = cfg[key];
+                      if(value || (key.indexOf('run_' >= 0) || key.indexOf('taxon_') >= 0)) {
+                        config_data = config_data + key.toUpperCase() + '=';
+                        if(value != null) {
+                          config_data = config_data + '"' + value + '"\n';
+                        } else {
+                          config_data = config_data + '\n';
+                        }
+                      } else {
+                        res.json(false);
+                        console.log(key+'='+value);
+                        console.log(cfg);
+                        return;
+                      }
+                    }
+
+                    var startJob = function() {
+                      var new_config_filename = cfg.working_dir+'/'+cfg.job_name+'_config.cnf';
+                      fs.writeFile(new_config_filename, config_data, function(err) {
                         if(!err) {
-                          startJob();
+                          var cmd_line = config.scd_exe.replace("JOBNAME", "SCD_VIZ-"+cfg.job_name).replace("LOGFILE", cfg.working_dir+'/'+cfg.job_name+'-qsub.log')+' '+new_config_filename;
+                          var cmd_args = cmd_line.split(' ');
+                          var cmd_exe = cmd_args.shift();
+                          var process = spawn(cmd_exe, cmd_args);
+                          process.stdout.on('data', function(data) {
+                            //console.log('stdout: ' + data);
+                            var parsed = (new String(data)).match(/Your job ([0-9]+)/);
+                            if(parsed.length == 2) {
+                              var process_id = parseInt(parsed[1]);
+                              console.log('Parsed job id: ' + process_id);
+                              db.run("UPDATE job SET process_id = ? WHERE job_id = ?", [process_id, job_id], function(err) {
+                                if(!err) {
+                                  res.json(req.body);
+                                } else {
+                                  console.log('Failed to update job with process_id and working_dir.');
+                                  console.log(err);
+                                  res.json(false);
+                                }
+                              });
+                            }
+                          });
+                          process.stderr.on('data', function(data) {
+                            console.log('stderr: ' + data);
+                          });
+                          /*
+                          process.on('close', function(code) {
+                            console.log('child process exited with status: ' + code);
+                          });
+                          */
                         }
                       });
-                    } else {
-                      startJob();
                     }
-                  });
 
+                    fs.exists(cfg.working_dir, function(exists) {
+                      if(!exists) {
+                        fs.mkdir(cfg.working_dir, function(err) {
+                          if(!err) {
+                            startJob();
+                          }
+                        });
+                      } else {
+                        startJob();
+                      }
+                    });
+
+                  }
                 } else {
                   console.log('Failed to find new row.');
                 }

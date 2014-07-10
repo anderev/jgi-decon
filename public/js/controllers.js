@@ -23,12 +23,28 @@ function PublicJobsCtrl($scope, $http) {
         });
 }
 
-function AddJobCtrl($scope, $http, $location) {
+function AddJobCtrl($scope, $http, $upload, $location) {
   $scope.form = {};
   $http.get('/api/projects').
     success(function(data, status, headers, config) {
         $scope.projects = data.projects;
         });
+  $scope.onFileSelect = function($files) {
+    console.log('onFileSelect');
+    for(var i = 0; i < $files.length; i++) {
+      var file = $files[i];
+      $scope.upload = $upload.upload({
+        url: '/api/uploadFasta',
+        method: 'POST',
+        data: {in_fasta: $scope.form.in_fasta},
+        file: file
+      }).progress(function(evt) {
+        console.log('percent: ' + parseInt(100.0 * evt.loaded / evt.total));
+      }).success(function(data, status, headers, config) {
+        console.log(data);
+      });
+    }
+  };
   $scope.submitJob = function() {
     $http.post('/api/job', $scope.form).
       success(function(data) {

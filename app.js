@@ -65,6 +65,7 @@ app.get('/api/job/:id', api.job);
 app.get('/api/getPCA/:id', api.getPCA);
 app.get('/api/ssoUser', api.getSsoUser);
 app.post('/api/job', api.addJob);
+app.post('/api/uploadFasta', api.uploadFasta);
 app.delete('/api/job/:id', api.deleteJob);
 
 app.get('/api/projects', api.projects);

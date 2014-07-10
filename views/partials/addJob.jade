@@ -10,7 +10,7 @@ div(align="center")
       td(align="right")
         label(for='in_fasta') Fasta Input:
       td
-        input(ng-model='form.in_fasta', name='in_fasta')
+        input(type='file', ng-model='form.in_fasta', name='in_fasta', ng-file-select='onFileSelect($files)')
     tr
       td(align="right")
         label(for='notes') Notes:
