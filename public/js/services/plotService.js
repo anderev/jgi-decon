@@ -1,7 +1,7 @@
 angular.module('myApp.services').service('plotService', function() {
 	
   addAxes = function(scene) {
-    var line_mat = new THREE.LineBasicMaterial({ color: 0xffffff });
+    var line_mat = new THREE.LineBasicMaterial({ color: 0x000000 });
     var line_geom = new THREE.Geometry();
     line_geom.vertices.push(new THREE.Vector3(0, 0, 0));
     line_geom.vertices.push(new THREE.Vector3(0.25, 0, 0));
@@ -30,6 +30,7 @@ angular.module('myApp.services').service('plotService', function() {
     var projector = new THREE.Projector();
 
     renderer.setSize(width, height);
+    renderer.setClearColorHex(0xffffff, 1);
     plot_area.appendChild(renderer.domElement);
 
     var controls = new THREE.TrackballControls(camera, renderer.domElement);
