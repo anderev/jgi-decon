@@ -84,9 +84,9 @@ angular.module('myApp.services').service('plotService', function() {
         scene.add( particle );
     }
 
-    var xlabel = makeTextSprite("PCA1", {fontsize: 24, borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:100, b:100, a:0.8} } );
-    var ylabel = makeTextSprite("PCA2", {fontsize: 24, borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:100, b:100, a:0.8} } );
-    var zlabel = makeTextSprite("PCA3", {fontsize: 24, borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:100, b:100, a:0.8} } );
+    var xlabel = makeTextSprite("PCA1", {fontsize: 24, fontface: "Georgia", borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:100, b:100, a:0.8} } );
+    var ylabel = makeTextSprite("PCA2", {fontsize: 24, fontface: "Georgia", borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:100, b:100, a:0.8} } );
+    var zlabel = makeTextSprite("PCA3", {fontsize: 24, fontface: "Georgia", borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:100, b:100, a:0.8} } );
     xlabel.position.set(0.25, 0, 0);
     ylabel.position.set(0, 0.25, 0);
     zlabel.position.set(0, 0, 0.25);
