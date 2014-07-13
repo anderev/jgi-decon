@@ -1,33 +1,3 @@
-div(align="center")
-  h3 {{job.taxon_display_name}}
-  h4 {{job.start_time}}
-  table
-    tr
-      td
-        | Clean Data:
-      td
-        a(target="_self",href='api/getCleanFasta/{{job.job_id}}') Fasta
-    tr
-      td
-        | Contaminant Data:
-      td
-        a(target="_self",href='api/getContamFasta/{{job.job_id}}') Fasta
-    tr
-      td
-        | Notes:
-      td
-        | {{job.notes}}
-    tr
-      td
-        | Job ID:
-      td
-        | {{job.process_id}}
-    tr
-      td
-        | Job Status:
-      td
-        | {{job.process_status}}
-
 table(align='center')
   tr
     td
@@ -69,3 +39,39 @@ table(align='center')
             | Length of Subject:
           td
             | Unknown
+        tr
+          td
+            | Project:
+          td
+            | {{job.taxon_display_name}}
+        tr
+          td
+            | Start Time:
+          td
+            | {{job.start_time}}
+        tr
+          td
+            | Clean Data:
+          td
+            a(target="_self",href='api/getCleanFasta/{{job.job_id}}') Fasta
+        tr
+          td
+            | Contaminant Data:
+          td
+            a(target="_self",href='api/getContamFasta/{{job.job_id}}') Fasta
+        tr
+          td
+            | Notes:
+          td
+            | {{job.notes}}
+        tr
+          td
+            | Job ID:
+          td
+            | {{job.process_id}}
+        tr
+          td
+            | Job Status:
+          td
+            | {{job.process_status}}
+
