@@ -94,6 +94,16 @@ function AddProjectCtrl($scope, $http, $location) {
           $location.path('/');
           });
   };
+  $scope.updatePhylogeny = function() {
+    var fields = $scope.form.phylogeny_string.split(';');
+    $scope.form.taxon_domain = fields[0] || '';
+    $scope.form.taxon_phylum = fields[1] || '';
+    $scope.form.taxon_class = fields[2] || '';
+    $scope.form.taxon_order = fields[3] || '';
+    $scope.form.taxon_family = fields[4] || '';
+    $scope.form.taxon_genus = fields[5] || '';
+    $scope.form.taxon_species = fields[6] || '';
+  };
 }
 
 function ReadProjectCtrl($scope, $http, $routeParams) {

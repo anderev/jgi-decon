@@ -10,32 +10,29 @@ div(align="center")
         input(ng-model='form.taxon_display_name', name='taxon_display_name')
     tr(align="right")
       td
-        label(for='taxon_domain') Domain:
-        input(ng-model='form.taxon_domain', name='taxon_domain')
+        label(for='phylogeny_string') Phylogeny (e.g.: Bacteria;Proteobacteria;Alphaproteobacteria ...):
+        input(ng-model='form.phylogeny_string', name='phylogeny_string', ng-change='updatePhylogeny()')
     tr(align="right")
       td
-        label(for='taxon_phylum') Phylum:
-        input(ng-model='form.taxon_phylum', name='taxon_phylum')
+        | Domain: {{form.taxon_domain}}
     tr(align="right")
       td
-        label(for='taxon_class') Class:
-        input(ng-model='form.taxon_class', name='taxon_class')
+        | Phylum: {{form.taxon_phylum}}
     tr(align="right")
       td
-        label(for='taxon_order') Order:
-        input(ng-model='form.taxon_order', name='taxon_order')
+        | Class: {{form.taxon_class}}
     tr(align="right")
       td
-        label(for='taxon_family') Family:
-        input(ng-model='form.taxon_family', name='taxon_family')
+        | Order: {{form.taxon_order}}
     tr(align="right")
       td
-        label(for='taxon_genus') Genus:
-        input(ng-model='form.taxon_genus', name='taxon_genus')
+        | Family: {{form.taxon_family}}
     tr(align="right")
       td
-        label(for='taxon_species') Species:
-        input(ng-model='form.taxon_species', name='taxon_species')
+        | Genus: {{form.taxon_genus}}
+    tr(align="right")
+      td
+        | Species: {{form.taxon_species}}
     tr(align="center")
       td(colspan="2")
   p
