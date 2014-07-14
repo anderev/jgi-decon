@@ -329,6 +329,8 @@ exports.getPCA = function(req, res) {
             fs.readdir(intermediate_dir, function(err, files) {
               var filename_pca = null;
               var filename_names = null;
+              var filename_lca = null;
+
               if( !files ) {
                 res.json(false);
                 return;
@@ -340,10 +342,12 @@ exports.getPCA = function(req, res) {
                   filename_pca = intermediate_dir + filename;
                 } else if (filename.match(/_names$/g)) {
                   filename_names = intermediate_dir + filename;
+                } else if (filename.match(/\.LCA$/g)) {
+                  filename_lca = intermediate_dir + filename;
                 }
               });
 
-              if( !filename_pca || !filename_names ) {
+              if( !filename_pca || !filename_names|| !filename_lca ) {
                 res.json(false);
                 return;
               }
@@ -369,8 +373,31 @@ exports.getPCA = function(req, res) {
                         pointData[i].name = lines[i];
                       }
 
-                      res.json({
-                        points: pointData
+                      fs.readFile(filename_lca, function(err, data) {
+                        if(!err) {
+
+                          var lines = data.toString().split('\n');
+                          var num_lines = lines.length;
+                          var contig_phylogeny = {};
+                          for(var i=0; i<num_lines; ++i) {
+                            var tokens = lines[i].split('\t');
+                            console.log(JSON.stringify(tokens));
+                            contig_phylogeny[tokens[0]] = tokens[1];
+                          }
+
+                          for(var j=0; j<pointData.length; j++) {
+                            pointData[j].phylogeny = (contig_phylogeny[pointData[j].name] || 'Unknown').trim();
+                          }
+
+                          res.json({
+                            points: pointData
+                          });
+
+                        } else {
+                          console.log(err);
+                          console.log('While opening' + filename_lca);
+                          res.json(false);
+                        }
                       });
 
                     } else {

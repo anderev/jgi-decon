@@ -28,6 +28,7 @@ angular.module('myApp.services').service('plotService', function() {
     var height = 1024;
     var camera = new THREE.PerspectiveCamera(60, width/height, 0.0001, 1000);
     var projector = new THREE.Projector();
+    var contig_data = data;
 
     renderer.setSize(width, height);
     renderer.setClearColorHex(0xffffff, 1);
@@ -62,8 +63,8 @@ angular.module('myApp.services').service('plotService', function() {
     var INTERSECTED;
 
     var particles = new THREE.Geometry();
-    for(var p_i=0; p_i<data.points.length; ++p_i) {
-    	var p = data.points[p_i];
+    for(var p_i=0; p_i<contig_data.points.length; ++p_i) {
+    	var p = contig_data.points[p_i];
         var typeColor = null;
     	//particles.vertices.push(new THREE.Vector3(p.x, p.y, p.z));
         if( p.name.match(/clean/g) ) {
@@ -80,7 +81,7 @@ angular.module('myApp.services').service('plotService', function() {
         particle.position.y = p.y;
         particle.position.z = p.z;
         particle.scale.x = particle.scale.y = 0.001;
-        particle.name = p.name;
+        particle.data_i = p_i;
         scene.add( particle );
     }
 
@@ -113,7 +114,7 @@ angular.module('myApp.services').service('plotService', function() {
           INTERSECTED = intersects[0].object;
           savedColor = INTERSECTED.material.color;
           INTERSECTED.material.color = selectedColor;
-          $scope.contig = INTERSECTED;
+          $scope.contig = contig_data.points[INTERSECTED.data_i];
           $scope.$apply();
         }
       } else {
