@@ -381,7 +381,6 @@ exports.getPCA = function(req, res) {
                           var contig_phylogeny = {};
                           for(var i=0; i<num_lines; ++i) {
                             var tokens = lines[i].split('\t');
-                            console.log(JSON.stringify(tokens));
                             contig_phylogeny[tokens[0]] = tokens[1];
                           }
 
