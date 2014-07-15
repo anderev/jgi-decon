@@ -1,0 +1,71 @@
+#R CMD BATCH -dir -k --no-save kmer.R kmer.out 
+args=commandArgs(trailingOnly=F)
+jobname=args[length(args)-1]
+jobname=sub("-","",jobname)
+dir=args[length(args)-3]
+dir=sub("-","",dir)
+k=args[length(args)-2]
+k=sub("-","",k)
+bin=args[length(args)-4]
+bin=sub("-","",bin)
+out_cutoff=paste(dir,"/",jobname,"_Intermediate/",jobname,"_cutoff",sep="")
+out_kmerclean=paste(dir,"/",jobname,"_Intermediate/",jobname,"_kmer_clean_contigs",sep="")
+out_kmercontam=paste(dir,"/",jobname,"_Intermediate/",jobname,"_kmer_contam_contigs",sep="")
+print(out_cutoff)
+print(dir)
+print(k)
+library("BH",lib.loc=bin)
+library("bigmemory.sri",lib.loc=bin)
+library("bigmemory",lib.loc=bin)
+library("biganalytics",lib.loc=bin)
+n=read.table(paste(dir,"/",jobname,"_Intermediate/",jobname,"_contigs_kmervecs_",k,"_names",sep=""),header=F)
+x=read.big.matrix(paste(dir,"/",jobname,"_Intermediate/",jobname,"_contigs_kmervecs_",k,sep=""),header=F,sep=" ",type="double")
+w=which(colsum(x)==0)
+if(length(w)>0){
+	x=x[,-w]
+}
+sc=read.table(paste(dir,"/",jobname,"_Intermediate/",jobname,"_blast_clean_contigs",sep=""),header=F,sep="\t")
+sd=read.table(paste(dir,"/",jobname,"_Intermediate/",jobname,"_blast_contam_contigs",sep=""),header=F,sep="\t")
+s=rbind(as.matrix(cbind(sc,"clean")),as.matrix(cbind(sd,"contam")))
+m=merge(cbind(n,1:dim(n)[1]),s,by.x=1,by.y=1,all.x=T,all.y=F)
+m=m[order(m[,2]),]
+print(head(m))
+print(dim(m))
+print(dim(x))
+w=which(!is.na(m[,3]))
+if(length(w)>0){
+	y=x[w,]
+}else{
+	y=x
+}
+pca=prcomp(y)
+d=sapply(1:nrow(y),function(j) dist(rbind(pca$x[j,],rep(0,(ncol(pca$x))))))
+mm=merge(m,cbind(as.character(m[w,1]),d))
+w=which(mm[,3]=="contam")
+if(length(w)==0){
+	cutoff=0.0136
+}else{
+	cutoff=min(as.numeric(as.character(mm[w,4])))
+}
+write.table(cutoff,out_cutoff,append=F,row.names=F,col.names=F,quote=F)
+#no to pca of only clean and unknown with new cutoff
+w=which(m[,3]=="clean"|is.na(m[,3]))
+if(length(w)>0){
+        y=x[w,]
+}else{
+        y=x
+}
+pca=prcomp(y)
+out_pca=paste(dir,"/",jobname,"_Intermediate/",jobname,"_contigs_",k,"mer.pca",sep="")
+write.table(pca$x[,1:3],out_pca,quote=F,append=F,row.names=F,col.names=F,sep="\t")
+d=sapply(1:nrow(y),function(j) dist(rbind(pca$x[j,],rep(0,(ncol(pca$x))))))
+mm=merge(m,cbind(as.character(m[w,1]),d),all=T)
+w=which(as.numeric(as.character(mm[,4]))<cutoff)
+mm=cbind(mm,mm[,3])
+if(length(w)>0){
+	mm[w,5]="clean"
+}	
+w=which(mm[,5]=="clean")
+write.table(mm[w,1],out_kmerclean,quote=F,append=F,row.names=F,col.names=F,sep="\t")
+write.table(mm[-w,1],out_kmercontam,quote=F,append=F,row.names=F,col.names=F,sep="\t")
+

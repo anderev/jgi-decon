@@ -1,0 +1,84 @@
+# Single Cell Decontamination (scd) 1.3.2
+# # Copyright (C) 2013-current Kristin Tennessen and Amrita Pati
+# #
+# # This program is free software; you can redistribute it and/or
+# # modify it under the terms of the GNU General Public License
+# # as published by the Free Software Foundation; either version 2
+# # of the License, or (at your option) any later version.
+# #
+# # This program is distributed in the hope that it will be useful,
+# # but WITHOUT ANY WARRANTY; without even the implied warranty of
+# # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# # GNU General Public License for more details.
+# #
+# # You should have received a copy of the GNU General Public License
+# # along with this program; if not, write to the Free Software
+# # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+PURPOSE
+The purpose of this software is to decontaminate single cell samples
+at the DOE's JGI.
+
+REQUIREMENTS
+This softare was developed to turn on NERSC's genepool cluster.
+The user must have this software previously installed before running the install
+script:
+- Blast+ 2.2.28
+- Perl 5.16.0
+- Prodigal 2.50
+- R 3.0.1
+The BLASTN_EXE envirnonmental variable will be used to run blastn, R_EXE to run R,
+and PRODIGAL_EXE to run prodigal. Else, please use 'module load' to set up your environment.
+
+INPUT/OUTPUT
+The program takes as input a contaminated fasta file and its target taxonomy and outputs 
+a fasta file that is decontaminated and contains a high proportion of clean contigs.
+Many other intermediary files are created during the process.
+
+INSTALL
+To install the code unzip the tar in the directory in which you would like the code to live. 
+tar xvzf scd-X.X.tgz
+Inside the scd-X.X directory type:
+sh install.sh
+Required arguments: 
+  -i <full path install location> 
+Optional arguments:
+  -n <ncbi nr location> 
+  -t <ncbi taxonomy location>
+For help:
+  -h
+If the ncbi files are not specified, the install script will download and install them. 
+This version comes preloaded with the ncbi taxonomy file. 
+
+RUNNING
+scd.sh <configuration file>
+
+CONFIGURATION
+The program takes as input a configuration file. Below are the fields that should be in the file:
+TAXON_DISPLAY_NAME=
+TAXON_DOMAIN=
+TAXON_PHYLUM=
+TAXON_CLASS=
+TAXON_ORDER=
+TAXON_FAMILY=
+TAXON_GENUS=
+TAXON_SPECIES=
+INSTALL_LOCATION=
+NT_LOCATION=
+WORKING_DIR=
+IN_FASTA=
+JOB_NAME=
+RUN_GENECALL=<0 to skip, 1 to run>
+RUN_BLAST=<0 to skip, 1 to run>
+RUN_CLASSIFY=<0 to skip, 1 to run>
+RUN_ACCURACY=<0 to skip, 1 to run>  #contigs must have "clean" or "contam" in their fasta's contig name
+BLAST_THREADS=                      #default is 8                     
+
+EXAMPLE
+Two examples are included in the Examples folder.  The config.cfg needs to be updated with the install location and
+the working directory.  To run the example type:
+scd.sh <hard path of config file>
+
+
+
+
