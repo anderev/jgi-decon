@@ -24,14 +24,17 @@ angular.module('myApp.services').service('plotService', function() {
     //var renderer = new THREE.WebGLRenderer({clearAlpha:1});
     var renderer = new THREE.CanvasRenderer();
     var scene = new THREE.Scene();
+    var hud_scene = new THREE.Scene();
     var width = 1024;
     var height = 1024;
     var camera = new THREE.PerspectiveCamera(60, width/height, 0.0001, 1000);
+    var hud_camera = new THREE.OrthographicCamera(width / -2, width / 2, height / 2, height / -2, 0.0001, 1000);
     var projector = new THREE.Projector();
     var contig_data = data;
 
     renderer.setSize(width, height);
     renderer.setClearColorHex(0xffffff, 1);
+    renderer.autoClear = false;
     plot_area.appendChild(renderer.domElement);
 
     var controls = new THREE.TrackballControls(camera, renderer.domElement);
@@ -63,26 +66,32 @@ angular.module('myApp.services').service('plotService', function() {
     var INTERSECTED;
 
     var particles = new THREE.Geometry();
+    var colormap = {};
+    for(var p_i=0; p_i<contig_data.points.length; ++p_i) {
+      colormap[contig_data.points[p_i].phylogeny] = new THREE.Color(0,0,0);
+    }
+
+    var num_colors = 0;
+    for(var phylo in colormap) {
+      num_colors++;
+    }
+
+    var phylo_i = 0;
+    for(var phylo in colormap) {
+      console.log(phylo + ': ' + phylo_i / num_colors);
+      colormap[phylo].setHSL(phylo_i / num_colors, 0.75, 0.6);
+      phylo_i++;
+    }
+
     for(var p_i=0; p_i<contig_data.points.length; ++p_i) {
     	var p = contig_data.points[p_i];
-        var typeColor = null;
-    	//particles.vertices.push(new THREE.Vector3(p.x, p.y, p.z));
-        if( p.name.match(/clean/g) ) {
-          typeColor = new THREE.Color(0,1,0);
-        } else if( p.name.match(/hybrid/g) ) {
-          typeColor = new THREE.Color(0,0,1);
-        } else if( p.name.match(/contam/g) ) {
-          typeColor = new THREE.Color(1,0,0);
-        } else  {
-          typeColor = new THREE.Color(1,1,0);
-        }
-        var particle = new THREE.Sprite( new THREE.SpriteCanvasMaterial( {color: typeColor, program: programFill} ) );
+        var particle = new THREE.Sprite( new THREE.SpriteCanvasMaterial( {color: colormap[p.phylogeny], program: programFill} ) );
         particle.position.x = p.x;
         particle.position.y = p.y;
         particle.position.z = p.z;
-        particle.scale.x = particle.scale.y = 0.001;
+        particle.scale.x = particle.scale.y = 50;
         particle.data_i = p_i;
-        scene.add( particle );
+        hud_scene.add( particle );
     }
 
     var xlabel = makeTextSprite("PCA1", {fontsize: 24, fontface: "Georgia", borderColor: {r:0, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:255, b:255, a:0.8} } );
@@ -102,10 +111,19 @@ angular.module('myApp.services').service('plotService', function() {
 
     var render = function() {
       var vector = new THREE.Vector3( mouse.x, mouse.y, 0.5 );
-      projector.unprojectVector( vector, camera );
-      var raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
+      projector.unprojectVector( vector, hud_camera );
+      //var raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
+      var raycaster = new THREE.Raycaster( vector, new THREE.Vector3(0,0,-1) );
 
-      var intersects = raycaster.intersectObjects( scene.children );
+      for(var child_i=0; child_i < hud_scene.children.length; child_i++) {
+        var point = contig_data.points[hud_scene.children[child_i].data_i];
+        vector = new THREE.Vector3(point.x, point.y, point.z);
+        projector.projectVector(vector, camera);
+        projector.unprojectVector(vector, hud_camera);
+        hud_scene.children[child_i].position = vector;
+      }
+
+      var intersects = raycaster.intersectObjects( hud_scene.children );
 
       if( intersects.length > 0 ) {
         if( INTERSECTED != intersects[ 0 ].object ) {
@@ -122,7 +140,10 @@ angular.module('myApp.services').service('plotService', function() {
         INTERSECTED = null;
       }
 
+      renderer.clear();
       renderer.render(scene, camera);
+      renderer.clearDepth();
+      renderer.render(hud_scene, hud_camera);
     };
 
     var animate = function() {
