@@ -113,6 +113,7 @@ angular.module('myApp.services').service('plotService', function() {
       var vector = new THREE.Vector3( mouse.x, mouse.y, 0.5 );
       projector.unprojectVector( vector, hud_camera );
       //var raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
+      vector.z = 0;
       var raycaster = new THREE.Raycaster( vector, new THREE.Vector3(0,0,-1) );
 
       for(var child_i=0; child_i < hud_scene.children.length; child_i++) {
