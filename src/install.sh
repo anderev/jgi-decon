@@ -101,10 +101,15 @@ else
 fi
 
 sh $CURR_DIR/bin/02.getRpackages.sh $INSTALL_DIR
-sh $CURR_DIR/bin/03.createTaxSpeciesfile.sh $CURR_DIR $INSTALL_DIR/NCBI-tax
-if [[ -e $INSTALL_DIR/lib/BH/ && -e $INSTALL_DIR/lib/bigmemory.sri/ && -e $INSTALL_DIR/lib/bigmemory/ && -e $INSTALL_DIR/lib/biganalytics/ ]]
+sh $CURR_DIR/bin/03.createTaxSpeciesfile.sh $CURR_DIR $INSTALL_DIR/NCBI-tax $NCBI_TAX
+rm $NCBI_TAX/nodes.dmp
+rm $NCBI_TAX/names.dmp
+
+if [[ ! -e $INSTALL_DIR/lib/BH/ || ! -e $INSTALL_DIR/lib/bigmemory.sri/ || ! -e $INSTALL_DIR/lib/bigmemory/ || ! -e $INSTALL_DIR/lib/biganalytics/ ]]
 then
- 	echo "Installation successful."
+        echo "R packages not successfully installed.  SCD installation unsuccessful."
+elif [[ ! -s $INSTALL_DIR/NCBI-tax/ncbi_taxonomy_leafnodes_species.out ]]
+	echo "NCBI Taxonomy not successfully parsed.  SCD installation unsuccessful."	
 else
-	echo "R packages not successfully installed.  SCD installation unsuccessful."
+        echo "Installation successful.
 fi
