@@ -1,22 +1,39 @@
 angular.module('myApp.services').service('plotService', function() {
 	
-  addAxes = function(scene) {
+  var axis_camera_ratio = 0.4;
+  addAxes = function(scene, label_scene, camera) {
     var line_mat = new THREE.LineBasicMaterial({ color: 0x000000 });
-    var line_geom = new THREE.Geometry();
-    line_geom.vertices.push(new THREE.Vector3(0, 0, 0));
-    line_geom.vertices.push(new THREE.Vector3(0.25, 0, 0));
-    line = new THREE.Line(line_geom, line_mat);
+    var line_geom = [new THREE.Geometry(),new THREE.Geometry(),new THREE.Geometry()];
+    var axisLength = camera.position.length() * axis_camera_ratio;
+    line_geom[0].vertices.push(new THREE.Vector3(0, 0, 0));
+    line_geom[0].vertices.push(new THREE.Vector3(axisLength, 0, 0));
+    line_geom[1].vertices.push(new THREE.Vector3(0, 0, 0));
+    line_geom[1].vertices.push(new THREE.Vector3(0, axisLength, 0));
+    line_geom[2].vertices.push(new THREE.Vector3(0, 0, 0));
+    line_geom[2].vertices.push(new THREE.Vector3(0, 0, axisLength));
+    line = new THREE.Line(line_geom[0], line_mat);
     scene.add(line);
-    line_geom = new THREE.Geometry();
-    line_geom.vertices.push(new THREE.Vector3(0, 0, 0));
-    line_geom.vertices.push(new THREE.Vector3(0, 0.25, 0));
-    line = new THREE.Line(line_geom, line_mat);
+    line = new THREE.Line(line_geom[1], line_mat);
     scene.add(line);
-    line_geom = new THREE.Geometry();
-    line_geom.vertices.push(new THREE.Vector3(0, 0, 0));
-    line_geom.vertices.push(new THREE.Vector3(0, 0, 0.25));
-    line = new THREE.Line(line_geom, line_mat);
+    line = new THREE.Line(line_geom[2], line_mat);
     scene.add(line);
+
+    var labels = [makeTextSprite("PCA1", {fontsize: 24, fontface: "Georgia", borderColor: {r:0, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:255, b:255, a:0.8} } ),
+                  makeTextSprite("PCA2", {fontsize: 24, fontface: "Georgia", borderColor: {r:0, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:255, b:255, a:0.8} } ),
+                  makeTextSprite("PCA3", {fontsize: 24, fontface: "Georgia", borderColor: {r:0, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:255, b:255, a:0.8} } ) ];
+    labels[0].position = line_geom[0].vertices[1].clone();
+    labels[1].position = line_geom[1].vertices[1].clone();
+    labels[2].position = line_geom[2].vertices[1].clone();
+    label_scene.add(labels[0]);
+    label_scene.add(labels[1]);
+    label_scene.add(labels[2]);
+
+    return [line_geom[0].vertices[1],line_geom[1].vertices[1],line_geom[2].vertices[1]];
+  }
+
+  updateAxes = function(axes, camera) {
+    var axisLength = camera.position.length() * axis_camera_ratio;
+    axes[0].x = axes[1].y = axes[2].z = axisLength;
   }
 
   this.init = function(data, $scope) {
@@ -25,12 +42,16 @@ angular.module('myApp.services').service('plotService', function() {
     var renderer = new THREE.CanvasRenderer();
     var scene = new THREE.Scene();
     var hud_scene = new THREE.Scene();
+    var label_scene = new THREE.Scene();
     var width = 1024;
     var height = 1024;
     var camera = new THREE.PerspectiveCamera(60, width/height, 0.0001, 1000);
     var hud_camera = new THREE.OrthographicCamera(width / -2, width / 2, height / 2, height / -2, 0.0001, 1000);
     var projector = new THREE.Projector();
     var contig_data = data;
+    var axis_data = [new THREE.Vector3(1,0,0),
+                     new THREE.Vector3(0,1,0),
+                     new THREE.Vector3(0,0,1)];
 
     renderer.setSize(width, height);
     renderer.setClearColorHex(0xffffff, 1);
@@ -39,6 +60,8 @@ angular.module('myApp.services').service('plotService', function() {
 
     var controls = new THREE.TrackballControls(camera, renderer.domElement);
     var PI2 = Math.PI * 2;
+
+    camera.position.z = 0.2;
 
     controls.rotateSpeed = 5.0;
     controls.zoomSpeed = 1.0;
@@ -94,19 +117,8 @@ angular.module('myApp.services').service('plotService', function() {
         hud_scene.add( particle );
     }
 
-    var xlabel = makeTextSprite("PCA1", {fontsize: 24, fontface: "Georgia", borderColor: {r:0, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:255, b:255, a:0.8} } );
-    var ylabel = makeTextSprite("PCA2", {fontsize: 24, fontface: "Georgia", borderColor: {r:0, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:255, b:255, a:0.8} } );
-    var zlabel = makeTextSprite("PCA3", {fontsize: 24, fontface: "Georgia", borderColor: {r:0, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:255, b:255, a:0.8} } );
-    xlabel.position.set(0.25, 0, 0);
-    ylabel.position.set(0, 0.25, 0);
-    zlabel.position.set(0, 0, 0.25);
-    scene.add(xlabel);
-    scene.add(ylabel);
-    scene.add(zlabel);
-    
-    addAxes(scene);
+    var axes = addAxes(scene, label_scene, camera);
 
-    camera.position.z = 0.2;
     var savedColor, selectedColor = new THREE.Color(1,1,0);
 
     var render = function() {
@@ -122,6 +134,16 @@ angular.module('myApp.services').service('plotService', function() {
         projector.projectVector(vector, camera);
         projector.unprojectVector(vector, hud_camera);
         hud_scene.children[child_i].position = vector;
+      }
+
+      var axisLength = axis_camera_ratio * camera.position.length();
+      for(var axis_i=0; axis_i < label_scene.children.length; axis_i++) {
+        var point = axis_data[axis_i];
+        vector = new THREE.Vector3(point.x, point.y, point.z);
+        vector.multiplyScalar(axisLength);
+        projector.projectVector(vector, camera);
+        projector.unprojectVector(vector, hud_camera);
+        label_scene.children[axis_i].position = vector;
       }
 
       var intersects = raycaster.intersectObjects( hud_scene.children );
@@ -141,10 +163,14 @@ angular.module('myApp.services').service('plotService', function() {
         INTERSECTED = null;
       }
 
+      updateAxes(axes, camera);
+
       renderer.clear();
       renderer.render(scene, camera);
       renderer.clearDepth();
       renderer.render(hud_scene, hud_camera);
+      renderer.clearDepth();
+      renderer.render(label_scene, hud_camera);
     };
 
     var animate = function() {
@@ -231,7 +257,7 @@ angular.module('myApp.services').service('plotService', function() {
     var spriteMaterial = new THREE.SpriteMaterial( 
         { map: texture } );
     var sprite = new THREE.Sprite( spriteMaterial );
-    sprite.scale.set(0.1,0.05,1.0);
+    sprite.scale.set(200,100,200);
     return sprite;  
   }
 
