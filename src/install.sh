@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#This installs Single Cell Decontamination (SCD) 1.3.2
+#This installs Single Cell Decontamination (SCD) 1.3.3
 # Argument = -i installation_directory -n ncbi_nt -t ncbi_taxonomy
 
 usage()
