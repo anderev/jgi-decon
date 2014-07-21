@@ -39,7 +39,7 @@ INSTALL
 To install the code unzip the tar in the directory in which you would like the code to live. 
 tar xvzf scd-X.X.tgz
 Inside the scd-X.X directory type:
-sh install.sh
+sh scd_install.sh
 Required arguments: 
   -i <full path install location> 
 Optional arguments:
