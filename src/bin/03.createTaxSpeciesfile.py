@@ -17,16 +17,20 @@ id2name= {}
 id2type= {}
 id2rank= {}
 
-# Loads info from NCBI taxonomy files
-if os.path.exists("/global/projectb/sandbox/rqc/qcdb/taxonomy/tax/2013.08.09/nodes.dmp"):
-    NODESFILE = open('/global/projectb/sandbox/rqc/qcdb/taxonomy/tax/2013.08.09/nodes.dmp')
-else:
-    print '"nodes.dmp" file is missing. Try to downloaded from: '
+dir=str(sys.argv[1])
 
-if os.path.exists("/global/projectb/sandbox/rqc/qcdb/taxonomy/tax/2013.08.09/names.dmp"):
-    NAMESFILE = open('/global/projectb/sandbox/rqc/qcdb/taxonomy/tax/2013.08.09/names.dmp')
+# Loads info from NCBI taxonomy files
+if os.path.exists(dir + "/nodes.dmp"):
+    NODESFILE = open(dir + '/nodes.dmp')
 else:
-    print '"names.dmp" file is missing. Try to downloaded from: '
+    print '"nodes.dmp" file is missing in "%s". Exiting. ' % dir
+    sys.exit()
+
+if os.path.exists(dir + "/names.dmp"):
+    NAMESFILE = open(dir + '/names.dmp')
+else:
+    print '"names.dmp" file is missing in "%s". Exiting. ' % dir
+    sys.exit()
 
 # Reads taxid/names transaltion
 #print 'Loading species names from "names.dmp" file...',
