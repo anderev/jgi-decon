@@ -97,7 +97,7 @@ then
                 then
                       	BLAST_THREADS=8 
                 fi
-		$blastCmd -query ${INT_DIR}/${JOB_NAME}_genes.fna -out $INT_DIR/${JOB_NAME}_genes.blout -db $NT_LOCATION -evalue .01 -num_threads $BLAST_THREADS -num_alignments 2 -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore stitle"
+		$blastCmd -query ${INT_DIR}/${JOB_NAME}_genes.fna -out $INT_DIR/${JOB_NAME}_genes.blout -db $NT_LOCATION -evalue .01 -num_threads $BLAST_THREADS -num_alignments 2 -outfmt "6 qseqid sseqid pident length slen qlen mismatch gapopen qstart qend sstart send evalue bitscore stitle"
 		scd_analyzeBlastBins.pl ${INT_DIR}/${JOB_NAME}_genes.blout ${INT_DIR}/${JOB_NAME}_bins.contigs ${INT_DIR}/${JOB_NAME}_contigs.bins
 	else
 		echo "Prodigal failed.  ${INT_DIR}/${JOB_NAME}_genes.fna was not created.  Can not run blast." >> ${WORKING_DIR}/${JOB_NAME}_log
