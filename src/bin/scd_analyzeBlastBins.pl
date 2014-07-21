@@ -23,14 +23,29 @@ while (<PBF>) {
   $contigbins->{$contig}={} unless exists $contigbins->{$contig};
 
   # Extract NR subject species
-  my @arr2=split(/ /,pop(@a));
+  my @stitle=split(/ /,pop(@a));
   my $sp;
-  if($arr2[0]=~/Candidatus/ || $arr2[0]=~/candidate division/i){
-  	$sp=$arr2[0] . " " . $arr2[1]  . " " . $arr2[2];
-  }
+  ##Issue#1 begin add
+  if($stitle[0]=~/\|/){  
+	if($stitle[1]=~/Candidatus/ || $stitle[1]=~/candidate division/i){
+       	 	$sp=$stitle[1] . " " . $stitle[2]  . " " . $stitle[3];
+  	}
+  	else{
+        	$sp=$stitle[1] . " " . $stitle[2];
+  	}
+  } 
   else{
-	$sp=$arr2[0] . " " . $arr2[1];
+  ##Issue#1 end add
+  	if($stitle[0]=~/Candidatus/ || $stitle[0]=~/candidate division/i){
+  		$sp=$stitle[0] . " " . $stitle[1]  . " " . $stitle[2];
+  	}
+  	else{
+		$sp=$stitle[0] . " " . $stitle[1];
+  	}
+  ##Issue#1 begin add
   }
+  ##Issue#1 end add
+
   #print "$contig XX $g XX $sp XX\n";
   if (exists $contigbins->{$contig}->{$sp}) {
     $contigbins->{$contig}->{$sp}=$contigbins->{$contig}->{$sp}+1;
