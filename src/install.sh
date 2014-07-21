@@ -102,8 +102,6 @@ fi
 
 sh $CURR_DIR/bin/02.getRpackages.sh $INSTALL_DIR
 sh $CURR_DIR/bin/03.createTaxSpeciesfile.sh $CURR_DIR $INSTALL_DIR/NCBI-tax $NCBI_TAX
-rm $NCBI_TAX/nodes.dmp
-rm $NCBI_TAX/names.dmp
 
 if [[ ! -e $INSTALL_DIR/lib/BH/ || ! -e $INSTALL_DIR/lib/bigmemory.sri/ || ! -e $INSTALL_DIR/lib/bigmemory/ || ! -e $INSTALL_DIR/lib/biganalytics/ ]]
 then

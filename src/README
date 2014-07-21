@@ -1,4 +1,4 @@
-# Single Cell Decontamination (scd) 1.3.2
+# Single Cell Decontamination (scd) 1.3.3
 # # Copyright (C) 2013-current Kristin Tennessen and Amrita Pati
 # #
 # # This program is free software; you can redistribute it and/or
@@ -48,7 +48,6 @@ Optional arguments:
 For help:
   -h
 If the ncbi files are not specified, the install script will download and install them. 
-This version comes preloaded with the ncbi taxonomy file. 
 
 RUNNING
 scd.sh <configuration file>
@@ -63,7 +62,7 @@ TAXON_ORDER=
 TAXON_FAMILY=
 TAXON_GENUS=
 TAXON_SPECIES=
-INSTALL_LOCATION=
+INSTALL_LOCATION=                   #Do not set this if you are using 'module load scd'
 NT_LOCATION=
 WORKING_DIR=
 IN_FASTA=
@@ -72,7 +71,7 @@ RUN_GENECALL=<0 to skip, 1 to run>
 RUN_BLAST=<0 to skip, 1 to run>
 RUN_CLASSIFY=<0 to skip, 1 to run>
 RUN_ACCURACY=<0 to skip, 1 to run>  #contigs must have "clean" or "contam" in their fasta's contig name
-BLAST_THREADS=                      #default is 8                     
+BLAST_THREADS=                      #Default is 8 
 
 EXAMPLE
 Two examples are included in the Examples folder.  The config.cfg needs to be updated with the install location and
