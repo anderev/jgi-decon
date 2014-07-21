@@ -14,9 +14,22 @@ fi
 
 source ${1} 
 
-if [[ -z $WORKING_DIR || -z $JOB_NAME || -z $INSTALL_LOCATION ]]
+#Begin add Issue #3
+if [[ -z $INSTALL_LOCATION ]]
 then
-        echo "Please update your config file so that none of these fields are empty: WORKING_DIR, JOB_NAME, INSTALL_LOCATION."
+	module load scd
+	INSTALL_LOCATION=$SCD_DIR
+fi
+if [[ -z $INSTALL_LOCATION ]]
+then    
+	echo "Please define INSTALL_LOCATION, the location of scd's bin directory, in your config file."
+        exit
+fi      
+#End add Issue #3
+
+if [[ -z $WORKING_DIR || -z $JOB_NAME ]]
+then
+        echo "Please update your config file so that neither of these fields are empty: WORKING_DIR, JOB_NAME."
         exit
 fi
 
