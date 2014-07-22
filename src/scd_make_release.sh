@@ -27,7 +27,7 @@ cp ${tod}/bin/*R ${fud}/Releases/scd-${ver}/bin/
 cp ${tod}/lib/*pm ${fud}/Releases/scd-${ver}/lib/
 cp ${tod}/lib/*txt ${fud}/Releases/scd-${ver}/lib/
 cp -r ${tod}/Examples/* ${fud}/Releases/scd-${ver}/Examples
-mv ${tod}/Releases/scd-${ver}/bin/install.sh ${fud}/Releases/scd-${ver}/
+mv ${tod}/scd_install.sh ${fud}/Releases/scd-${ver}/
 
 cd ${fud}/Releases/
 tar cvzf scd-${ver}.tgz scd-${ver}
