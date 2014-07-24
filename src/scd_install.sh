@@ -70,7 +70,7 @@ then
   cp $CURR_DIR/bin/*.R $INSTALL_DIR/bin/
   cp $CURR_DIR/bin/*.sh $INSTALL_DIR/bin/
   cp $CURR_DIR/bin/*.pl $INSTALL_DIR/bin/
-  cp $CURR_DIR"scd_install.sh" $INSTALL_DIR/bin/
+  cp $CURR_DIR"/scd_install.sh" $INSTALL_DIR/bin/
   cp $CURR_DIR/README $INSTALL_DIR/
   cp -R $CURR_DIR/Examples $INSTALL_DIR/
 fi
@@ -105,9 +105,11 @@ sh $CURR_DIR/bin/03.createTaxSpeciesfile.sh $CURR_DIR $INSTALL_DIR/NCBI-tax $NCB
 
 if [[ ! -e $INSTALL_DIR/lib/BH/ || ! -e $INSTALL_DIR/lib/bigmemory.sri/ || ! -e $INSTALL_DIR/lib/bigmemory/ || ! -e $INSTALL_DIR/lib/biganalytics/ ]]
 then
-        echo "R packages not successfully installed.  SCD installation unsuccessful."
+        echo "R packages not installed.  SCD installation unsuccessful."
 elif [[ ! -s $INSTALL_DIR/NCBI-tax/ncbi_taxonomy_leafnodes_species.out ]]
-	echo "NCBI Taxonomy not successfully parsed.  SCD installation unsuccessful."	
+then
+	echo "NCBI Taxonomy not parsed.  SCD installation unsuccessful."	
 else
-        echo "Installation successful.
+        echo "Installation successful."
 fi
+

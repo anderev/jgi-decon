@@ -72,7 +72,6 @@ for line in NODESFILE:
 #print len(id2node)
 
 # Reconstruct tree topology from previously stored tree connections
-#print 'Reconstructing tree topology...'
 for node in id2node.itervalues():
     parentid = node2parentid[node]
     parent = id2node[parentid]
@@ -82,7 +81,6 @@ for node in id2node.itervalues():
     else:
         parent.add_child(node)
 
-# Let's play with the tree
 def get_track(node):
     ''' Returns the taxonomy track from leaf to root'''
     track = []
@@ -93,11 +91,13 @@ def get_track(node):
     #print
     return track
 
-#print "The tree contains %d leaf species" %len(t)
+#Print one line for each leaf node
+file_name=str(sys.argv[2])
+fileh=open(file_name,'w')
 taxid = None
 for taxid in id2name:
     if id2rank[taxid]=="species":
 	target_node =  id2node[taxid]
-	print "root\t"+'\t'.join(get_track(target_node)[::-1])
+	fileh.write("root\t"+'\t'.join(get_track(target_node)[::-1])+'\n')
 
 sys.exit()
