@@ -13,12 +13,12 @@ table(align='center')
           td
             | GC %:
           td
-            | Unknown
+            | {{contig.gc_percent}}
         tr
           td
             | Nuc Sequence:
           td
-            | Unknown
+            | {{contig.nuc_sequence}}
         tr
           td
             | Assigned Phylogeny:
@@ -28,17 +28,63 @@ table(align='center')
           td
             | Support Blast hits:
           td
-            | Unknown
-        tr
-          td
-            | Length of Query:
-          td
-            | Unknown
-        tr
-          td
-            | Length of Subject:
-          td
-            | Unknown
+            div(style='overflow:auto')
+              table
+                tr
+                  th
+                    | Gene Id
+                  th
+                    | Subject Id
+                  th
+                    | % Identity
+                  th
+                    | Strand
+                  th
+                    | Query Length
+                  th
+                    | Subject Length
+                  th
+                    | Query Start
+                  th
+                    | Query End
+                  th
+                    | Subject Start
+                  th
+                    | Subject End
+                  th
+                    | e-Value
+                  th
+                    | Bit Score
+                  th
+                    | Subject Genome
+                tr(ng-repeat='gene in contig.genes')
+                  td
+                    | {{gene.gene_id}}
+                  td
+                    | {{gene.subject_id}}
+                  td
+                    | {{gene.percent_identity}}
+                  td
+                    | {{gene.strand}}
+                  td
+                    | {{gene.query_len}}
+                  td
+                    | {{gene.subject_len}}
+                  td
+                    | {{gene.query_start}}
+                  td
+                    | {{gene.query_end}}
+                  td
+                    | {{gene.subject_start}}
+                  td
+                    | {{gene.subject_end}}
+                  td
+                    | {{gene.e_value}}
+                  td
+                    | {{gene.bit_score}}
+                  td
+                    | {{gene.subject_genome}}
+
         tr
           td
             | Project:

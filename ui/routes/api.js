@@ -5,6 +5,7 @@ var fs = require('fs');
 var https = require('https');
 var xml2js = require('xml2js');
 var config = require('../config.js').Config;
+var parser = require('./parsers.js');
 
 
 var userCache = {}; // jgi_session_id -> userObject
@@ -330,6 +331,7 @@ exports.getPCA = function(req, res) {
               var filename_pca = null;
               var filename_names = null;
               var filename_lca = null;
+              var filename_blout = null;
 
               if( !files ) {
                 res.json(false);
@@ -344,75 +346,45 @@ exports.getPCA = function(req, res) {
                   filename_names = intermediate_dir + filename;
                 } else if (filename.match(/\.LCA$/g)) {
                   filename_lca = intermediate_dir + filename;
+                } else if (filename.match(/\.blout$/g)) {
+                  filename_blout = intermediate_dir + filename;
                 }
               });
 
-              if( !filename_pca || !filename_names|| !filename_lca ) {
+              if( !(filename_pca && filename_names && filename_lca && filename_blout) ) {
                 res.json(false);
                 return;
               }
 
-              fs.readFile(filename_pca, function(err, data) {
+              fs.readFile(filename_pca, parser.parse_pca(pointData, function(err) {
                 if(!err) {
-                  var lines = data.toString().split('\n');
-                  var num_lines = lines.length;
-                  for(var i=0; i<num_lines; ++i) {
-                    var line = lines[i].split('\t');
-                    var point = {};
-                    point.x = line[0];
-                    point.y = line[1];
-                    point.z = line[2];
-                    pointData.push(point);
-                  }
-
-                  fs.readFile(filename_names, function(err, data) {
+                  fs.readFile(filename_names, parser.parse_names(pointData, function(err) {
                     if(!err) {
-                      var lines = data.toString().split('\n');
-                      var num_lines = lines.length;
-                      for(var i=0; i<num_lines; ++i) {
-                        pointData[i].name = lines[i];
-                      }
-
-                      fs.readFile(filename_lca, function(err, data) {
+                      fs.readFile(filename_lca, parser.parse_lca(pointData, function(err) {
                         if(!err) {
-
-                          var lines = data.toString().split('\n');
-                          var num_lines = lines.length;
-                          var contig_phylogeny = {};
-                          for(var i=0; i<num_lines; ++i) {
-                            var tokens = lines[i].split('\t');
-                            contig_phylogeny[tokens[0]] = tokens[1];
-                          }
-
-                          for(var j=0; j<pointData.length; j++) {
-                            pointData[j].phylogeny = (contig_phylogeny[pointData[j].name] || 'Unknown').trim();
-                          }
-
-                          res.json({
-                            points: pointData
-                          });
-
+                          fs.readFile(filename_blout, parser.parse_blout(pointData, function(err) {
+                            if(!err) {
+                              res.json({points: pointData});
+                            } else {
+                              console.log(err);
+                              res.json(false);
+                            }
+                          }));
                         } else {
                           console.log(err);
-                          console.log('While opening' + filename_lca);
                           res.json(false);
                         }
-                      });
-
+                      }));
                     } else {
                       console.log(err);
-                      console.log('While opening' + filename_names);
                       res.json(false);
                     }
-                  });
-
+                  }));
                 } else {
                   console.log(err);
-                  console.log('While opening' + filename_pca);
                   res.json(false);
                 }
-
-              });
+              }));
 
             });
 
