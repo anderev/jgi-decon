@@ -53,7 +53,7 @@ exports.parse_lca = function(pointData, callback) {
       }
 
       for(var j=0; j<pointData.length; j++) {
-        pointData[j].phylogeny = (contig_phylogeny[pointData[j].name] || 'Unknown').trim();
+        pointData[j].phylogeny = (contig_phylogeny[pointData[j].name] || 'Unknown').trim().replace('root;cellular organisms;', '');
       }
 
       callback(null);
@@ -64,25 +64,26 @@ exports.parse_lca = function(pointData, callback) {
   }
 };
 
-parseBloutLine = function(blout) {
-  return {
-    gene_id: blout[0],
-    subject_id: blout[1],
-    percent_identity: blout[2],
-    strand: null,
-    query_len: null,
-    subject_len: null,
-    query_start: blout[6],
-    query_end: blout[7],
-    subject_start: blout[8],
-    subject_end: blout[9],
-    e_value: blout[10],
-    bit_score: blout[11],
-    subject_genome: blout[12]
-  };
-};
-
 exports.parse_blout = function(pointData, callback) {
+
+  var parseBloutLine = function(blout) {
+    return {
+      gene_id: blout[0],
+      subject_id: blout[1],
+      percent_identity: blout[2],
+      strand: null,
+      query_len: null,
+      subject_len: null,
+      query_start: blout[6],
+      query_end: blout[7],
+      subject_start: blout[8],
+      subject_end: blout[9],
+      e_value: blout[10],
+      bit_score: blout[11],
+      subject_genome: blout[12]
+    };
+  };
+
   return function(err, data) {
 
     if(!err) {
