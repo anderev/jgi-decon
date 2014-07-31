@@ -28,18 +28,19 @@ angular.module('myApp.services').service('plotService', function() {
     label_scene.add(labels[1]);
     label_scene.add(labels[2]);
 
-    return [line_geom[0].vertices[1],line_geom[1].vertices[1],line_geom[2].vertices[1]];
+    return line_geom;
   }
 
   updateAxes = function(axes, camera) {
     var axisLength = camera.position.length() * axis_camera_ratio;
-    axes[0].x = axes[1].y = axes[2].z = axisLength;
+    axes[0].vertices[1].x = axes[1].vertices[1].y = axes[2].vertices[1].z = axisLength;
+    axes[0].verticesNeedUpdate = axes[1].verticesNeedUpdate = axes[2].verticesNeedUpdate = true;
   }
 
   this.init = function(data, $scope) {
     var plot_area = document.getElementById("plot_area");
-    //var renderer = new THREE.WebGLRenderer({clearAlpha:1});
-    var renderer = new THREE.CanvasRenderer();
+    var renderer = new THREE.WebGLRenderer({clearAlpha:1});
+    //var renderer = new THREE.CanvasRenderer();
     var scene = new THREE.Scene();
     var hud_scene = new THREE.Scene();
     var label_scene = new THREE.Scene();
@@ -72,19 +73,36 @@ angular.module('myApp.services').service('plotService', function() {
     controls.dynamicDampingFactor = 0.3;
     controls.keys = [65, 83, 68];
 
-    var programFill = function(ctx) {
-      ctx.beginPath();
-      ctx.arc( 0, 0, 0.5, 0, PI2, true );
-      ctx.fill();
-    }
-
     var programStroke = function(ctx) {
       ctx.lineWidth = 0.025;
       ctx.beginPath();
       ctx.arc( 0, 0, 0.5, 0, PI2, true );
       ctx.stroke();
-    }
-
+    };
+    var vertexShaderSource = '\
+      attribute vec3 color;\
+      varying vec3 vColor;\
+      void main() {\
+        vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\
+        gl_Position = projectionMatrix * mvPosition;\
+        gl_PointSize = 32.0;\
+        vColor = color;\
+      }';
+    var fragmentShaderSource = '\
+      varying vec3 vColor;\
+      void main() {\
+        vec2 r = gl_PointCoord - vec2(0.5,0.5);\
+        if(length(r) <= 0.3) {\
+         gl_FragColor = vec4(vColor, 1.0);\
+        } else if(length(r) <= 0.5) {\
+         gl_FragColor = vec4(0,0,0, 0.75*(1.0 - 5.0*(length(r)-0.3)));\
+        } else {\
+         discard;\
+        }\
+       }';
+    var attributes = {
+     color: { type: 'c', value: []}
+    };
     var mouse = {x:0, y:0};
     var INTERSECTED;
 
@@ -108,14 +126,31 @@ angular.module('myApp.services').service('plotService', function() {
 
     for(var p_i=0; p_i<contig_data.points.length; ++p_i) {
     	var p = contig_data.points[p_i];
-        var particle = new THREE.Sprite( new THREE.SpriteCanvasMaterial( {color: colormap[p.phylogeny], program: programFill} ) );
+
+        //particle system (rendered)
+        particles.vertices.push(new THREE.Vector3(p.x, p.y, p.z));
+        attributes.color.value.push(colormap[p.phylogeny]);
+
+        //sprites (picked)
+        //var particle = new THREE.Sprite( new THREE.SpriteCanvasMaterial( {color: colormap[p.phylogeny], program: programStroke} ) );
+        var particle = new THREE.Sprite( new THREE.SpriteMaterial({opacity:0}) );
         particle.position.x = p.x;
         particle.position.y = p.y;
         particle.position.z = p.z;
-        particle.scale.x = particle.scale.y = 50;
+        particle.scale.x = particle.scale.y = 32;
         particle.data_i = p_i;
         hud_scene.add( particle );
     }
+
+    var mat_ps = new THREE.ShaderMaterial({
+      attributes: attributes,
+      vertexShader: vertexShaderSource,
+      fragmentShader: fragmentShaderSource,
+      transparent: true
+    });
+    var particle_system = new THREE.ParticleSystem(particles, mat_ps);
+    particle_system.sortParticles = true;
+    scene.add(particle_system);
 
     var axes = addAxes(scene, label_scene, camera);
 
