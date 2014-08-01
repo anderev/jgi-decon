@@ -81,27 +81,32 @@ angular.module('myApp.services').service('plotService', function() {
     };
     var vertexShaderSource = '\
       attribute vec3 color;\
+      attribute vec3 outline;\
       varying vec3 vColor;\
+      varying vec3 vOutline;\
       void main() {\
         vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\
         gl_Position = projectionMatrix * mvPosition;\
         gl_PointSize = 32.0;\
         vColor = color;\
+        vOutline = outline;\
       }';
     var fragmentShaderSource = '\
       varying vec3 vColor;\
+      varying vec3 vOutline;\
       void main() {\
         vec2 r = gl_PointCoord - vec2(0.5,0.5);\
-        if(length(r) <= 0.3) {\
+        if(length(r) <= 0.25) {\
          gl_FragColor = vec4(vColor, 1.0);\
         } else if(length(r) <= 0.5) {\
-         gl_FragColor = vec4(0,0,0, 0.75*(1.0 - 5.0*(length(r)-0.3)));\
+         gl_FragColor = vec4(vOutline, 0.75*(1.0 - 5.0*(length(r)-0.3)));\
         } else {\
          discard;\
         }\
        }';
     var attributes = {
-     color: { type: 'c', value: []}
+     color: { type: 'c', value: []},
+     outline: { type: 'c', value: []}
     };
     var mouse = {x:0, y:0};
     var INTERSECTED;
@@ -120,9 +125,18 @@ angular.module('myApp.services').service('plotService', function() {
     var phylo_i = 0;
     for(var phylo in colormap) {
       console.log(phylo + ': ' + phylo_i / num_colors);
-      colormap[phylo].setHSL(phylo_i / num_colors, 0.75, 0.6);
+      colormap[phylo].setHSL(phylo_i / num_colors, 0.75, 0.4);
       phylo_i++;
     }
+
+    var clean  = new THREE.Color();
+    var contam  = new THREE.Color();
+    var hybrid  = new THREE.Color();
+    var unknown  = new THREE.Color();
+    clean.setHSL( 0.333, 0.75, 0.4 );
+    contam.setHSL( 0, 0.75, 0.4 );
+    hybrid.setHSL( 0.5, 0.75, 0.4 );
+    unknown.setHSL( 0.1666, 0.75, 0.4 );
 
     for(var p_i=0; p_i<contig_data.points.length; ++p_i) {
     	var p = contig_data.points[p_i];
@@ -130,6 +144,16 @@ angular.module('myApp.services').service('plotService', function() {
         //particle system (rendered)
         particles.vertices.push(new THREE.Vector3(p.x, p.y, p.z));
         attributes.color.value.push(colormap[p.phylogeny]);
+        if(p.name.match(/clean/g)) {
+          status_color = clean;
+        } else if(p.name.match(/contam/g)) {
+          status_color = contam;
+        } else if(p.name.match(/hybrid/g)) {
+          status_color = hybrid;
+        } else {
+          status_color = unknown;
+        }
+        attributes.outline.value.push(status_color);
 
         //sprites (picked)
         //var particle = new THREE.Sprite( new THREE.SpriteCanvasMaterial( {color: colormap[p.phylogeny], program: programStroke} ) );
