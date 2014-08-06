@@ -1,77 +1,128 @@
 table(align='center')
   tr
+    td(colspan='2')
+      | Inner Color:
+      select(ng-model='color_phylo_level', ng-options='option.name for option in color_modes', ng-change='update_plot_colors()')
+  tr
     td
       div(align='left', id='plot_area')
     td
-      table(id='contig_info')
-        tr
-          td
-            | Contig Name:
-          td
-            | {{contig.name}}
-        tr
-          td
-            | GC %:
-          td
-            | Unknown
-        tr
-          td
-            | Nuc Sequence:
-          td
-            | Unknown
-        tr
-          td
-            | Assigned Phylogeny:
-          td
-            | {{contig.phylogeny}}
-        tr
-          td
-            | Support Blast hits:
-          td
-            | Unknown
-        tr
-          td
-            | Length of Query:
-          td
-            | Unknown
-        tr
-          td
-            | Length of Subject:
-          td
-            | Unknown
-        tr
-          td
-            | Project:
-          td
-            | {{job.taxon_display_name}}
-        tr
-          td
-            | Start Time:
-          td
-            | {{job.start_time}}
-        tr
-          td
-            | Clean Data:
-          td
-            a(target="_self",href='api/getCleanFasta/{{job.job_id}}') Fasta
-        tr
-          td
-            | Contaminant Data:
-          td
-            a(target="_self",href='api/getContamFasta/{{job.job_id}}') Fasta
-        tr
-          td
-            | Notes:
-          td
-            | {{job.notes}}
-        tr
-          td
-            | Job ID:
-          td
-            | {{job.process_id}}
-        tr
-          td
-            | Job Status:
-          td
-            | {{job.process_status}}
+      div(style='width: 600px; overflow: auto')
+        table(id='contig_info')
+          tr
+            td
+              | Contig Name:
+            td
+              | {{contig.name}}
+          tr
+            td
+              | GC %:
+            td
+              | {{contig.gc_percent}}
+          tr
+            td
+              | Nuc Sequence:
+            td
+              | {{contig.nuc_sequence}}
+          tr
+            td
+              | Assigned Phylogeny:
+            td
+              | {{contig.phylogeny}}
+          tr
+            td
+              | Genes On This Contig:
+            td
+              div(style='height: 100px; overflow: auto')
+                table
+                  tr
+                    th
+                      | Gene Id
+                    th
+                      | Subject Id
+                    th
+                      | % Identity
+                    th
+                      | Strand
+                    th
+                      | Query Length
+                    th
+                      | Subject Length
+                    th
+                      | Query Start
+                    th
+                      | Query End
+                    th
+                      | Subject Start
+                    th
+                      | Subject End
+                    th
+                      | e-Value
+                    th
+                      | Bit Score
+                    th
+                      | Subject Genome
+                  tr(ng-repeat='gene in contig.genes')
+                    td
+                      | {{gene.gene_id}}
+                    td
+                      | {{gene.subject_id}}
+                    td
+                      | {{gene.percent_identity}}
+                    td
+                      | {{gene.strand}}
+                    td
+                      | {{gene.query_len}}
+                    td
+                      | {{gene.subject_len}}
+                    td
+                      | {{gene.query_start}}
+                    td
+                      | {{gene.query_end}}
+                    td
+                      | {{gene.subject_start}}
+                    td
+                      | {{gene.subject_end}}
+                    td
+                      | {{gene.e_value}}
+                    td
+                      | {{gene.bit_score}}
+                    td
+                      | {{gene.subject_genome}}
 
+            table
+              tr
+                td
+                  | Project:
+                td
+                  | {{job.taxon_display_name}}
+              tr
+                td
+                  | Start Time:
+                td
+                  | {{job.start_time}}
+              tr
+                td
+                  | Clean Data:
+                td
+                  a(target="_self",href='api/getCleanFasta/{{job.job_id}}') Fasta
+              tr
+                td
+                  | Contaminant Data:
+                td
+                  a(target="_self",href='api/getContamFasta/{{job.job_id}}') Fasta
+              tr
+                td
+                  | Notes:
+                td
+                  | {{job.notes}}
+              tr
+                td
+                  | Job ID:
+                td
+                  | {{job.process_id}}
+              tr
+                td
+                  | Job Status:
+                td
+                  | {{job.process_status}}
