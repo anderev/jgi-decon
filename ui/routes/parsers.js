@@ -118,3 +118,22 @@ exports.parse_blout = function(pointData, callback) {
   }
 };
 
+/*
+exports.parse_genes_fna = function(pointData, callback) {
+  return function(err, data) {
+
+    if(!err) {
+      var lines = data.toString().split('\n');
+      var num_lines = lines.length;
+      for(var i=0; i<num_lines; ++i) {
+        pointData[i].name = lines[i];
+      }
+
+      callback(null);
+    } else {
+      console.log('Error parsing names file.');
+      callback(err);
+    }
+  }
+};
+*/

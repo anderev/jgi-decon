@@ -56,8 +56,18 @@ function AddJobCtrl($scope, $http, $upload, $location) {
 function ReadJobCtrl($scope, $http, $routeParams, plotService) {
   $http.get('/api/job/' + $routeParams.id).
     success(function(data) {
+        $scope.color_modes = [
+          {name: 'Domain', value: 0},
+          {name: 'Phylum', value: 1},
+          {name: 'Class', value: 2},
+          {name: 'Order', value: 3},
+          {name: 'Family', value: 4},
+          {name: 'Genus', value: 5},
+          {name: 'Species', value: 6}];
         $scope.job = data.job;
         $scope.plotService = plotService;
+        $scope.color_phylo_level = $scope.color_modes[5];
+        $scope.update_plot_colors = function() { plotService.update_plot_colors($scope.color_phylo_level.value); };
         $scope.contig = null;
         $http.get('/api/getPCA/' + $routeParams.id).
         	success(function(data) {
