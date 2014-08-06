@@ -69,7 +69,7 @@ fi
 
 if [ ! -e "$NT_LOCATION" ]
 then
-       	NT_LOCATION=${INSTALL_LOCATION}/NCBI-nt/nt/
+       	NT_LOCATION=${INSTALL_LOCATION}/NCBI-nt/nt
 fi
 
 if [ "${RUN_GENECALL}" == "1" ]
