@@ -48,7 +48,7 @@ angular.module('myApp.services').service('plotService', function() {
   get_hash = function(phylo_level) {
     return function(contig) {
       var phylo_array = contig.phylogeny.split(';');
-      var end = (phylo_array.length > phylo_level) ? (phylo_level) : (phylo_array.length);
+      var end = (phylo_array.length > phylo_level) ? (phylo_level) : (phylo_array.length-1);
       return phylo_array.slice(0, end+1).join(';');
     };
   };
