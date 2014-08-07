@@ -72,15 +72,15 @@ exports.parse_blout = function(pointData, callback) {
       subject_id: blout[1],
       percent_identity: blout[2],
       strand: null,
-      query_len: null,
-      subject_len: null,
-      query_start: blout[6],
-      query_end: blout[7],
-      subject_start: blout[8],
-      subject_end: blout[9],
-      e_value: blout[10],
-      bit_score: blout[11],
-      subject_genome: blout[12]
+      query_len: blout[4],
+      subject_len: blout[5],
+      query_start: blout[8],
+      query_end: blout[9],
+      subject_start: blout[10],
+      subject_end: blout[11],
+      e_value: blout[12],
+      bit_score: blout[13],
+      subject_genome: blout[14]
     };
   };
 
