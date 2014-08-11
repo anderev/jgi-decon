@@ -23,7 +23,7 @@ table(align='center')
             td
               | Genes On This Contig:
             td
-              div(style='height: 100px; overflow: auto')
+              div(style='height: 200px; overflow: auto')
                 table
                   tr
                     th
@@ -31,9 +31,9 @@ table(align='center')
                     th
                       | Subject Id
                     th
-                      | % Identity
+                      | Identity%
                     th
-                      | GC %
+                      | GC%
                     th
                       | Strand
                     th
@@ -64,7 +64,7 @@ table(align='center')
                     td
                       | {{gene.percent_identity}}
                     td
-                      | {{gene.gc}}
+                      | {{gene.gc | number:2}}
                     td
                       | {{gene.strand}}
                     td
