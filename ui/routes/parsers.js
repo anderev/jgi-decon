@@ -112,21 +112,63 @@ exports.parse_blout = function(pointData, callback) {
 
       callback(null);
     } else {
-      console.log('Error parsing names file.');
+      console.log('Error parsing blout file.');
       callback(err);
     }
   }
 };
 
-/*
 exports.parse_genes_fna = function(pointData, callback) {
   return function(err, data) {
 
     if(!err) {
+      var contig_map = {};
+      for(var i=0; i<pointData.length; i++) {
+        var gene_map = {};
+        var genes = pointData[i].genes;
+        if(genes) {
+          for(var j=0; j<genes.length; ++j) {
+            gene_map[genes[j].gene_id] = j;
+          }
+          contig_map[pointData[i].name] = {i: i, gene_map: gene_map};
+        }
+      }
+
       var lines = data.toString().split('\n');
       var num_lines = lines.length;
-      for(var i=0; i<num_lines; ++i) {
-        pointData[i].name = lines[i];
+      var i = 0;
+      while(i<num_lines) {
+        if(lines[i].charAt(0) === '>') {
+          var nuc_seq = '';
+          var j = 1;
+          while(i+j < num_lines && lines[i+j].charAt(0) !== '>') {
+            nuc_seq = nuc_seq.concat(lines[i+j]);
+            ++j;
+          }
+          var gene_cols = lines[i].split(' ');
+          var gene_name = gene_cols[0].substr(1);
+          var gene_strand = gene_cols[6];
+          var gene_name_split = gene_name.split('_');
+          var contig_name = gene_name_split.slice(0, gene_name_split.length - 2).join('_');
+          if(contig_name in contig_map) {
+            var contig = pointData[contig_map[contig_name].i];
+            var gene_map = contig_map[contig_name].gene_map;
+            if(contig) {
+              if('genes' in contig) {
+                var gene = contig.genes[gene_map[gene_name]];
+                if(gene) {
+                  gene.nuc_seq = nuc_seq;
+                  gene.strand = gene_strand;
+                  gene.gc = (100.0 * nuc_seq.match(/[GCgc]/g).length) / nuc_seq.length;
+                }
+              }
+            }
+          }
+          
+          i += j;
+        } else {
+          ++i;
+        }
       }
 
       callback(null);
@@ -136,4 +178,3 @@ exports.parse_genes_fna = function(pointData, callback) {
     }
   }
 };
-*/

@@ -332,6 +332,7 @@ exports.getPCA = function(req, res) {
               var filename_names = null;
               var filename_lca = null;
               var filename_blout = null;
+              var filename_genes_fna = null;
 
               if( !files ) {
                 res.json(false);
@@ -348,10 +349,12 @@ exports.getPCA = function(req, res) {
                   filename_lca = intermediate_dir + filename;
                 } else if (filename.match(/\.blout$/g)) {
                   filename_blout = intermediate_dir + filename;
+                } else if (filename.match(/_genes.fna$/g)) {
+                  filename_genes_fna = intermediate_dir + filename;
                 }
               });
 
-              if( !(filename_pca && filename_names && filename_lca && filename_blout) ) {
+              if( !(filename_pca && filename_names && filename_lca && filename_blout && filename_genes_fna) ) {
                 res.json(false);
                 return;
               }
@@ -364,7 +367,14 @@ exports.getPCA = function(req, res) {
                         if(!err) {
                           fs.readFile(filename_blout, parser.parse_blout(pointData, function(err) {
                             if(!err) {
-                              res.json({points: pointData});
+                              fs.readFile(filename_genes_fna, parser.parse_genes_fna(pointData, function(err) {
+                                if(!err) {
+                                  res.json({points: pointData});
+                                } else {
+                                  console.log(err);
+                                  res.json(false);
+                                }
+                              }));
                             } else {
                               console.log(err);
                               res.json(false);

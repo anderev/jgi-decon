@@ -16,16 +16,6 @@ table(align='center')
               | {{contig.name}}
           tr
             td
-              | GC %:
-            td
-              | {{contig.gc_percent}}
-          tr
-            td
-              | Nuc Sequence:
-            td
-              | {{contig.nuc_sequence}}
-          tr
-            td
               | Assigned Phylogeny:
             td
               | {{contig.phylogeny}}
@@ -43,7 +33,11 @@ table(align='center')
                     th
                       | % Identity
                     th
+                      | GC %
+                    th
                       | Strand
+                    th
+                      | Nuc Seq
                     th
                       | Query Length
                     th
@@ -70,7 +64,11 @@ table(align='center')
                     td
                       | {{gene.percent_identity}}
                     td
+                      | {{gene.gc}}
+                    td
                       | {{gene.strand}}
+                    td
+                      | {{gene.nuc_seq}}
                     td
                       | {{gene.query_len}}
                     td
