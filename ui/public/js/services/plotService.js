@@ -110,7 +110,7 @@ angular.module('myApp.services').service('plotService', function() {
     var controls = new THREE.TrackballControls(camera, renderer.domElement);
     var PI2 = Math.PI * 2;
 
-    camera.position.z = 0.2;
+    camera.position.z = 0.01;
 
     controls.rotateSpeed = 5.0;
     controls.zoomSpeed = 1.0;
@@ -126,24 +126,21 @@ angular.module('myApp.services').service('plotService', function() {
       attribute vec3 outline;\
       attribute float pointSize;\
       varying vec3 vColor;\
-      varying vec3 vOutline;\
       void main() {\
         vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\
         gl_Position = projectionMatrix * mvPosition;\
         gl_PointSize = pointSize;\
         vColor = color;\
-        vOutline = outline;\
       }';
     var fragmentShaderSource = '\
       varying vec3 vColor;\
-      varying vec3 vOutline;\
       void main() {\
         vec2 r = gl_PointCoord - vec2(0.5,0.5);\
         float len_r = length(r);\
         if(len_r <= 0.5) {\
-         gl_FragColor = vec4(vColor, 1.0 - sqrt(0.5 - len_r));\
+          gl_FragColor = vec4(vColor, 1.0 - sqrt(0.5 - len_r));\
         } else {\
-         discard;\
+          discard;\
         }\
        }';
     var mouse = {x:0, y:0};
