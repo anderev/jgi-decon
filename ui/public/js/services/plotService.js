@@ -1,10 +1,12 @@
 angular.module('myApp.services').service('plotService', function() {
 	
-  var axis_camera_ratio = 0.4;
+  var axis_camera_ratio = 0.6;
   var contig_data = null;
   var particles = new THREE.Geometry();
   var mat_ps = null;
+  var color_map = {};
   var attributes = {
+   pointSize: { type: 'f', value: []},
    color: { type: 'c', value: []},
    outline: { type: 'c', value: []}
   };
@@ -48,7 +50,7 @@ angular.module('myApp.services').service('plotService', function() {
   get_hash = function(phylo_level) {
     return function(contig) {
       var phylo_array = contig.phylogeny.split(';');
-      var end = (phylo_array.length > phylo_level) ? (phylo_level) : (phylo_array.length);
+      var end = (phylo_array.length > phylo_level) ? (phylo_level) : (phylo_array.length-1);
       return phylo_array.slice(0, end+1).join(';');
     };
   };
@@ -108,7 +110,7 @@ angular.module('myApp.services').service('plotService', function() {
     var controls = new THREE.TrackballControls(camera, renderer.domElement);
     var PI2 = Math.PI * 2;
 
-    camera.position.z = 0.2;
+    camera.position.z = 0.01;
 
     controls.rotateSpeed = 5.0;
     controls.zoomSpeed = 1.0;
@@ -122,29 +124,23 @@ angular.module('myApp.services').service('plotService', function() {
     var vertexShaderSource = '\
       attribute vec3 color;\
       attribute vec3 outline;\
+      attribute float pointSize;\
       varying vec3 vColor;\
-      varying vec3 vOutline;\
       void main() {\
         vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\
         gl_Position = projectionMatrix * mvPosition;\
-        gl_PointSize = 64.0;\
+        gl_PointSize = pointSize;\
         vColor = color;\
-        vOutline = outline;\
       }';
     var fragmentShaderSource = '\
       varying vec3 vColor;\
-      varying vec3 vOutline;\
       void main() {\
         vec2 r = gl_PointCoord - vec2(0.5,0.5);\
         float len_r = length(r);\
-        if(len_r <= 0.25) {\
-         gl_FragColor = vec4(vColor, 1.0);\
-        } else if(len_r <= 0.4) {\
-         gl_FragColor = vec4(vOutline, 1.0);\
-        } else if(len_r <= 0.5) {\
-         gl_FragColor = vec4(0,0,0, 0.75*(1.0 - 10.0*(len_r-0.4)));\
+        if(len_r <= 0.5) {\
+          gl_FragColor = vec4(vColor, 1.0 - sqrt(0.5 - len_r));\
         } else {\
-         discard;\
+          discard;\
         }\
        }';
     var mouse = {x:0, y:0};
@@ -157,10 +153,10 @@ angular.module('myApp.services').service('plotService', function() {
     var contam  = new THREE.Color();
     var hybrid  = new THREE.Color();
     var unknown  = new THREE.Color();
-    clean.setHSL( 0.333, 0.75, 0.6 );
-    contam.setHSL( 0, 0.75, 0.6 );
-    hybrid.setHSL( 0.5, 0.75, 0.6 );
-    unknown.setHSL( 0.1666, 0.75, 0.6 );
+    clean.setHSL( 0.333, 0.75, 0.4 );
+    contam.setHSL( 0, 0.75, 0.4 );
+    hybrid.setHSL( 0.5, 0.75, 0.4 );
+    unknown.setHSL( 0.1666, 0.75, 0.4 );
 
     attributes.color.value = [];
     var f_hash = get_hash(6);
@@ -172,14 +168,19 @@ angular.module('myApp.services').service('plotService', function() {
         attributes.color.value.push(color_map[f_hash(p)]);
         if(p.name.match(/clean/g)) {
           status_color = clean;
+          status_size = 64.0;
         } else if(p.name.match(/contam/g)) {
           status_color = contam;
+          status_size = 16.0;
         } else if(p.name.match(/hybrid/g)) {
           status_color = hybrid;
+          status_size = 16.0;
         } else {
           status_color = unknown;
+          status_size = 16.0;
         }
         attributes.outline.value.push(status_color);
+        attributes.pointSize.value.push(status_size);
 
         //sprites (picked)
         var particle = new THREE.Sprite( new THREE.SpriteMaterial({opacity:0}) );
