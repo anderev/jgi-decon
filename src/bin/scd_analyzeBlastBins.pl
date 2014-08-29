@@ -20,6 +20,15 @@ while (<PBF>) {
   my @b=split(/\t/,$a[0]); my $cg=$b[0];
   $cg=~/(.+)_(\d+_\d+)$/; my ($contig,$g)=($1,$2);
 
+  #Begin add Issue #9: >70perid over >70% of gene requirement for hits 
+  if($b[2]<70){
+	next;
+  }
+  if($b[3]/$b[4]<.70){
+	next;
+  }
+  #End add Issue #9
+
   $contigbins->{$contig}={} unless exists $contigbins->{$contig};
 
   # Extract NR subject species
