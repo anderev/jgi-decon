@@ -3,9 +3,13 @@
 use strict;
 use warnings;
 
-unless(@ARGV==2){ print "Usage: $0 <directory of fasta file> <jobname>\n"; exit;}
+unless(@ARGV>1){ print "Usage: $0 <directory of fasta file> <jobname>\n"; exit;}
 my $dir=$ARGV[0];
 my $jobname=$ARGV[1];
+my $txt="";
+if(defined($ARGV[2])){
+	$txt=$ARGV[2];
+}
 
 my $kmerclean=$dir . "/" . $jobname . "_Intermediate/" . $jobname . "_kmer_clean_contigs";
 my $kmercontam=$dir . "/" . $jobname . "_Intermediate/" . $jobname . "_kmer_contam_contigs";
@@ -43,6 +47,9 @@ while(my $line=<IN>){
 close(IN);
  
 open(OUT,">>$log");
+if(defined($txt)){
+	print OUT "$txt\t";
+}
 print OUT "$dir\t";
 print OUT $tp+$tn+$fp+$fn . "\t";
 print OUT $tp+$fn . "\t";
