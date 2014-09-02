@@ -158,7 +158,7 @@ exports.parse_genes_fna = function(pointData, callback) {
               if('genes' in contig) {
                 var gene = contig.genes[gene_map[gene_name]];
                 if(gene) {
-                  gene.nuc_seq = nuc_seq.substr(0, 10).concat('...');
+                  gene.nuc_seq = nuc_seq;
                   gene.strand = gene_strand;
                   gene.gc = (100.0 * nuc_seq.match(/[GCgc]/g).length) / nuc_seq.length;
                 }

@@ -40,6 +40,9 @@ table(align='center')
                   tr(ng-repeat='gene in contig.genes')
                     td
                       | {{gene.gene_id}}
+                      div(style='word-wrap: break-word')
+                        button(popover='{{gene.nuc_seq}}', class='btn btn-default', popover-placement='bottom', popover-title='Contig Sequence')
+                          | View Sequence
                     td
                       | {{gene.subject_genome}}
                     td
