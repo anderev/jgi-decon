@@ -7,9 +7,11 @@ angular.module('myApp.services').service('plotService', function() {
   var color_map = {};
   var attributes = {
    pointSize: { type: 'f', value: []},
-   color: { type: 'c', value: []},
-   outline: { type: 'c', value: []}
+   color: { type: 'c', value: []}
   };
+  var DEFAULT_COLOR_BY = 6;
+  var HSL_LIGHTNESS = 0.6;
+  var HSL_SATURATION = 0.75;
 
   addAxes = function(scene, label_scene, camera) {
     var line_mat = new THREE.LineBasicMaterial({ color: 0x000000 });
@@ -60,7 +62,10 @@ angular.module('myApp.services').service('plotService', function() {
     color_map = {};
     var f_hash = get_hash(phylo_level);
     for(var p_i=0; p_i<contig_data.points.length; ++p_i) {
-      color_map[f_hash(contig_data.points[p_i])] = new THREE.Color();
+      var the_hash = f_hash(contig_data.points[p_i]);
+      if(!(the_hash in color_map) && the_hash != 'Unknown') {
+        color_map[the_hash] = new THREE.Color();
+      }
     }
 
     var num_colors = 0;
@@ -70,9 +75,12 @@ angular.module('myApp.services').service('plotService', function() {
 
     var phylo_i = 0;
     for(var phylo in color_map) {
-      color_map[phylo].setHSL(phylo_i / num_colors, 0.75, 0.6);
+      color_map[phylo].setHSL(phylo_i / num_colors, HSL_SATURATION, HSL_LIGHTNESS);
       phylo_i++;
     }
+
+    color_map.Unknown = new THREE.Color();
+    color_map.Unknown.setHSL( 0.0, 0.0, HSL_LIGHTNESS );
 
     if(mat_ps) {
       attributes.color.value = [];
@@ -123,7 +131,6 @@ angular.module('myApp.services').service('plotService', function() {
 
     var vertexShaderSource = '\
       attribute vec3 color;\
-      attribute vec3 outline;\
       attribute float pointSize;\
       varying vec3 vColor;\
       void main() {\
@@ -146,20 +153,10 @@ angular.module('myApp.services').service('plotService', function() {
     var mouse = {x:0, y:0};
     var INTERSECTED;
 
-    this.update_plot_colors(6);
-
-
-    var clean  = new THREE.Color();
-    var contam  = new THREE.Color();
-    var hybrid  = new THREE.Color();
-    var unknown  = new THREE.Color();
-    clean.setHSL( 0.333, 0.75, 0.4 );
-    contam.setHSL( 0, 0.75, 0.4 );
-    hybrid.setHSL( 0.5, 0.75, 0.4 );
-    unknown.setHSL( 0.1666, 0.75, 0.4 );
+    this.update_plot_colors(DEFAULT_COLOR_BY);
 
     attributes.color.value = [];
-    var f_hash = get_hash(6);
+    var f_hash = get_hash(DEFAULT_COLOR_BY);
     for(var p_i=0; p_i<contig_data.points.length; ++p_i) {
     	var p = contig_data.points[p_i];
 
@@ -167,19 +164,14 @@ angular.module('myApp.services').service('plotService', function() {
         particles.vertices.push(new THREE.Vector3(p.x, p.y, p.z));
         attributes.color.value.push(color_map[f_hash(p)]);
         if(p.name.match(/clean/g)) {
-          status_color = clean;
           status_size = 64.0;
         } else if(p.name.match(/contam/g)) {
-          status_color = contam;
           status_size = 16.0;
         } else if(p.name.match(/hybrid/g)) {
-          status_color = hybrid;
           status_size = 16.0;
         } else {
-          status_color = unknown;
           status_size = 16.0;
         }
-        attributes.outline.value.push(status_color);
         attributes.pointSize.value.push(status_size);
 
         //sprites (picked)

@@ -49,11 +49,17 @@ exports.parse_lca = function(pointData, callback) {
       var contig_phylogeny = {};
       for(var i=0; i<num_lines; ++i) {
         var tokens = lines[i].split('\t');
-        contig_phylogeny[tokens[0]] = tokens[1];
+        if(tokens[1] && tokens[1].trim().length > 0) {
+          contig_phylogeny[tokens[0]] = tokens[1].trim().replace('root;cellular organisms;', '');
+        }
       }
 
       for(var j=0; j<pointData.length; j++) {
-        pointData[j].phylogeny = (contig_phylogeny[pointData[j].name] || 'Unknown').trim().replace('root;cellular organisms;', '').replace(/;/g, '; ');
+        if(pointData[j].name in contig_phylogeny) {
+          pointData[j].phylogeny = (contig_phylogeny[pointData[j].name]);
+        } else {
+          pointData[j].phylogeny = 'Unknown';
+        }
       }
 
       callback(null);
