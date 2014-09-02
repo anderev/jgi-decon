@@ -49,8 +49,9 @@ exports.parse_lca = function(pointData, callback) {
       var contig_phylogeny = {};
       for(var i=0; i<num_lines; ++i) {
         var tokens = lines[i].split('\t');
-        if(tokens[1] && tokens[1].trim().length > 0) {
-          contig_phylogeny[tokens[0]] = tokens[1].trim().replace('root;cellular organisms;', '');
+        var cleaned_phylo = (tokens[1] || '').trim().replace('root;cellular organisms;', '');
+        if(cleaned_phylo.length > 0) {
+          contig_phylogeny[tokens[0]] = cleaned_phylo;
         }
       }
 
