@@ -6,8 +6,9 @@ angular.module('myApp.services').service('plotService', function() {
   var mat_ps = null;
   var color_map = {};
   var attributes = {
-   pointSize: { type: 'f', value: []},
-   color: { type: 'c', value: []}
+    color: { type: 'c', value: []},
+    pointSize: { type: 'f', value: []},
+    highlight: { type: 'f', value: []}
   };
   var DEFAULT_COLOR_BY = 6;
   var HSL_LIGHTNESS = 0.6;
@@ -86,7 +87,6 @@ angular.module('myApp.services').service('plotService', function() {
       attributes.color.value = [];
       for(var p_i=0; p_i<contig_data.points.length; ++p_i) {
         attributes.color.value.push(color_map[f_hash(contig_data.points[p_i])]);
-        //attributes.color.value.push(new THREE.Color(0,0,0));
       }
       mat_ps.needsUpdate = true;
     }
@@ -96,7 +96,6 @@ angular.module('myApp.services').service('plotService', function() {
   this.init = function(data, $scope) {
     var plot_area = document.getElementById("plot_area");
     var renderer = new THREE.WebGLRenderer({clearAlpha:1});
-    //var renderer = new THREE.CanvasRenderer();
     var scene = new THREE.Scene();
     var hud_scene = new THREE.Scene();
     var label_scene = new THREE.Scene();
@@ -130,22 +129,28 @@ angular.module('myApp.services').service('plotService', function() {
     controls.keys = [65, 83, 68];
 
     var vertexShaderSource = '\
-      attribute vec3 color;\
       attribute float pointSize;\
-      varying vec3 vColor;\
+      attribute vec3 color;\
+      attribute float highlight;\
+      varying vec3 frag_color;\
+      varying float frag_highlight;\
       void main() {\
         vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\
         gl_Position = projectionMatrix * mvPosition;\
         gl_PointSize = pointSize;\
-        vColor = color;\
+        frag_color = color;\
+        frag_highlight = highlight;\
       }';
     var fragmentShaderSource = '\
-      varying vec3 vColor;\
+      varying vec3 frag_color;\
+      varying float frag_highlight;\
       void main() {\
         vec2 r = gl_PointCoord - vec2(0.5,0.5);\
         float len_r = length(r);\
-        if(len_r <= 0.5) {\
-          gl_FragColor = vec4(vColor, 1.0 - sqrt(0.5 - len_r));\
+        if( bool(frag_highlight) && (len_r <= 0.5 && len_r >= 0.4) ) {\
+          gl_FragColor = vec4(0,0,0,1);\
+        } else if(len_r < 0.4) {\
+          gl_FragColor = vec4(frag_color, max(frag_highlight, 1.0 - sqrt(0.4 - len_r)));\
         } else {\
           discard;\
         }\
@@ -173,6 +178,7 @@ angular.module('myApp.services').service('plotService', function() {
           status_size = 16.0;
         }
         attributes.pointSize.value.push(status_size);
+        attributes.highlight.value.push(false);
 
         //sprites (picked)
         var particle = new THREE.Sprite( new THREE.SpriteMaterial({opacity:0}) );
@@ -198,12 +204,11 @@ angular.module('myApp.services').service('plotService', function() {
 
     var savedColor, selectedColor = new THREE.Color(1,1,0);
 
-    var lock_selection = false, locked_selection = false;
+    var lock_selection = false, locked_selection = null;
 
     var render = function() {
       var vector = new THREE.Vector3( mouse.x, mouse.y, 0.5 );
       projector.unprojectVector( vector, hud_camera );
-      //var raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
       vector.z = 0;
       var raycaster = new THREE.Raycaster( vector, new THREE.Vector3(0,0,-1) );
 
@@ -230,20 +235,17 @@ angular.module('myApp.services').service('plotService', function() {
 
         if( intersects.length > 0 ) {
           if( INTERSECTED != intersects[ 0 ].object ) {
-            if( INTERSECTED ) INTERSECTED.material.color = savedColor;
 
             INTERSECTED = intersects[0].object;
-            savedColor = INTERSECTED.material.color;
-            INTERSECTED.material.color = selectedColor;
             $scope.contig = contig_data.points[INTERSECTED.data_i];
             $scope.$apply();
           }
 
           if( lock_selection ) {
-            locked_selection = true;
+            locked_selection = INTERSECTED;
+            attributes.highlight.value[locked_selection.data_i] = true;
           }
         } else {
-          if( INTERSECTED ) INTERSECTED.material.color = savedColor;
           INTERSECTED = null;
         }
 
@@ -268,15 +270,30 @@ angular.module('myApp.services').service('plotService', function() {
 
     controls.addEventListener('change', render);
     renderer.domElement.addEventListener('mousemove', onPlotMouseMove, false);
-    renderer.domElement.addEventListener('click', onPlotClick, false);
+    renderer.domElement.addEventListener('mousedown', onPlotMouseDown, false);
+    renderer.domElement.addEventListener('mouseup', onPlotMouseUp, false);
 
     var screen = {};
+    var mouse_is_down = false, mouse_was_dragged = false;
 
-    function onPlotClick(event) {
+    function onPlotMouseDown(event) {
       console.log('event button: '+event.button);
       if( event.button == 0 ) {
+        mouse_is_down = true;
+        mouse_was_dragged = false;
+      }
+    }
+
+    function onPlotMouseUp(event) {
+      console.log('event button: '+event.button);
+      if( event.button == 0 && !mouse_was_dragged ) {
+        mouse_is_down = false;
+        mouse_was_dragged = false;
         lock_selection = true;
-        locked_selection = false;
+        if( locked_selection ) {
+          attributes.highlight.value[locked_selection.data_i] = false;
+        }
+        locked_selection = null;
       }
     }
 
@@ -286,6 +303,9 @@ angular.module('myApp.services').service('plotService', function() {
       event.preventDefault();
       mouse.x = relx * 2 - 1;
       mouse.y = - rely * 2 + 1;
+      if( mouse_is_down ) {
+        mouse_was_dragged = true;
+      }
     }
 
     function handleResize() {
