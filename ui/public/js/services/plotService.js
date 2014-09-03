@@ -198,6 +198,8 @@ angular.module('myApp.services').service('plotService', function() {
 
     var savedColor, selectedColor = new THREE.Color(1,1,0);
 
+    var lock_selection = false, locked_selection = false;
+
     var render = function() {
       var vector = new THREE.Vector3( mouse.x, mouse.y, 0.5 );
       projector.unprojectVector( vector, hud_camera );
@@ -223,21 +225,29 @@ angular.module('myApp.services').service('plotService', function() {
         label_scene.children[axis_i].position = vector;
       }
 
-      var intersects = raycaster.intersectObjects( hud_scene.children );
+      if(!locked_selection) {
+        var intersects = raycaster.intersectObjects( hud_scene.children );
 
-      if( intersects.length > 0 ) {
-        if( INTERSECTED != intersects[ 0 ].object ) {
+        if( intersects.length > 0 ) {
+          if( INTERSECTED != intersects[ 0 ].object ) {
+            if( INTERSECTED ) INTERSECTED.material.color = savedColor;
+
+            INTERSECTED = intersects[0].object;
+            savedColor = INTERSECTED.material.color;
+            INTERSECTED.material.color = selectedColor;
+            $scope.contig = contig_data.points[INTERSECTED.data_i];
+            $scope.$apply();
+          }
+
+          if( lock_selection ) {
+            locked_selection = true;
+          }
+        } else {
           if( INTERSECTED ) INTERSECTED.material.color = savedColor;
-
-          INTERSECTED = intersects[0].object;
-          savedColor = INTERSECTED.material.color;
-          INTERSECTED.material.color = selectedColor;
-          $scope.contig = contig_data.points[INTERSECTED.data_i];
-          $scope.$apply();
+          INTERSECTED = null;
         }
-      } else {
-        if( INTERSECTED ) INTERSECTED.material.color = savedColor;
-        INTERSECTED = null;
+
+        lock_selection = false;
       }
 
       updateAxes(axes, camera);
@@ -258,8 +268,17 @@ angular.module('myApp.services').service('plotService', function() {
 
     controls.addEventListener('change', render);
     renderer.domElement.addEventListener('mousemove', onPlotMouseMove, false);
+    renderer.domElement.addEventListener('click', onPlotClick, false);
 
     var screen = {};
+
+    function onPlotClick(event) {
+      console.log('event button: '+event.button);
+      if( event.button == 0 ) {
+        lock_selection = true;
+        locked_selection = false;
+      }
+    }
 
     function onPlotMouseMove(event) {
       var relx = ( event.pageX - screen.left ) / screen.width;
