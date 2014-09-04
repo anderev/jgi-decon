@@ -2,14 +2,9 @@ angular.module('myApp.services').service('plotService', function() {
 	
   var axis_camera_ratio = 0.6;
   var contig_data = null;
-  var particles = new THREE.Geometry();
   var mat_ps = null;
   var color_map = {};
-  var attributes = {
-    color: { type: 'c', value: []},
-    pointSize: { type: 'f', value: []},
-    highlight: { type: 'f', value: []}
-  };
+  var attributes = null;
   var DEFAULT_COLOR_BY = 6;
   var HSL_LIGHTNESS = 0.6;
   var HSL_SATURATION = 0.75;
@@ -108,6 +103,11 @@ angular.module('myApp.services').service('plotService', function() {
     var axis_data = [new THREE.Vector3(1,0,0),
                      new THREE.Vector3(0,1,0),
                      new THREE.Vector3(0,0,1)];
+    attributes = {
+      color: { type: 'c', value: []},
+      pointSize: { type: 'f', value: []},
+      highlight: { type: 'f', value: []}
+    };
 
     renderer.setSize(width, height);
     renderer.setClearColorHex(0xffffff, 1);
@@ -162,6 +162,7 @@ angular.module('myApp.services').service('plotService', function() {
 
     attributes.color.value = [];
     var f_hash = get_hash(DEFAULT_COLOR_BY);
+    var particles = new THREE.Geometry();
     for(var p_i=0; p_i<contig_data.points.length; ++p_i) {
     	var p = contig_data.points[p_i];
 
