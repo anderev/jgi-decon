@@ -41,7 +41,7 @@ table(align='center')
                     td
                       | {{gene.gene_id}}
                       div(ng-show='gene.nuc_seq.length > 0', style='word-wrap: break-word')
-                        button(popover='{{gene.nuc_seq}}', class='btn btn-default', popover-placement='bottom', popover-title='Gene Sequence')
+                        button(popover='{{gene.nuc_seq}}', class='btn btn-default', popover-trigger='focus', popover-placement='bottom', popover-title='Gene Sequence')
                           | View Sequence
                     td
                       | {{gene.subject_genome}}
