@@ -11,7 +11,7 @@ table(align='center')
       div(align='left', id='plot_area')
     td
       div
-        table(id='contig_info')
+        table(ng-show='contig.name',id='contig_info')
           tr
             td
               | Contig Name:
@@ -40,7 +40,7 @@ table(align='center')
                   tr(ng-repeat='gene in contig.genes')
                     td
                       | {{gene.gene_id}}
-                      div(style='word-wrap: break-word')
+                      div(ng-show='gene.nuc_seq.length > 0', style='word-wrap: break-word')
                         button(popover='{{gene.nuc_seq}}', class='btn btn-default', popover-placement='bottom', popover-title='Gene Sequence')
                           | View Sequence
                     td

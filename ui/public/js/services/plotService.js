@@ -248,6 +248,8 @@ angular.module('myApp.services').service('plotService', function() {
           }
         } else {
           INTERSECTED = null;
+          $scope.contig = null;
+          $scope.$apply();
         }
 
         lock_selection = false;
