@@ -258,7 +258,7 @@ exports.getSsoUser = function(req, res) {
       res.json(user);
     } else {
       res.json(false);
-      console.log('error: ' + err);
+      console.log('error: ' + user_err);
     }
   });
 };
