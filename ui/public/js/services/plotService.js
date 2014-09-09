@@ -1,6 +1,6 @@
 angular.module('myApp.services').service('plotService', function() {
 	
-  var axis_camera_ratio = 0.1;
+  var axis_camera_ratio = 0.3;
   var contig_data = null;
   var mat_ps = null;
   var color_map = {};
@@ -11,7 +11,7 @@ angular.module('myApp.services').service('plotService', function() {
   var bvol = null;
 
   addAxes = function(scene, label_scene, camera) {
-    var line_mat = new THREE.LineBasicMaterial({ color: 0x000000 });
+    //var line_mat = new THREE.LineBasicMaterial({ color: 0x000000 });
     var line_geom = [new THREE.Geometry(),new THREE.Geometry(),new THREE.Geometry()];
     var axisLength = camera.position.length() * axis_camera_ratio;
     line_geom[0].vertices.push(new THREE.Vector3(0, 0, 0));
@@ -20,12 +20,14 @@ angular.module('myApp.services').service('plotService', function() {
     line_geom[1].vertices.push(new THREE.Vector3(0, axisLength, 0));
     line_geom[2].vertices.push(new THREE.Vector3(0, 0, 0));
     line_geom[2].vertices.push(new THREE.Vector3(0, 0, axisLength));
+    /*
     line = new THREE.Line(line_geom[0], line_mat);
     scene.add(line);
     line = new THREE.Line(line_geom[1], line_mat);
     scene.add(line);
     line = new THREE.Line(line_geom[2], line_mat);
     scene.add(line);
+    */
 
     var labels = [makeTextSprite("PCA1", {fontsize: 24, fontface: "Georgia", borderColor: {r:0, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:255, b:255, a:0.8} } ),
                   makeTextSprite("PCA2", {fontsize: 24, fontface: "Georgia", borderColor: {r:0, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:255, b:255, a:0.8} } ),
@@ -469,11 +471,18 @@ angular.module('myApp.services').service('plotService', function() {
     result.add(new THREE.Line(line_geom, line_mat));
 
     //render origin lines
-    /*
     var line_geom = new THREE.Geometry();
-    line_geom.vertices.push(box_points[0].clone().setZ(0));
+    line_geom.vertices.push(box_points[0].clone().setZ(0).setY(0));
+    line_geom.vertices.push(box_points[3].clone().setZ(0).setY(0));
     result.add(new THREE.Line(line_geom, line_mat));
-    */
+    var line_geom = new THREE.Geometry();
+    line_geom.vertices.push(box_points[0].clone().setZ(0).setX(0));
+    line_geom.vertices.push(box_points[4].clone().setZ(0).setX(0));
+    result.add(new THREE.Line(line_geom, line_mat));
+    var line_geom = new THREE.Geometry();
+    line_geom.vertices.push(box_points[0].clone().setX(0).setY(0));
+    line_geom.vertices.push(box_points[1].clone().setX(0).setY(0));
+    result.add(new THREE.Line(line_geom, line_mat));
 
     if(camera.position.x > this.box.min.x) {
       /*
