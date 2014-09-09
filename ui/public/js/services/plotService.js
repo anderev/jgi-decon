@@ -436,6 +436,7 @@ angular.module('myApp.services').service('plotService', function() {
       new THREE.Vector3(this.box.max.x, this.box.max.y, this.box.min.z)];
     var plane_indices = [[0,4,5,1],[1,2,6,5],[2,3,7,6],[3,0,4,7],[0,1,2,3],[4,5,6,7]];
 
+    //render bounding planes
     for(var plane_i=0; plane_i<6; ++plane_i) {
       var line_geom = new THREE.Geometry();
       for(var i=0; i<4; ++i)
@@ -443,6 +444,36 @@ angular.module('myApp.services').service('plotService', function() {
       line_geom.vertices.push(box_points[plane_indices[plane_i][0]]);
       result.add(new THREE.Line(line_geom, line_mat));
     }
+
+    //render origin planes
+    var line_geom = new THREE.Geometry();
+    line_geom.vertices.push(box_points[0].clone().setX(0));
+    line_geom.vertices.push(box_points[4].clone().setX(0));
+    line_geom.vertices.push(box_points[5].clone().setX(0));
+    line_geom.vertices.push(box_points[1].clone().setX(0));
+    line_geom.vertices.push(box_points[0].clone().setX(0));
+    result.add(new THREE.Line(line_geom, line_mat));
+    var line_geom = new THREE.Geometry();
+    line_geom.vertices.push(box_points[0].clone().setY(0));
+    line_geom.vertices.push(box_points[1].clone().setY(0));
+    line_geom.vertices.push(box_points[2].clone().setY(0));
+    line_geom.vertices.push(box_points[3].clone().setY(0));
+    line_geom.vertices.push(box_points[0].clone().setY(0));
+    result.add(new THREE.Line(line_geom, line_mat));
+    var line_geom = new THREE.Geometry();
+    line_geom.vertices.push(box_points[0].clone().setZ(0));
+    line_geom.vertices.push(box_points[3].clone().setZ(0));
+    line_geom.vertices.push(box_points[7].clone().setZ(0));
+    line_geom.vertices.push(box_points[4].clone().setZ(0));
+    line_geom.vertices.push(box_points[0].clone().setZ(0));
+    result.add(new THREE.Line(line_geom, line_mat));
+
+    //render origin lines
+    /*
+    var line_geom = new THREE.Geometry();
+    line_geom.vertices.push(box_points[0].clone().setZ(0));
+    result.add(new THREE.Line(line_geom, line_mat));
+    */
 
     if(camera.position.x > this.box.min.x) {
       /*
