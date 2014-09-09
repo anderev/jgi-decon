@@ -11,41 +11,17 @@ angular.module('myApp.services').service('plotService', function() {
   var bvol = null;
 
   addAxes = function(scene, label_scene, camera) {
-    //var line_mat = new THREE.LineBasicMaterial({ color: 0x000000 });
-    var line_geom = [new THREE.Geometry(),new THREE.Geometry(),new THREE.Geometry()];
     var axisLength = camera.position.length() * axis_camera_ratio;
-    line_geom[0].vertices.push(new THREE.Vector3(0, 0, 0));
-    line_geom[0].vertices.push(new THREE.Vector3(axisLength, 0, 0));
-    line_geom[1].vertices.push(new THREE.Vector3(0, 0, 0));
-    line_geom[1].vertices.push(new THREE.Vector3(0, axisLength, 0));
-    line_geom[2].vertices.push(new THREE.Vector3(0, 0, 0));
-    line_geom[2].vertices.push(new THREE.Vector3(0, 0, axisLength));
-    /*
-    line = new THREE.Line(line_geom[0], line_mat);
-    scene.add(line);
-    line = new THREE.Line(line_geom[1], line_mat);
-    scene.add(line);
-    line = new THREE.Line(line_geom[2], line_mat);
-    scene.add(line);
-    */
 
     var labels = [makeTextSprite("PCA1", {fontsize: 24, fontface: "Georgia", borderColor: {r:0, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:255, b:255, a:0.8} } ),
                   makeTextSprite("PCA2", {fontsize: 24, fontface: "Georgia", borderColor: {r:0, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:255, b:255, a:0.8} } ),
                   makeTextSprite("PCA3", {fontsize: 24, fontface: "Georgia", borderColor: {r:0, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:255, b:255, a:0.8} } ) ];
-    labels[0].position = line_geom[0].vertices[1].clone();
-    labels[1].position = line_geom[1].vertices[1].clone();
-    labels[2].position = line_geom[2].vertices[1].clone();
+    labels[0].position = new THREE.Vector3(axisLength, 0, 0);
+    labels[1].position = new THREE.Vector3(0, axisLength, 0);
+    labels[2].position = new THREE.Vector3(0, 0, axisLength);
     label_scene.add(labels[0]);
     label_scene.add(labels[1]);
     label_scene.add(labels[2]);
-
-    return line_geom;
-  }
-
-  updateAxes = function(axes, camera) {
-    var axisLength = camera.position.length() * axis_camera_ratio;
-    axes[0].vertices[1].x = axes[1].vertices[1].y = axes[2].vertices[1].z = axisLength;
-    axes[0].verticesNeedUpdate = axes[1].verticesNeedUpdate = axes[2].verticesNeedUpdate = true;
   }
 
   get_hash = function(phylo_level) {
@@ -121,6 +97,8 @@ angular.module('myApp.services').service('plotService', function() {
     var PI2 = Math.PI * 2;
 
     camera.position.z = 0.01;
+    camera.translateX(0.005);
+    camera.translateY(0.005);
 
     controls.rotateSpeed = 5.0;
     controls.zoomSpeed = 1.0;
@@ -218,7 +196,7 @@ angular.module('myApp.services').service('plotService', function() {
     particle_system.sortParticles = true;
     scene.add(particle_system);
 
-    var axes = addAxes(scene, label_scene, camera);
+    addAxes(scene, label_scene, camera);
 
     var savedColor, selectedColor = new THREE.Color(1,1,0);
 
@@ -271,8 +249,6 @@ angular.module('myApp.services').service('plotService', function() {
 
         lock_selection = false;
       }
-
-      updateAxes(axes, camera);
 
       renderer.clear();
       renderer.render(bvol.getGridScene(camera), camera);
