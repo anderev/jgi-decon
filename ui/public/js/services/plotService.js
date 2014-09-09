@@ -1,6 +1,6 @@
 angular.module('myApp.services').service('plotService', function() {
 	
-  var axis_camera_ratio = 0.6;
+  var axis_camera_ratio = 0.1;
   var contig_data = null;
   var mat_ps = null;
   var color_map = {};
@@ -8,6 +8,7 @@ angular.module('myApp.services').service('plotService', function() {
   var DEFAULT_COLOR_BY = 6;
   var HSL_LIGHTNESS = 0.6;
   var HSL_SATURATION = 0.75;
+  var bvol = null;
 
   addAxes = function(scene, label_scene, camera) {
     var line_mat = new THREE.LineBasicMaterial({ color: 0x000000 });
@@ -163,14 +164,23 @@ angular.module('myApp.services').service('plotService', function() {
     attributes.color.value = [];
     var f_hash = get_hash(DEFAULT_COLOR_BY);
     var particles = new THREE.Geometry();
+    var center_mass = null;
+    var num_clean = 0;
     for(var p_i=0; p_i<contig_data.points.length; ++p_i) {
     	var p = contig_data.points[p_i];
+        var vec3 = new THREE.Vector3(parseFloat(p.x), parseFloat(p.y), parseFloat(p.z));
 
         //particle system (rendered)
-        particles.vertices.push(new THREE.Vector3(p.x, p.y, p.z));
+        particles.vertices.push(vec3);
         attributes.color.value.push(color_map[f_hash(p)]);
         if(p.name.match(/clean/g)) {
           status_size = 64.0;
+          ++num_clean;
+          if(center_mass) {
+            center_mass.add(vec3);
+          } else {
+            center_mass = new THREE.Vector3().copy(vec3);
+          }
         } else if(p.name.match(/contam/g)) {
           status_size = 16.0;
         } else if(p.name.match(/hybrid/g)) {
@@ -189,6 +199,11 @@ angular.module('myApp.services').service('plotService', function() {
         particle.scale.x = particle.scale.y = 32;
         particle.data_i = p_i;
         hud_scene.add( particle );
+    }
+
+    bvol = new BoundingVolume(particles.vertices);
+    if(center_mass) {
+      controls.target = center_mass.multiplyScalar(1.0 / num_clean);
     }
 
     mat_ps = new THREE.ShaderMaterial({
@@ -258,6 +273,7 @@ angular.module('myApp.services').service('plotService', function() {
       updateAxes(axes, camera);
 
       renderer.clear();
+      renderer.render(bvol.getGridScene(camera), camera);
       renderer.render(scene, camera);
       renderer.clearDepth();
       renderer.render(hud_scene, hud_camera);
@@ -397,5 +413,65 @@ angular.module('myApp.services').service('plotService', function() {
     ctx.stroke();   
   }
   
+  function BoundingVolume(points) {
+    this.box = new THREE.Box3();
+    this.box.setFromPoints(points);
+  }
+
+  BoundingVolume.prototype.center = function() {
+    return this.box.center();
+  }
+
+  BoundingVolume.prototype.getGridScene = function(camera) {
+    var result = new THREE.Scene();
+    var line_mat = new THREE.LineBasicMaterial({ color: 0x000000 });
+    var box_points = [
+      new THREE.Vector3().copy(this.box.min),
+      new THREE.Vector3(this.box.min.x, this.box.min.y, this.box.max.z),
+      new THREE.Vector3(this.box.max.x, this.box.min.y, this.box.max.z),
+      new THREE.Vector3(this.box.max.x, this.box.min.y, this.box.min.z),
+      new THREE.Vector3(this.box.min.x, this.box.max.y, this.box.min.z),
+      new THREE.Vector3(this.box.min.x, this.box.max.y, this.box.max.z),
+      new THREE.Vector3().copy(this.box.max),
+      new THREE.Vector3(this.box.max.x, this.box.max.y, this.box.min.z)];
+    var plane_indices = [[0,4,5,1],[1,2,6,5],[2,3,7,6],[3,0,4,7],[0,1,2,3],[4,5,6,7]];
+
+    for(var plane_i=0; plane_i<6; ++plane_i) {
+      var line_geom = new THREE.Geometry();
+      for(var i=0; i<4; ++i)
+        line_geom.vertices.push(box_points[plane_indices[plane_i][i]]);
+      line_geom.vertices.push(box_points[plane_indices[plane_i][0]]);
+      result.add(new THREE.Line(line_geom, line_mat));
+    }
+
+    if(camera.position.x > this.box.min.x) {
+      /*
+      var line_geom = new THREE.Geometry();
+      for(var i=0; i<4; ++i)
+        line_geom.vertices.push(box_points[0][i]);
+      line_geom.vertices.push(box_points[0][0]);
+      result.add(new THREE.Line(line_geom, line_mat));
+      */
+    }
+
+    if(camera.position.x < this.box.max.x) {
+    }
+
+    if(camera.position.y > this.box.min.y) {
+    }
+
+    if(camera.position.y < this.box.max.y) {
+    }
+
+    if(camera.position.z > this.box.min.z) {
+    }
+
+    if(camera.position.z < this.box.max.z) {
+    }
+
+    return result;
+
+  }
+
 });
 
