@@ -10,7 +10,7 @@ angular.module('myApp.services').service('plotService', function() {
   var HSL_SATURATION = 0.75;
   var bvol = null;
 
-  addAxes = function(scene, label_scene, camera) {
+  addAxisLabels = function(label_scene, camera) {
     var axisLength = camera.position.length() * axis_camera_ratio;
 
     var labels = [makeTextSprite("PCA1", {fontsize: 24, fontface: "Georgia", borderColor: {r:0, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:255, b:255, a:0.8} } ),
@@ -70,8 +70,8 @@ angular.module('myApp.services').service('plotService', function() {
   this.init = function(data, $scope) {
     var plot_area = document.getElementById("plot_area");
     var renderer = new THREE.WebGLRenderer({clearAlpha:1});
-    var scene = new THREE.Scene();
-    var hud_scene = new THREE.Scene();
+    var render_scene = new THREE.Scene();
+    var picking_scene = new THREE.Scene();
     var label_scene = new THREE.Scene();
     var width = 1024;
     var height = 1024;
@@ -178,7 +178,7 @@ angular.module('myApp.services').service('plotService', function() {
         particle.position.z = p.z;
         particle.scale.x = particle.scale.y = 32;
         particle.data_i = p_i;
-        hud_scene.add( particle );
+        picking_scene.add( particle );
     }
 
     bvol = new BoundingVolume(particles.vertices);
@@ -194,9 +194,9 @@ angular.module('myApp.services').service('plotService', function() {
     });
     var particle_system = new THREE.ParticleSystem(particles, mat_ps);
     particle_system.sortParticles = true;
-    scene.add(particle_system);
+    render_scene.add(particle_system);
 
-    addAxes(scene, label_scene, camera);
+    addAxisLabels(label_scene, camera);
 
     var savedColor, selectedColor = new THREE.Color(1,1,0);
 
@@ -208,12 +208,12 @@ angular.module('myApp.services').service('plotService', function() {
       vector.z = 0;
       var raycaster = new THREE.Raycaster( vector, new THREE.Vector3(0,0,-1) );
 
-      for(var child_i=0; child_i < hud_scene.children.length; child_i++) {
-        var point = contig_data.points[hud_scene.children[child_i].data_i];
+      for(var child_i=0; child_i < picking_scene.children.length; child_i++) {
+        var point = contig_data.points[picking_scene.children[child_i].data_i];
         vector = new THREE.Vector3(point.x, point.y, point.z);
         projector.projectVector(vector, camera);
         projector.unprojectVector(vector, hud_camera);
-        hud_scene.children[child_i].position = vector;
+        picking_scene.children[child_i].position = vector;
       }
 
       var axisLength = axis_camera_ratio * camera.position.length();
@@ -227,7 +227,7 @@ angular.module('myApp.services').service('plotService', function() {
       }
 
       if(!locked_selection) {
-        var intersects = raycaster.intersectObjects( hud_scene.children );
+        var intersects = raycaster.intersectObjects( picking_scene.children );
 
         if( intersects.length > 0 ) {
           if( INTERSECTED != intersects[ 0 ].object ) {
@@ -252,9 +252,9 @@ angular.module('myApp.services').service('plotService', function() {
 
       renderer.clear();
       renderer.render(bvol.getGridScene(camera), camera);
-      renderer.render(scene, camera);
+      renderer.render(render_scene, camera);
       renderer.clearDepth();
-      renderer.render(hud_scene, hud_camera);
+      renderer.render(picking_scene, hud_camera);
       renderer.clearDepth();
       renderer.render(label_scene, hud_camera);
     };
