@@ -9,6 +9,7 @@ angular.module('myApp.services').service('plotService', function() {
   var HSL_LIGHTNESS = 0.6;
   var HSL_SATURATION = 0.75;
   var bvol = null;
+  var grid_scene = null;
 
   addAxisLabels = function(label_scene, camera) {
     var axisLength = camera.position.length() * axis_camera_ratio;
@@ -182,6 +183,7 @@ angular.module('myApp.services').service('plotService', function() {
     }
 
     bvol = new BoundingVolume(particles.vertices);
+    grid_scene = bvol.getGridScene();
     if(center_mass) {
       controls.target = center_mass.multiplyScalar(1.0 / num_clean);
     }
@@ -251,7 +253,7 @@ angular.module('myApp.services').service('plotService', function() {
       }
 
       renderer.clear();
-      renderer.render(bvol.getGridScene(camera), camera);
+      renderer.render(grid_scene, camera);
       renderer.render(render_scene, camera);
       renderer.clearDepth();
       renderer.render(picking_scene, hud_camera);
@@ -400,7 +402,7 @@ angular.module('myApp.services').service('plotService', function() {
     return this.box.center();
   }
 
-  BoundingVolume.prototype.getGridScene = function(camera) {
+  BoundingVolume.prototype.getGridScene = function() {
     var result = new THREE.Scene();
     var line_mat = new THREE.LineBasicMaterial({ color: 0x000000 });
     var box_points = [
@@ -459,31 +461,6 @@ angular.module('myApp.services').service('plotService', function() {
     line_geom.vertices.push(box_points[0].clone().setX(0).setY(0));
     line_geom.vertices.push(box_points[1].clone().setX(0).setY(0));
     result.add(new THREE.Line(line_geom, line_mat));
-
-    if(camera.position.x > this.box.min.x) {
-      /*
-      var line_geom = new THREE.Geometry();
-      for(var i=0; i<4; ++i)
-        line_geom.vertices.push(box_points[0][i]);
-      line_geom.vertices.push(box_points[0][0]);
-      result.add(new THREE.Line(line_geom, line_mat));
-      */
-    }
-
-    if(camera.position.x < this.box.max.x) {
-    }
-
-    if(camera.position.y > this.box.min.y) {
-    }
-
-    if(camera.position.y < this.box.max.y) {
-    }
-
-    if(camera.position.z > this.box.min.z) {
-    }
-
-    if(camera.position.z < this.box.max.z) {
-    }
 
     return result;
 
