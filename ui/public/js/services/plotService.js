@@ -10,6 +10,7 @@ angular.module('myApp.services').service('plotService', function() {
   var HSL_SATURATION = 0.75;
   var bvol = null;
   var grid_scene = null;
+  var plane_projection_scene = null;
 
   addAxisLabels = function(label_scene, camera) {
     var axisLength = camera.position.length() * axis_camera_ratio;
@@ -184,6 +185,7 @@ angular.module('myApp.services').service('plotService', function() {
 
     bvol = new BoundingVolume(particles.vertices);
     grid_scene = bvol.getGridScene();
+    plane_projection_scene = projectPointsOnPlane(particles, 2);
     if(center_mass) {
       controls.target = center_mass.multiplyScalar(1.0 / num_clean);
     }
@@ -253,7 +255,12 @@ angular.module('myApp.services').service('plotService', function() {
       }
 
       renderer.clear();
-      renderer.render(grid_scene, camera);
+      if(grid_scene) {
+        renderer.render(grid_scene, camera);
+      }
+      if(plane_projection_scene) {
+        renderer.render(plane_projection_scene, camera);
+      }
       renderer.render(render_scene, camera);
       renderer.clearDepth();
       renderer.render(picking_scene, hud_camera);
@@ -462,6 +469,52 @@ angular.module('myApp.services').service('plotService', function() {
     line_geom.vertices.push(box_points[1].clone().setX(0).setY(0));
     result.add(new THREE.Line(line_geom, line_mat));
 
+    return result;
+
+  }
+
+  function projectPointsOnPlane(points_geometry, zero_axis) {
+    var projected_points = points_geometry.clone();
+    if(zero_axis==0) {
+      for(var i=0; i<projected_points.vertices.length; ++i) {
+        projected_points.vertices[i].setX(0);
+      }
+    } else if (zero_axis==1) {
+      for(var i=0; i<projected_points.vertices.length; ++i) {
+        projected_points.vertices[i].setY(0);
+      }
+    } else {
+      for(var i=0; i<projected_points.vertices.length; ++i) {
+        projected_points.vertices[i].setZ(0);
+      }
+    }
+    var result = new THREE.Scene();
+
+    var vertexShaderSource = '\
+      void main() {\
+        vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\
+        gl_Position = projectionMatrix * mvPosition;\
+        gl_PointSize = 8.0;\
+      }';
+    var fragmentShaderSource = '\
+      void main() {\
+        vec2 r = gl_PointCoord - vec2(0.5,0.5);\
+        float len_r = length(r);\
+        if(len_r < 0.5) {\
+          gl_FragColor = vec4(0.25,0.25,0.25,0.25);\
+        } else {\
+          discard;\
+        }\
+       }';
+    var mat = new THREE.ShaderMaterial({
+      vertexShader: vertexShaderSource,
+      fragmentShader: fragmentShaderSource,
+      transparent: true
+    });
+
+    var particle_system = new THREE.ParticleSystem(projected_points, mat);
+    particle_system.sortParticles = true;
+    result.add(particle_system);
     return result;
 
   }
