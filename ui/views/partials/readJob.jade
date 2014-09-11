@@ -10,7 +10,7 @@ table(align='center')
     td
       div(align='left', id='plot_area')
     td
-      div
+      div(style='word-wrap: break-word')
         table(ng-show='contig.name',id='contig_info')
           tr
             td
@@ -23,9 +23,7 @@ table(align='center')
             td
               | {{contig.phylogeny}}
           tr
-            td
-              | Genes On This Contig:
-            td
+            td(colspan='2')
               div
                 table(width: 1px;)
                   tr
