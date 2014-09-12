@@ -5,6 +5,8 @@ table(align='center')
   tr
     td(colspan='2')
       | Color By:
+      | 
+      | 
       select(ng-model='color_phylo_level', ng-options='option.name for option in color_modes', ng-change='update_plot_colors()')
   tr
     td
@@ -61,14 +63,13 @@ table(align='center')
                   | {{job.start_time}}
               tr
                 td
-                  | Clean Data:
+                  | Download Fasta:
                 td
-                  a(target="_self",href='api/getCleanFasta/{{job.job_id}}') Fasta
-              tr
-                td
-                  | Contaminant Data:
-                td
-                  a(target="_self",href='api/getContamFasta/{{job.job_id}}') Fasta
+                  a(target="_self",href='api/getCleanFasta/{{job.job_id}}') Clean
+                  | 
+                  |
+                  | 
+                  a(target="_self",href='api/getContamFasta/{{job.job_id}}') Contaminant
               tr
                 td
                   | Notes:
