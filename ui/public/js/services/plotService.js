@@ -98,9 +98,10 @@ angular.module('myApp.services').service('plotService', function() {
     var controls = new THREE.TrackballControls(camera, renderer.domElement);
     var PI2 = Math.PI * 2;
 
-    camera.position.z = 0.01;
-    camera.translateX(0.005);
-    camera.translateY(0.005);
+    camera.position.y = -0.01;
+    camera.position.x = 0.005;
+    camera.position.z = 0.002;
+    camera.up.set(0,0,1);
 
     controls.rotateSpeed = 5.0;
     controls.zoomSpeed = 1.0;
