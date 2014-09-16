@@ -185,8 +185,8 @@ angular.module('myApp.services').service('plotService', function() {
     }
 
     bvol = new BoundingVolume(particles.vertices);
-    grid_scene = bvol.getGridScene();
-    plane_projection_scene = projectPointsOnPlane(particles, 2, true, true);
+    grid_scene = bvol.getGridScene(2);
+    plane_projection_scene = makeProjectionPlane(particles, 2, true, true);
     if(center_mass) {
       controls.target = center_mass.multiplyScalar(1.0 / num_clean);
     }
@@ -411,7 +411,7 @@ angular.module('myApp.services').service('plotService', function() {
     return this.box.center();
   }
 
-  BoundingVolume.prototype.getGridScene = function() {
+  BoundingVolume.prototype.getGridScene = function(zero_plane) {
     var result = new THREE.Scene();
     var line_mat = new THREE.LineBasicMaterial({ color: 0x000000 });
     var box_points = [
@@ -434,54 +434,82 @@ angular.module('myApp.services').service('plotService', function() {
       result.add(new THREE.Line(line_geom, line_mat));
     }
 
+    var origin_mats = [
+      new THREE.LineBasicMaterial({ color: 0xFF0000 }),
+      new THREE.LineBasicMaterial({ color: 0x00FF00 }),
+      new THREE.LineBasicMaterial({ color: 0x0000FF })
+      ];
+
+    //origin plane points
+    var origin_plane_points = [
+      [
+        box_points[0].clone().setX(0),
+        box_points[4].clone().setX(0),
+        box_points[5].clone().setX(0),
+        box_points[1].clone().setX(0),
+      ], [
+        box_points[0].clone().setY(0),
+        box_points[1].clone().setY(0),
+        box_points[2].clone().setY(0),
+        box_points[3].clone().setY(0),
+      ], [
+        box_points[0].clone().setZ(0),
+        box_points[3].clone().setZ(0),
+        box_points[7].clone().setZ(0),
+        box_points[4].clone().setZ(0),
+      ]
+    ];
+      
     //render origin planes
-    var line_geom = new THREE.Geometry();
-    line_geom.vertices.push(box_points[0].clone().setX(0));
-    line_geom.vertices.push(box_points[4].clone().setX(0));
-    line_geom.vertices.push(box_points[5].clone().setX(0));
-    line_geom.vertices.push(box_points[1].clone().setX(0));
-    line_geom.vertices.push(box_points[0].clone().setX(0));
-    result.add(new THREE.Line(line_geom, line_mat));
-    var line_geom = new THREE.Geometry();
-    line_geom.vertices.push(box_points[0].clone().setY(0));
-    line_geom.vertices.push(box_points[1].clone().setY(0));
-    line_geom.vertices.push(box_points[2].clone().setY(0));
-    line_geom.vertices.push(box_points[3].clone().setY(0));
-    line_geom.vertices.push(box_points[0].clone().setY(0));
-    result.add(new THREE.Line(line_geom, line_mat));
-    var line_geom = new THREE.Geometry();
-    line_geom.vertices.push(box_points[0].clone().setZ(0));
-    line_geom.vertices.push(box_points[3].clone().setZ(0));
-    line_geom.vertices.push(box_points[7].clone().setZ(0));
-    line_geom.vertices.push(box_points[4].clone().setZ(0));
-    line_geom.vertices.push(box_points[0].clone().setZ(0));
-    result.add(new THREE.Line(line_geom, line_mat));
+    for(var i=0; i<3; ++i) {
+      var line_geom = new THREE.Geometry();
+      for(var j=0; j<4; ++j) {
+        line_geom.vertices.push(origin_plane_points[i][j]);
+      }
+      line_geom.vertices.push(origin_plane_points[i][0]);
+      result.add(new THREE.Line(line_geom, origin_mats[i]));
+    }
+    
+    //render zero-plane grid
+    for(var i=0; i<11; ++i) {
+      var line_geom = new THREE.Geometry();
+      line_geom.vertices.push(origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][3], i/10.0));
+      line_geom.vertices.push(origin_plane_points[zero_plane][1].clone().lerp(origin_plane_points[zero_plane][2], i/10.0));
+      result.add(new THREE.Line(line_geom, origin_mats[zero_plane]));
+    }
+    for(var i=0; i<11; ++i) {
+      var line_geom = new THREE.Geometry();
+      line_geom.vertices.push(origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][1], i/10.0));
+      line_geom.vertices.push(origin_plane_points[zero_plane][3].clone().lerp(origin_plane_points[zero_plane][2], i/10.0));
+      result.add(new THREE.Line(line_geom, origin_mats[zero_plane]));
+    }
+
 
     //render origin lines
     var line_geom = new THREE.Geometry();
     line_geom.vertices.push(box_points[0].clone().setZ(0).setY(0));
     line_geom.vertices.push(box_points[3].clone().setZ(0).setY(0));
-    result.add(new THREE.Line(line_geom, line_mat));
+    result.add(new THREE.Line(line_geom, origin_mats[0]));
     var line_geom = new THREE.Geometry();
     line_geom.vertices.push(box_points[0].clone().setZ(0).setX(0));
     line_geom.vertices.push(box_points[4].clone().setZ(0).setX(0));
-    result.add(new THREE.Line(line_geom, line_mat));
+    result.add(new THREE.Line(line_geom, origin_mats[1]));
     var line_geom = new THREE.Geometry();
     line_geom.vertices.push(box_points[0].clone().setX(0).setY(0));
     line_geom.vertices.push(box_points[1].clone().setX(0).setY(0));
-    result.add(new THREE.Line(line_geom, line_mat));
+    result.add(new THREE.Line(line_geom, origin_mats[2]));
 
     return result;
 
   }
 
-  function projectPointsOnPlane(points_geometry, zero_axis, b_draw_points, b_draw_lines) {
+  function makeProjectionPlane(points_geometry, zero_plane, b_draw_points, b_draw_lines) {
     var projected_points = points_geometry.clone();
-    if(zero_axis==0) {
+    if(zero_plane==0) {
       for(var i=0; i<projected_points.vertices.length; ++i) {
         projected_points.vertices[i].setX(0);
       }
-    } else if (zero_axis==1) {
+    } else if (zero_plane==1) {
       for(var i=0; i<projected_points.vertices.length; ++i) {
         projected_points.vertices[i].setY(0);
       }
