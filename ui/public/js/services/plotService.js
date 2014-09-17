@@ -261,7 +261,6 @@ angular.module('myApp.services').service('plotService', function() {
       }
       if(plane_projection_scene) {
         renderer.render(plane_projection_scene, camera);
-        renderer.clearDepth();
       }
       renderer.render(render_scene, camera);
       renderer.clearDepth();
@@ -537,17 +536,11 @@ angular.module('myApp.services').service('plotService', function() {
         void main() {\
           vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\
           gl_Position = projectionMatrix * mvPosition;\
-          gl_PointSize = 8.0;\
+          gl_PointSize = 4.0;\
         }';
       var fragmentShaderSource = '\
         void main() {\
-          vec2 r = gl_PointCoord - vec2(0.5,0.5);\
-          float len_r = length(r);\
-          if(len_r < 0.5) {\
-            gl_FragColor = vec4(0,0,0,1);\
-          } else {\
-            discard;\
-          }\
+          gl_FragColor = vec4(0,0,0,1);\
          }';
       var mat = new THREE.ShaderMaterial({
         vertexShader: vertexShaderSource,
