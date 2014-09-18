@@ -74,7 +74,7 @@ angular.module('myApp.services').service('plotService', function() {
     var renderer = new THREE.WebGLRenderer({clearAlpha:1});
     var render_scene = new THREE.Scene();
     var picking_scene = new THREE.Scene();
-    var label_scene = new THREE.Scene();
+    var label_scene_ortho = new THREE.Scene();
     var width = 1024;
     var height = 1024;
     var camera = new THREE.PerspectiveCamera(60, width/height, 0.0001, 1000);
@@ -185,7 +185,7 @@ angular.module('myApp.services').service('plotService', function() {
     }
 
     bvol = new BoundingVolume(particles.vertices);
-    grid_scene = bvol.getGridScene(2);
+    grid_scene = bvol.getGridScene(2, label_scene_ortho);
     plane_projection_scene = makeProjectionPlane(particles, 2, true, true);
     if(center_mass) {
       controls.target = center_mass.multiplyScalar(1.0 / num_clean);
@@ -201,7 +201,7 @@ angular.module('myApp.services').service('plotService', function() {
     particle_system.sortParticles = true;
     render_scene.add(particle_system);
 
-    addAxisLabels(label_scene, camera);
+    //addAxisLabels(label_scene_ortho, camera);
 
     var savedColor, selectedColor = new THREE.Color(1,1,0);
 
@@ -221,14 +221,14 @@ angular.module('myApp.services').service('plotService', function() {
         picking_scene.children[child_i].position = vector;
       }
 
-      var axisLength = axis_camera_ratio * camera.position.length();
-      for(var axis_i=0; axis_i < label_scene.children.length; axis_i++) {
-        var point = axis_data[axis_i];
-        vector = new THREE.Vector3(point.x, point.y, point.z);
-        vector.multiplyScalar(axisLength);
-        projector.projectVector(vector, camera);
-        projector.unprojectVector(vector, hud_camera);
-        label_scene.children[axis_i].position = vector;
+      var label_scene_render = new THREE.Scene();
+      for(var i=0; i < label_scene_ortho.children.length; i++) {
+        var obj = label_scene_ortho.children[i].clone();
+        projector.projectVector(obj.position, camera);
+        obj.position.x += 0.1;
+        obj.position.y -= 0.1;
+        projector.unprojectVector(obj.position, hud_camera);
+        label_scene_render.add(obj);
       }
 
       if(!locked_selection) {
@@ -266,7 +266,7 @@ angular.module('myApp.services').service('plotService', function() {
       renderer.clearDepth();
       renderer.render(picking_scene, hud_camera);
       renderer.clearDepth();
-      renderer.render(label_scene, hud_camera);
+      renderer.render(label_scene_render, hud_camera);
     };
 
     var animate = function() {
@@ -374,8 +374,8 @@ angular.module('myApp.services').service('plotService', function() {
     context.fillText( message, borderThickness, fontsize + borderThickness);
 
     // canvas contents will be used for a texture
-    var texture = new THREE.Texture(canvas) 
-      texture.needsUpdate = true;
+    var texture = new THREE.Texture(canvas);
+    texture.needsUpdate = true;
 
     var spriteMaterial = new THREE.SpriteMaterial( 
         { map: texture } );
@@ -410,7 +410,7 @@ angular.module('myApp.services').service('plotService', function() {
     return this.box.center();
   }
 
-  BoundingVolume.prototype.getGridScene = function(zero_plane) {
+  BoundingVolume.prototype.getGridScene = function(zero_plane, label_scene) {
     var result = new THREE.Scene();
     var line_mat = new THREE.LineBasicMaterial({ color: 0x000000 });
     var box_points = [
@@ -469,12 +469,17 @@ angular.module('myApp.services').service('plotService', function() {
       result.add(new THREE.Line(line_geom, origin_mats[i]));
     }
     
+    function lerp(a, b, alpha) {
+      return b*alpha + a*(1-alpha);
+    }
+
     //render zero-plane grid
     for(var i=0; i<11; ++i) {
       var line_geom = new THREE.Geometry();
       line_geom.vertices.push(origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][3], i/10.0));
       line_geom.vertices.push(origin_plane_points[zero_plane][1].clone().lerp(origin_plane_points[zero_plane][2], i/10.0));
       result.add(new THREE.Line(line_geom, origin_mats[zero_plane]));
+
     }
     for(var i=0; i<11; ++i) {
       var line_geom = new THREE.Geometry();
@@ -484,11 +489,31 @@ angular.module('myApp.services').service('plotService', function() {
     }
 
 
+
     //render origin lines
     var line_geom = new THREE.Geometry();
     line_geom.vertices.push(box_points[0].clone().setZ(0).setY(0));
     line_geom.vertices.push(box_points[3].clone().setZ(0).setY(0));
     result.add(new THREE.Line(line_geom, origin_mats[0]));
+
+    for(var j=0; j<3; ++j) {
+      var tick_a = new THREE.Vector3();
+      tick_a.setComponent(j, box_points[0].getComponent(j));
+      var tick_b = new THREE.Vector3();
+      tick_b.setComponent(j, box_points[6].getComponent(j));
+      for(var i=0; i<11; ++i) {
+        var tick = tick_a.clone().lerp(tick_b, i/10.0);
+        var label = makeTextSprite(tick.getComponent(j).toFixed(3), {
+          fontsize: 16,
+          fontface: "Georgia",
+          borderColor: {r:0, g:0, b:0, a:1.0},
+          backgroundColor: {r:255, g:255, b:255, a:0.8} } );
+        label.position = tick;
+        label_scene.add(label);
+      }
+    }
+
+
     var line_geom = new THREE.Geometry();
     line_geom.vertices.push(box_points[0].clone().setZ(0).setX(0));
     line_geom.vertices.push(box_points[4].clone().setZ(0).setX(0));
