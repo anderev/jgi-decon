@@ -93,6 +93,7 @@ angular.module('myApp.services').service('plotService', function() {
     renderer.setSize(width, height);
     renderer.setClearColorHex(0xffffff, 1);
     renderer.autoClear = false;
+    renderer.domElement.style.border='2px solid';
     plot_area.appendChild(renderer.domElement);
 
     var controls = new THREE.TrackballControls(camera, renderer.domElement);
@@ -434,9 +435,9 @@ angular.module('myApp.services').service('plotService', function() {
     }
 
     var origin_mats = [
-      new THREE.LineBasicMaterial({ color: 0xFF0000 }),
-      new THREE.LineBasicMaterial({ color: 0x00FF00 }),
-      new THREE.LineBasicMaterial({ color: 0x0000FF })
+      new THREE.LineBasicMaterial({ color: 0xFFAAAA }),
+      new THREE.LineBasicMaterial({ color: 0xAAFFAA }),
+      new THREE.LineBasicMaterial({ color: 0xAAAAFF })
       ];
 
     //origin plane points
