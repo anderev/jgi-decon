@@ -49,11 +49,18 @@ exports.parse_lca = function(pointData, callback) {
       var contig_phylogeny = {};
       for(var i=0; i<num_lines; ++i) {
         var tokens = lines[i].split('\t');
-        contig_phylogeny[tokens[0]] = tokens[1];
+        var cleaned_phylo = (tokens[1] || '').trim().replace('root;cellular organisms;', '');
+        if(cleaned_phylo.length > 0) {
+          contig_phylogeny[tokens[0]] = cleaned_phylo;
+        }
       }
 
       for(var j=0; j<pointData.length; j++) {
-        pointData[j].phylogeny = (contig_phylogeny[pointData[j].name] || 'Unknown').trim().replace('root;cellular organisms;', '').replace(/;/g, '; ');
+        if(pointData[j].name in contig_phylogeny) {
+          pointData[j].phylogeny = (contig_phylogeny[pointData[j].name]);
+        } else {
+          pointData[j].phylogeny = 'Unknown';
+        }
       }
 
       callback(null);
@@ -123,48 +130,22 @@ exports.parse_genes_fna = function(pointData, callback) {
   return function(err, data) {
 
     if(!err) {
-      var contig_map = {};
-      for(var i=0; i<pointData.length; i++) {
-        var gene_map = {};
-        var genes = pointData[i].genes;
-        if(genes) {
-          for(var j=0; j<genes.length; ++j) {
-            gene_map[genes[j].gene_id] = j;
-          }
-          contig_map[pointData[i].name] = {i: i, gene_map: gene_map};
-        }
-      }
-
+      var nuc_seqs = {};
       var lines = data.toString().split('\n');
       var num_lines = lines.length;
       var i = 0;
       while(i<num_lines) {
         if(lines[i].charAt(0) === '>') {
-          var nuc_seq = '';
+          var nuc_seq = lines[i]+'\n';
           var j = 1;
           while(i+j < num_lines && lines[i+j].charAt(0) !== '>') {
             nuc_seq = nuc_seq.concat(lines[i+j]);
             ++j;
           }
+
           var gene_cols = lines[i].split(' ');
           var gene_name = gene_cols[0].substr(1);
-          var gene_strand = gene_cols[6];
-          var gene_name_split = gene_name.split('_');
-          var contig_name = gene_name_split.slice(0, gene_name_split.length - 2).join('_');
-          if(contig_name in contig_map) {
-            var contig = pointData[contig_map[contig_name].i];
-            var gene_map = contig_map[contig_name].gene_map;
-            if(contig) {
-              if('genes' in contig) {
-                var gene = contig.genes[gene_map[gene_name]];
-                if(gene) {
-                  gene.nuc_seq = nuc_seq.substr(0, 10).concat('...');
-                  gene.strand = gene_strand;
-                  gene.gc = (100.0 * nuc_seq.match(/[GCgc]/g).length) / nuc_seq.length;
-                }
-              }
-            }
-          }
+          nuc_seqs[gene_name] = nuc_seq;
           
           i += j;
         } else {
@@ -172,10 +153,10 @@ exports.parse_genes_fna = function(pointData, callback) {
         }
       }
 
-      callback(null);
+      callback(nuc_seqs, null);
     } else {
       console.log('Error parsing names file.');
-      callback(err);
+      callback(null, err);
     }
   }
 };

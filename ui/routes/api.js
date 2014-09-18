@@ -258,7 +258,7 @@ exports.getSsoUser = function(req, res) {
       res.json(user);
     } else {
       res.json(false);
-      console.log('error: ' + err);
+      console.log('error: ' + user_err);
     }
   });
 };
@@ -367,9 +367,12 @@ exports.getPCA = function(req, res) {
                         if(!err) {
                           fs.readFile(filename_blout, parser.parse_blout(pointData, function(err) {
                             if(!err) {
-                              fs.readFile(filename_genes_fna, parser.parse_genes_fna(pointData, function(err) {
+                              fs.readFile(filename_genes_fna, parser.parse_genes_fna(pointData, function(nuc_seqs, err) {
                                 if(!err) {
-                                  res.json({points: pointData});
+                                  res.json({
+                                    points: pointData,
+                                    nuc_seqs: nuc_seqs
+                                    });
                                 } else {
                                   console.log(err);
                                   res.json(false);

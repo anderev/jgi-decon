@@ -69,8 +69,12 @@ function ReadJobCtrl($scope, $http, $routeParams, plotService) {
         $scope.color_phylo_level = $scope.color_modes[5];
         $scope.update_plot_colors = function() { plotService.update_plot_colors($scope.color_phylo_level.value); };
         $scope.contig = null;
+        $scope.nuc_seqs = null;
         $http.get('/api/getPCA/' + $routeParams.id).
         	success(function(data) {
+                  if(data.nuc_seqs) {
+                    $scope.nuc_seqs = data.nuc_seqs;
+                  }
                   if(data.points) {
                     $scope.plotService.init(data, $scope);
                   }

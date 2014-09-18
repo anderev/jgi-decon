@@ -5,13 +5,15 @@ table(align='center')
   tr
     td(colspan='2')
       | Color By:
+      | 
+      | 
       select(ng-model='color_phylo_level', ng-options='option.name for option in color_modes', ng-change='update_plot_colors()')
   tr
     td
       div(align='left', id='plot_area')
     td
-      div
-        table(id='contig_info')
+      div(style='word-wrap: break-word')
+        table(ng-show='contig.name',id='contig_info')
           tr
             td
               | Contig Name:
@@ -23,9 +25,7 @@ table(align='center')
             td
               | {{contig.phylogeny}}
           tr
-            td
-              | Genes On This Contig:
-            td
+            td(colspan='2')
               div
                 table(width: 1px;)
                   tr
@@ -40,6 +40,9 @@ table(align='center')
                   tr(ng-repeat='gene in contig.genes')
                     td
                       | {{gene.gene_id}}
+                      div(ng-show='nuc_seqs[gene.gene_id].length > 0', style='word-wrap: break-word')
+                        button(popover='{{nuc_seqs[gene.gene_id]}}', class='btn btn-default', popover-trigger='focus', popover-placement='bottom', popover-title='Gene Sequence')
+                          | View Sequence
                     td
                       | {{gene.subject_genome}}
                     td
@@ -60,14 +63,13 @@ table(align='center')
                   | {{job.start_time}}
               tr
                 td
-                  | Clean Data:
+                  | Download Fasta:
                 td
-                  a(target="_self",href='api/getCleanFasta/{{job.job_id}}') Fasta
-              tr
-                td
-                  | Contaminant Data:
-                td
-                  a(target="_self",href='api/getContamFasta/{{job.job_id}}') Fasta
+                  a(target="_self",href='api/getCleanFasta/{{job.job_id}}') Clean
+                  | 
+                  |
+                  | 
+                  a(target="_self",href='api/getContamFasta/{{job.job_id}}') Contaminant
               tr
                 td
                   | Notes:
