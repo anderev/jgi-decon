@@ -8,13 +8,14 @@ my $usage="$0 <directory which contains input fasta file> <bin dir> <job name>\n
 my $RCmd = defined $ENV{R_EXE} ? $ENV{R_EXE} : 'R';
 my $wdir=$ARGV[0];
 my $bin=$ARGV[1];
-my $lib=$ARGV[1] . "../lib/";
+my $lib=$ARGV[1] . "/../lib/";
 my $jobname=$ARGV[2];
 my $fbin_target=$wdir . "/" . $jobname . "_Intermediate/" . $jobname . "_binning_target";
 my $log=$wdir . "/" . $jobname . "_log";
 open(LOG,">>$log");
 
 my %targets;
+my %checkclean;
 my $cutoff=0.0136;
 
 if(-e $fbin_target){
@@ -58,6 +59,7 @@ if(-e $fbin_target){
 		if($arr[1]=~/$bin_target/){
 			print OUTC "$arr[0]\n";
                 	$counts[0]++; #clean
+			$checkclean{$arr[0]}=1;
 		}
                 elsif($bin_target=~/$arr[1]/){
                         if($species{$arr[0]}=~/$bin_target/){
@@ -73,6 +75,7 @@ if(-e $fbin_target){
                         			print OUTC "$arr[0]\n";
 						print LOG "$arr[0] <=20 now clean\n";
                         			$counts[0]++; #clean
+						$checkclean{$arr[0]}=1;
 					}
 					else{
 						print OUTU "$arr[0]\n";
@@ -85,6 +88,7 @@ if(-e $fbin_target){
                                                 print OUTC "$arr[0]\n";
                                                 print LOG "$arr[0] >20 now clean\n";
                                                 $counts[0]++; #clean
+						$checkclean{$arr[0]}=1;
                                         }
                                         else{
                                                 print OUTU "$arr[0]\n";
@@ -139,7 +143,10 @@ if(-e $fbin_target){
   open(OUT,">>$kmer_contam");
   while(my $line=<IN>){
 	chomp($line);
-	if(exists($cl{$line})){
+	if(exists($checkclean{$line})){
+		$cleanc{$line}=1;
+	}
+	elsif(exists($cl{$line})){
 		if($cl{$line}=~$known_target or $known_target=~/$cl{$line}/){
 			$cleanc{$line}=1;
 		}
