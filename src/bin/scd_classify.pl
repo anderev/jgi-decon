@@ -128,9 +128,13 @@ if(-e $fbin_target){
 	$cmd="rm " . $blast_clean;
         system($cmd);
   }
-  if($counts[0]==0 or $known_target=~/^root;cellular organisms;Bacteria;$/ or $known_target=~/^root;cellular organisms;Archaea;$/ or $counts[2]==0 ){
-        print LOG "$0: Contaminated or clean bin is empty.  Using 9-mer with standard cutoff.\n";
+  if($counts[0]==0 or $known_target=~/^root;cellular organisms;Bacteria;$/ or $known_target=~/^root;cellular organisms;Archaea;$/ ){
+        print LOG "$0: Clean bin is empty.  Using 9-mer with standard cutoff.\n";
 	$cmd="perl $bin/scd_compute_kmer_counts.pl $wdir 9 $jobname; $RCmd CMD BATCH -" . $lib . " -" . $wdir . " -" . 9 . " -" . $jobname . " --no-save " . $bin . "/scd_classify_nocontam.R " . $wdir . "/" . $jobname . "_Intermediate/" . $jobname . "_scd_classify.out";
+  }
+  elsif($counts[2]==0){
+        $cmd="cp " . $blast_clean . " " . $kmer_clean;
+        system($cmd);
   }
   else{
         print LOG "$0: Using 5-mer with refined calibration.\n";

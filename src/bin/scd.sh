@@ -124,11 +124,14 @@ then
 		scd_verify_target.pl $WORKING_DIR $NCBItax $JOB_NAME
 		scd_find_targetbin.pl $WORKING_DIR $JOB_NAME
 		scd_classify.pl $WORKING_DIR $BIN $JOB_NAME
-		line=`grep elapsed ${INT_DIR}/${JOB_NAME}_scd_classify.out`
-		if [ -z "${line}" ] 
+		if [[ -e ${INT_DIR}/${JOB_NAME}_scd_classify.out && ! -e ${WORKING_DIR}/${JOB_NAME}_Intermediate/${JOB_NAME}_kmer_contam_contigs ]]
 		then
-    			echo "Failure of kmer algorithm. Exiting." >> ${WORKING_DIR}/${JOB_NAME}_log
-			exit 1;
+			line=`grep elapsed ${INT_DIR}/${JOB_NAME}_scd_classify.out`
+			if [ -z "${line}" ] 
+			then
+    				echo "Failure of kmer algorithm. Exiting." >> ${WORKING_DIR}/${JOB_NAME}_log
+				exit 1;
+			fi
 		fi
         	scd_create_fasta.pl $WORKING_DIR $JOB_NAME
 		if [ ! -e ${WORKING_DIR}/${JOB_NAME}_output_clean.fna ]
