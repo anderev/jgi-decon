@@ -152,7 +152,7 @@ if [ "$RUN_ACCURACY" == "1" ]
 then
 	if [ -e ${WORKING_DIR}/${JOB_NAME}_output_clean.fna ]
 	then
-		scd_compute_accuracy.pl $WORKING_DIR $JOB_NAME
+		scd_compute_accuracy.pl $WORKING_DIR $JOB_NAME 
 	else	
 		echo "$WORKING_DIR/${JOB_NAME}_output.fna does not exist.  Can not run accuracy." >> ${WORKING_DIR}/${JOB_NAME}_log
 	fi

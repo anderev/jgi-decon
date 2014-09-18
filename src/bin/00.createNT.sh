@@ -7,7 +7,7 @@ else
         blastCmd=$MAKEBLASTDB_EXE
 fi
 
-# Get NR.faa from Genbank
+# Get NT.faa from Genbank
 echo "Downloading files from Genbank"
 wget -O ${1}/nt.gz ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nt.gz
 
