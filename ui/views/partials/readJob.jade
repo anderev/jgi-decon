@@ -13,7 +13,7 @@ table(align='center')
       div(align='left', id='plot_area')
     td
       div(style='word-wrap: break-word')
-        table(ng-show='contig.name',id='contig_info')
+        table(ng-show='contig.name',id='contig_info',border='1')
           tr
             td
               | Contig Name:
@@ -50,7 +50,7 @@ table(align='center')
                     td
                       | {{gene.coverage | number:2}}%
 
-            table
+            table(border='1')
               tr
                 td
                   | Project:
