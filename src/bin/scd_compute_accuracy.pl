@@ -23,7 +23,7 @@ while(my $line=<IN>){
 	if($line=~/clean/){
 		$tp++;
 		$ntp=$ntp+$len;
-        }else{
+        }elsif($line=~/contam/){
                 $fp++;
 		$nfp=$nfp+$len;
 	}
@@ -37,7 +37,7 @@ while(my $line=<IN>){
         if($line=~/clean/){
                 $fn++;  
 		$nfn=$nfn+$len;
-        }else{
+        }elsif($line=~/contam/){
                 $tn++;
 		$ntn=$ntn+$len;
         }       
