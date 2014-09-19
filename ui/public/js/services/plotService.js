@@ -8,6 +8,7 @@ angular.module('myApp.services').service('plotService', function() {
   var DEFAULT_COLOR_BY = 6;
   var HSL_LIGHTNESS = 0.6;
   var HSL_SATURATION = 0.75;
+  var NUM_GRID_LINES = 21;
   var bvol = null;
   var grid_scene = null;
   var plane_projection_scene = null;
@@ -366,7 +367,7 @@ angular.module('myApp.services').service('plotService', function() {
       + borderColor.b + "," + borderColor.a + ")";
 
     context.lineWidth = borderThickness;
-    roundRect(context, borderThickness/2, borderThickness/2, textWidth + borderThickness, fontsize * 1.4 + borderThickness, 6);
+    //roundRect(context, borderThickness/2, borderThickness/2, textWidth + borderThickness, fontsize * 1.4 + borderThickness, 6);
     // 1.4 is extra height factor for text below baseline: g,j,p,q.
 
     // text color
@@ -475,17 +476,17 @@ angular.module('myApp.services').service('plotService', function() {
     }
 
     //render zero-plane grid
-    for(var i=0; i<11; ++i) {
+    for(var i=0; i<NUM_GRID_LINES; ++i) {
       var line_geom = new THREE.Geometry();
-      line_geom.vertices.push(origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][3], i/10.0));
-      line_geom.vertices.push(origin_plane_points[zero_plane][1].clone().lerp(origin_plane_points[zero_plane][2], i/10.0));
+      line_geom.vertices.push(origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][3], i/(NUM_GRID_LINES-1)));
+      line_geom.vertices.push(origin_plane_points[zero_plane][1].clone().lerp(origin_plane_points[zero_plane][2], i/(NUM_GRID_LINES-1)));
       result.add(new THREE.Line(line_geom, origin_mats[zero_plane]));
 
     }
-    for(var i=0; i<11; ++i) {
+    for(var i=0; i<NUM_GRID_LINES; ++i) {
       var line_geom = new THREE.Geometry();
-      line_geom.vertices.push(origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][1], i/10.0));
-      line_geom.vertices.push(origin_plane_points[zero_plane][3].clone().lerp(origin_plane_points[zero_plane][2], i/10.0));
+      line_geom.vertices.push(origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][1], i/(NUM_GRID_LINES-1)));
+      line_geom.vertices.push(origin_plane_points[zero_plane][3].clone().lerp(origin_plane_points[zero_plane][2], i/(NUM_GRID_LINES-1)));
       result.add(new THREE.Line(line_geom, origin_mats[zero_plane]));
     }
 
@@ -502,8 +503,8 @@ angular.module('myApp.services').service('plotService', function() {
       tick_a.setComponent(j, box_points[0].getComponent(j));
       var tick_b = new THREE.Vector3();
       tick_b.setComponent(j, box_points[6].getComponent(j));
-      for(var i=0; i<11; ++i) {
-        var tick = tick_a.clone().lerp(tick_b, i/10.0);
+      for(var i=0; i<NUM_GRID_LINES; ++i) {
+        var tick = tick_a.clone().lerp(tick_b, i/(NUM_GRID_LINES-1));
         var label = makeTextSprite(tick.getComponent(j).toFixed(3), {
           fontsize: 16,
           fontface: "Georgia",
