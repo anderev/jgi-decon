@@ -3,15 +3,22 @@ style
 
 table(align='center')
   tr
-    td(colspan='2')
-      | Color By:
-      | 
-      | 
-      select(ng-model='color_phylo_level', ng-options='option.name for option in color_modes', ng-change='update_plot_colors()')
-  tr
     td
       div(align='left', id='plot_area')
     td
+      table(border='1')
+        tr
+          td
+            | Color By:
+            | 
+            | 
+            select(ng-model='color_phylo_level', ng-options='option.name for option in color_modes', ng-change='update_plot_colors()')
+            | 
+            | 
+            | Grid Plane:
+            | 
+            | 
+            select(ng-model='projection_mode', ng-options='option.name for option in projection_modes', ng-change='update_projection()')
       div(style='word-wrap: break-word')
         table(ng-show='contig.name',id='contig_info',border='1')
           tr

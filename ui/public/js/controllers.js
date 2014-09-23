@@ -56,6 +56,11 @@ function AddJobCtrl($scope, $http, $upload, $location) {
 function ReadJobCtrl($scope, $http, $routeParams, plotService) {
   $http.get('/api/job/' + $routeParams.id).
     success(function(data) {
+        $scope.projection_modes = [
+          {name: 'PCA2-PCA3', value: 0},
+          {name: 'PCA1-PCA3', value: 1},
+          {name: 'PCA1-PCA2', value: 2},
+          {name: 'None', value: 3}];
         $scope.color_modes = [
           {name: 'Domain', value: 0},
           {name: 'Phylum', value: 1},
@@ -67,7 +72,9 @@ function ReadJobCtrl($scope, $http, $routeParams, plotService) {
         $scope.job = data.job;
         $scope.plotService = plotService;
         $scope.color_phylo_level = $scope.color_modes[5];
-        $scope.update_plot_colors = function() { plotService.update_plot_colors($scope.color_phylo_level.value); };
+        $scope.projection_mode = $scope.projection_modes[2];
+        $scope.update_plot_colors = function() { plotService.update_plot_colors(); };
+        $scope.update_projection = function() { plotService.update_projection(); };
         $scope.contig = null;
         $scope.nuc_seqs = null;
         $http.get('/api/getPCA/' + $routeParams.id).

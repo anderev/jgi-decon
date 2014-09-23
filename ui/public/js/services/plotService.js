@@ -5,27 +5,17 @@ angular.module('myApp.services').service('plotService', function() {
   var mat_ps = null;
   var color_map = {};
   var attributes = null;
-  var DEFAULT_COLOR_BY = 6;
   var HSL_LIGHTNESS = 0.6;
   var HSL_SATURATION = 0.75;
   var NUM_GRID_LINES = 21;
   var bvol = null;
   var grid_scene = null;
   var plane_projection_scene = null;
-
-  addAxisLabels = function(label_scene, camera) {
-    var axisLength = camera.position.length() * axis_camera_ratio;
-
-    var labels = [makeTextSprite("PCA1", {fontsize: 24, fontface: "Georgia", borderColor: {r:0, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:255, b:255, a:0.8} } ),
-                  makeTextSprite("PCA2", {fontsize: 24, fontface: "Georgia", borderColor: {r:0, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:255, b:255, a:0.8} } ),
-                  makeTextSprite("PCA3", {fontsize: 24, fontface: "Georgia", borderColor: {r:0, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:255, b:255, a:0.8} } ) ];
-    labels[0].position = new THREE.Vector3(axisLength, 0, 0);
-    labels[1].position = new THREE.Vector3(0, axisLength, 0);
-    labels[2].position = new THREE.Vector3(0, 0, axisLength);
-    label_scene.add(labels[0]);
-    label_scene.add(labels[1]);
-    label_scene.add(labels[2]);
-  }
+  var particles = null;
+  var label_scene_ortho = null;
+  var scope = null;
+  var particle_system = null;
+  var render_scene = null;
 
   get_hash = function(phylo_level) {
     return function(contig) {
@@ -35,57 +25,62 @@ angular.module('myApp.services').service('plotService', function() {
     };
   };
 
-  this.update_plot_colors = function(phylo_level) {
-    console.log('update_plot_colors');
-    color_map = {};
-    var f_hash = get_hash(phylo_level);
-    for(var p_i=0; p_i<contig_data.points.length; ++p_i) {
-      var the_hash = f_hash(contig_data.points[p_i]);
-      if(!(the_hash in color_map) && the_hash != 'Unknown') {
-        color_map[the_hash] = new THREE.Color();
+  this.update_projection = function() {
+    this.grid_scene = this.bvol.getGridScene(this.scope.projection_mode.value, this.label_scene_ortho);
+    this.plane_projection_scene = makeProjectionPlane(this.particles, this.scope.projection_mode.value, true, true);
+  };
+
+  this.update_plot_colors = function() {
+    this.color_map = {};
+    var f_hash = get_hash(this.scope.color_phylo_level.value);
+    for(var p_i=0; p_i<this.contig_data.points.length; ++p_i) {
+      var the_hash = f_hash(this.contig_data.points[p_i]);
+      if(!(the_hash in this.color_map) && the_hash != 'Unknown') {
+        this.color_map[the_hash] = new THREE.Color();
       }
     }
 
     var num_colors = 0;
-    for(var phylo in color_map) {
+    for(var phylo in this.color_map) {
       num_colors++;
     }
 
     var phylo_i = 0;
-    for(var phylo in color_map) {
-      color_map[phylo].setHSL(phylo_i / num_colors, HSL_SATURATION, HSL_LIGHTNESS);
+    for(var phylo in this.color_map) {
+      this.color_map[phylo].setHSL(phylo_i / num_colors, HSL_SATURATION, HSL_LIGHTNESS);
       phylo_i++;
     }
 
-    color_map.Unknown = new THREE.Color();
-    color_map.Unknown.setHSL( 0.0, 0.0, HSL_LIGHTNESS );
+    this.color_map.Unknown = new THREE.Color();
+    this.color_map.Unknown.setHSL( 0.0, 0.0, HSL_LIGHTNESS );
 
-    if(mat_ps) {
-      attributes.color.value = [];
-      for(var p_i=0; p_i<contig_data.points.length; ++p_i) {
-        attributes.color.value.push(color_map[f_hash(contig_data.points[p_i])]);
+    if(this.mat_ps) {
+      this.attributes.color.value = [];
+      for(var p_i=0; p_i<this.contig_data.points.length; ++p_i) {
+        this.attributes.color.value.push(this.color_map[f_hash(this.contig_data.points[p_i])]);
       }
-      mat_ps.needsUpdate = true;
+      this.mat_ps.needsUpdate = true;
     }
     
   };
 
   this.init = function(data, $scope) {
+    this.scope = $scope;
     var plot_area = document.getElementById("plot_area");
     var renderer = new THREE.WebGLRenderer({clearAlpha:1});
-    var render_scene = new THREE.Scene();
+    this.render_scene = new THREE.Scene();
     var picking_scene = new THREE.Scene();
-    var label_scene_ortho = new THREE.Scene();
+    this.label_scene_ortho = new THREE.Scene();
     var width = 1024;
     var height = 1024;
     var camera = new THREE.PerspectiveCamera(60, width/height, 0.0001, 1000);
     var hud_camera = new THREE.OrthographicCamera(width / -2, width / 2, height / 2, height / -2, 0.0001, 1000);
     var projector = new THREE.Projector();
-    contig_data = data;
+    this.contig_data = data;
     var axis_data = [new THREE.Vector3(1,0,0),
                      new THREE.Vector3(0,1,0),
                      new THREE.Vector3(0,0,1)];
-    attributes = {
+    this.attributes = {
       color: { type: 'c', value: []},
       pointSize: { type: 'f', value: []},
       highlight: { type: 'f', value: []}
@@ -144,20 +139,20 @@ angular.module('myApp.services').service('plotService', function() {
     var mouse = {x:0, y:0};
     var INTERSECTED;
 
-    this.update_plot_colors(DEFAULT_COLOR_BY);
+    this.update_plot_colors();
 
-    attributes.color.value = [];
-    var f_hash = get_hash(DEFAULT_COLOR_BY);
-    var particles = new THREE.Geometry();
+    this.attributes.color.value = [];
+    var f_hash = get_hash($scope.color_phylo_level.value);
+    this.particles = new THREE.Geometry();
     var center_mass = null;
     var num_clean = 0;
-    for(var p_i=0; p_i<contig_data.points.length; ++p_i) {
-    	var p = contig_data.points[p_i];
+    for(var p_i=0; p_i<this.contig_data.points.length; ++p_i) {
+    	var p = this.contig_data.points[p_i];
         var vec3 = new THREE.Vector3(parseFloat(p.x), parseFloat(p.y), parseFloat(p.z));
 
         //particle system (rendered)
-        particles.vertices.push(vec3);
-        attributes.color.value.push(color_map[f_hash(p)]);
+        this.particles.vertices.push(vec3);
+        this.attributes.color.value.push(this.color_map[f_hash(p)]);
         if(p.name.match(/clean/g)) {
           status_size = 32.0;
           ++num_clean;
@@ -173,8 +168,8 @@ angular.module('myApp.services').service('plotService', function() {
         } else {
           status_size = 16.0;
         }
-        attributes.pointSize.value.push(status_size);
-        attributes.highlight.value.push(false);
+        this.attributes.pointSize.value.push(status_size);
+        this.attributes.highlight.value.push(false);
 
         //sprites (picked)
         var particle = new THREE.Sprite( new THREE.SpriteMaterial({opacity:0}) );
@@ -186,37 +181,37 @@ angular.module('myApp.services').service('plotService', function() {
         picking_scene.add( particle );
     }
 
-    bvol = new BoundingVolume(particles.vertices);
-    grid_scene = bvol.getGridScene(2, label_scene_ortho);
-    plane_projection_scene = makeProjectionPlane(particles, 2, true, true);
+    this.bvol = new BoundingVolume(this.particles.vertices);
+    this.update_projection();
+
     if(center_mass) {
       controls.target = center_mass.multiplyScalar(1.0 / num_clean);
     }
 
-    mat_ps = new THREE.ShaderMaterial({
-      attributes: attributes,
+    this.mat_ps = new THREE.ShaderMaterial({
+      attributes: this.attributes,
       vertexShader: vertexShaderSource,
       fragmentShader: fragmentShaderSource,
       transparent: true
     });
-    var particle_system = new THREE.ParticleSystem(particles, mat_ps);
-    particle_system.sortParticles = true;
-    render_scene.add(particle_system);
-
-    //addAxisLabels(label_scene_ortho, camera);
+    this.particle_system = new THREE.ParticleSystem(this.particles, this.mat_ps);
+    this.particle_system.sortParticles = true;
+    this.render_scene.add(this.particle_system);
 
     var savedColor, selectedColor = new THREE.Color(1,1,0);
 
     var lock_selection = false, locked_selection = null;
 
-    var render = function() {
+    var that = this;
+
+    render = function() {
       var vector = new THREE.Vector3( mouse.x, mouse.y, 0.5 );
       projector.unprojectVector( vector, hud_camera );
       vector.z = 0;
       var raycaster = new THREE.Raycaster( vector, new THREE.Vector3(0,0,-1) );
 
       for(var child_i=0; child_i < picking_scene.children.length; child_i++) {
-        var point = contig_data.points[picking_scene.children[child_i].data_i];
+        var point = that.contig_data.points[picking_scene.children[child_i].data_i];
         vector = new THREE.Vector3(point.x, point.y, point.z);
         projector.projectVector(vector, camera);
         projector.unprojectVector(vector, hud_camera);
@@ -224,8 +219,8 @@ angular.module('myApp.services').service('plotService', function() {
       }
 
       var label_scene_render = new THREE.Scene();
-      for(var i=0; i < label_scene_ortho.children.length; i++) {
-        var obj = label_scene_ortho.children[i].clone();
+      for(var i=0; i < that.label_scene_ortho.children.length; i++) {
+        var obj = that.label_scene_ortho.children[i].clone();
         projector.projectVector(obj.position, camera);
         obj.position.x += 0.1;
         obj.position.y -= 0.1;
@@ -240,13 +235,13 @@ angular.module('myApp.services').service('plotService', function() {
           if( INTERSECTED != intersects[ 0 ].object ) {
 
             INTERSECTED = intersects[0].object;
-            $scope.contig = contig_data.points[INTERSECTED.data_i];
+            $scope.contig = that.contig_data.points[INTERSECTED.data_i];
             $scope.$apply();
           }
 
           if( lock_selection ) {
             locked_selection = INTERSECTED;
-            attributes.highlight.value[locked_selection.data_i] = true;
+            that.attributes.highlight.value[locked_selection.data_i] = true;
           }
         } else {
           INTERSECTED = null;
@@ -258,20 +253,20 @@ angular.module('myApp.services').service('plotService', function() {
       }
 
       renderer.clear();
-      if(grid_scene) {
-        renderer.render(grid_scene, camera);
+      if(that.grid_scene) {
+        renderer.render(that.grid_scene, camera);
       }
-      if(plane_projection_scene) {
-        renderer.render(plane_projection_scene, camera);
+      if(that.plane_projection_scene) {
+        renderer.render(that.plane_projection_scene, camera);
       }
-      renderer.render(render_scene, camera);
+      renderer.render(that.render_scene, camera);
       renderer.clearDepth();
       renderer.render(picking_scene, hud_camera);
       renderer.clearDepth();
       renderer.render(label_scene_render, hud_camera);
     };
 
-    var animate = function() {
+    animate = function() {
       render();
       requestAnimationFrame(animate);
       controls.update();
@@ -300,7 +295,7 @@ angular.module('myApp.services').service('plotService', function() {
         mouse_was_dragged = false;
         lock_selection = true;
         if( locked_selection ) {
-          attributes.highlight.value[locked_selection.data_i] = false;
+          that.attributes.highlight.value[locked_selection.data_i] = false;
         }
         locked_selection = null;
       }
@@ -414,7 +409,7 @@ angular.module('myApp.services').service('plotService', function() {
 
   BoundingVolume.prototype.getGridScene = function(zero_plane, label_scene) {
     var result = new THREE.Scene();
-    var line_mat = new THREE.LineBasicMaterial({ color: 0x000000 });
+    var line_mat = new THREE.LineBasicMaterial({ color: 0xAAAAAA });
     var box_points = [
       new THREE.Vector3().copy(this.box.min),
       new THREE.Vector3(this.box.min.x, this.box.min.y, this.box.max.z),
@@ -475,19 +470,21 @@ angular.module('myApp.services').service('plotService', function() {
       return b*alpha + a*(1-alpha);
     }
 
-    //render zero-plane grid
-    for(var i=0; i<NUM_GRID_LINES; ++i) {
-      var line_geom = new THREE.Geometry();
-      line_geom.vertices.push(origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][3], i/(NUM_GRID_LINES-1)));
-      line_geom.vertices.push(origin_plane_points[zero_plane][1].clone().lerp(origin_plane_points[zero_plane][2], i/(NUM_GRID_LINES-1)));
-      result.add(new THREE.Line(line_geom, origin_mats[zero_plane]));
+    if(zero_plane >= 0 && zero_plane <= 2) {
+      //render zero-plane grid
+      for(var i=0; i<NUM_GRID_LINES; ++i) {
+        var line_geom = new THREE.Geometry();
+        line_geom.vertices.push(origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][3], i/(NUM_GRID_LINES-1)));
+        line_geom.vertices.push(origin_plane_points[zero_plane][1].clone().lerp(origin_plane_points[zero_plane][2], i/(NUM_GRID_LINES-1)));
+        result.add(new THREE.Line(line_geom, origin_mats[zero_plane]));
 
-    }
-    for(var i=0; i<NUM_GRID_LINES; ++i) {
-      var line_geom = new THREE.Geometry();
-      line_geom.vertices.push(origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][1], i/(NUM_GRID_LINES-1)));
-      line_geom.vertices.push(origin_plane_points[zero_plane][3].clone().lerp(origin_plane_points[zero_plane][2], i/(NUM_GRID_LINES-1)));
-      result.add(new THREE.Line(line_geom, origin_mats[zero_plane]));
+      }
+      for(var i=0; i<NUM_GRID_LINES; ++i) {
+        var line_geom = new THREE.Geometry();
+        line_geom.vertices.push(origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][1], i/(NUM_GRID_LINES-1)));
+        line_geom.vertices.push(origin_plane_points[zero_plane][3].clone().lerp(origin_plane_points[zero_plane][2], i/(NUM_GRID_LINES-1)));
+        result.add(new THREE.Line(line_geom, origin_mats[zero_plane]));
+      }
     }
 
 
@@ -530,6 +527,12 @@ angular.module('myApp.services').service('plotService', function() {
   }
 
   function makeProjectionPlane(points_geometry, zero_plane, b_draw_points, b_draw_lines) {
+    var result = new THREE.Scene();
+
+    if(zero_plane < 0 || zero_plane > 2) {
+      return result;
+    }
+
     var projected_points = points_geometry.clone();
     if(zero_plane==0) {
       for(var i=0; i<projected_points.vertices.length; ++i) {
@@ -545,7 +548,6 @@ angular.module('myApp.services').service('plotService', function() {
       }
     }
 
-    var result = new THREE.Scene();
 
     if(b_draw_lines) {
       var line_mat = new THREE.LineBasicMaterial({ color: 0xD0D0D0 });
