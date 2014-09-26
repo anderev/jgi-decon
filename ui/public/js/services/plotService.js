@@ -46,13 +46,18 @@ angular.module('myApp.services').service('plotService', function() {
     }
 
     var phylo_i = 0;
-    for(var phylo in this.color_map) {
-      this.color_map[phylo].setHSL(phylo_i / num_colors, HSL_SATURATION, HSL_LIGHTNESS);
+    var phyla_sorted = keys(this.color_map).sort();
+    console.log(phyla_sorted);
+    for(var phylo in phyla_sorted) {
+      console.log(phyla_sorted[phylo]);
+      this.color_map[phyla_sorted[phylo]].setHSL(phylo_i / num_colors, HSL_SATURATION, HSL_LIGHTNESS);
       phylo_i++;
     }
 
     this.color_map.Unknown = new THREE.Color();
     this.color_map.Unknown.setHSL( 0.0, 0.0, HSL_LIGHTNESS );
+
+    this.scope.update_legend(this.color_map);
 
     if(this.mat_ps) {
       this.attributes.color.value = [];
@@ -586,5 +591,14 @@ angular.module('myApp.services').service('plotService', function() {
 
   }
 
+  function keys(obj) {
+    var keys = [];
+    for(var key in obj) {
+      if(obj.hasOwnProperty(key)) {
+        keys.push(key);
+      }
+    }
+    return keys;
+  }
 });
 

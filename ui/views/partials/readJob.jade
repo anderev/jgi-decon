@@ -57,38 +57,44 @@ table(align='center')
                     td
                       | {{gene.coverage | number:2}}%
 
-            table(border='1')
-              tr
-                td
-                  | Project:
-                td
-                  | {{job.taxon_display_name}}
-              tr
-                td
-                  | Start Time:
-                td
-                  | {{job.start_time}}
-              tr
-                td
-                  | Download Fasta:
-                td
-                  a(target="_self",href='api/getCleanFasta/{{job.job_id}}') Clean
-                  | 
-                  |
-                  | 
-                  a(target="_self",href='api/getContamFasta/{{job.job_id}}') Contaminant
-              tr
-                td
-                  | Notes:
-                td
-                  | {{job.notes}}
-              tr
-                td
-                  | Job ID:
-                td
-                  | {{job.process_id}}
-              tr
-                td
-                  | Job Status:
-                td
-                  | {{job.process_status}}
+        table(border='1')
+          tr
+            td
+              | Project:
+            td
+              | {{job.taxon_display_name}}
+          tr
+            td
+              | Start Time:
+            td
+              | {{job.start_time}}
+          tr
+            td
+              | Download Fasta:
+            td
+              a(target="_self",href='api/getCleanFasta/{{job.job_id}}') Clean
+              | 
+              |
+              | 
+              a(target="_self",href='api/getContamFasta/{{job.job_id}}') Contaminant
+          tr
+            td
+              | Notes:
+            td
+              | {{job.notes}}
+          tr
+            td
+              | Job ID:
+            td
+              | {{job.process_id}}
+          tr
+            td
+              | Job Status:
+            td
+              | {{job.process_status}}
+        table(border='1')
+          tr(ng-repeat='(color_hash,color_value) in color_map')
+            td
+              div(style='width: 21px; height: 21px; background-color: \#{{color_value.getHexString()}};')
+            td
+              | {{color_hash}}

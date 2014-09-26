@@ -75,6 +75,7 @@ function ReadJobCtrl($scope, $http, $routeParams, plotService) {
         $scope.projection_mode = $scope.projection_modes[2];
         $scope.update_plot_colors = function() { plotService.update_plot_colors(); };
         $scope.update_projection = function() { plotService.update_projection(); };
+        $scope.update_legend = function(color_map) { $scope.color_map = color_map; };
         $scope.contig = null;
         $scope.nuc_seqs = null;
         $http.get('/api/getPCA/' + $routeParams.id).
