@@ -17,12 +17,64 @@ angular.module('myApp.services').service('plotService', function() {
   var particle_system = null;
   var render_scene = null;
 
-  get_hash = function(phylo_level) {
-    return function(contig) {
-      var phylo_array = contig.phylogeny.split(';');
-      var end = (phylo_array.length > phylo_level) ? (phylo_level) : (phylo_array.length-1);
-      return phylo_array.slice(0, end+1).join(';');
-    };
+  get_hash = function(color_mode) {
+    if(color_mode >= 0 && color_mode <= 6) { //Taxon
+      return function(contig) {
+        var phylo_array = contig.phylogeny.split(';');
+        var end = (phylo_array.length > color_mode) ? (color_mode) : (phylo_array.length-1);
+        return phylo_array.slice(0, end+1).join(';');
+      };
+    } else if(color_mode == 7) {
+      return function(contig) {
+        if(contig.name.match(/clean/g)) {
+          return "Clean";
+        } else if (contig.name.match(/contam/g)) {
+          return "Contaminant";
+        } else if (contig.name.match(/hybrid/g)) {
+          return "Hybrid";
+        } else {
+          return "Unknown";
+        }
+      };
+    }
+  };
+
+  make_color_map = function(color_mode, contigs) {
+    var f_hash = get_hash(color_mode);
+    var color_map = {};
+    if(color_mode < 7) {
+      for(var p_i=0; p_i<contigs.length; ++p_i) {
+        var the_hash = f_hash(contigs[p_i]);
+        if(!(the_hash in color_map) && the_hash != 'Unknown') {
+          color_map[the_hash] = new THREE.Color();
+        }
+      }
+
+      var num_colors = 0;
+      for(var phylo in color_map) {
+        num_colors++;
+      }
+
+      var phylo_i = 0;
+      var phyla_sorted = keys(color_map).sort();
+      console.log(phyla_sorted);
+      for(var phylo in phyla_sorted) {
+        console.log(phyla_sorted[phylo]);
+        color_map[phyla_sorted[phylo]].setHSL(phylo_i / num_colors, HSL_SATURATION, HSL_LIGHTNESS);
+        phylo_i++;
+      }
+    } else if(color_mode==7) {
+      color_map.Clean = new THREE.Color().setHSL( 0.333, HSL_SATURATION, HSL_LIGHTNESS );
+      color_map.Contaminant = new THREE.Color().setHSL( 0.0, HSL_SATURATION, HSL_LIGHTNESS );
+      color_map.Hybrid = new THREE.Color().setHSL( 0.666, HSL_SATURATION, HSL_LIGHTNESS );
+    } else {
+      //Unknown
+    }
+
+    color_map.Unknown = new THREE.Color();
+    color_map.Unknown.setHSL( 0.0, 0.0, HSL_LIGHTNESS );
+
+    return color_map;
   };
 
   this.update_projection = function() {
@@ -31,32 +83,10 @@ angular.module('myApp.services').service('plotService', function() {
   };
 
   this.update_plot_colors = function() {
-    this.color_map = {};
-    var f_hash = get_hash(this.scope.color_phylo_level.value);
-    for(var p_i=0; p_i<this.contig_data.points.length; ++p_i) {
-      var the_hash = f_hash(this.contig_data.points[p_i]);
-      if(!(the_hash in this.color_map) && the_hash != 'Unknown') {
-        this.color_map[the_hash] = new THREE.Color();
-      }
-    }
+    var color_mode = this.scope.color_phylo_level.value;
 
-    var num_colors = 0;
-    for(var phylo in this.color_map) {
-      num_colors++;
-    }
-
-    var phylo_i = 0;
-    var phyla_sorted = keys(this.color_map).sort();
-    console.log(phyla_sorted);
-    for(var phylo in phyla_sorted) {
-      console.log(phyla_sorted[phylo]);
-      this.color_map[phyla_sorted[phylo]].setHSL(phylo_i / num_colors, HSL_SATURATION, HSL_LIGHTNESS);
-      phylo_i++;
-    }
-
-    this.color_map.Unknown = new THREE.Color();
-    this.color_map.Unknown.setHSL( 0.0, 0.0, HSL_LIGHTNESS );
-
+    var f_hash = get_hash(color_mode);
+    this.color_map = make_color_map(color_mode, this.contig_data.points);
     this.scope.update_legend(this.color_map);
 
     if(this.mat_ps) {

@@ -60,7 +60,8 @@ function ReadJobCtrl($scope, $http, $routeParams, plotService) {
           {name: 'PCA2-PCA3', value: 0},
           {name: 'PCA1-PCA3', value: 1},
           {name: 'PCA1-PCA2', value: 2},
-          {name: 'None', value: 3}];
+          {name: 'None', value: 3}
+        ];
         $scope.color_modes = [
           {name: 'Domain', value: 0},
           {name: 'Phylum', value: 1},
@@ -68,7 +69,9 @@ function ReadJobCtrl($scope, $http, $routeParams, plotService) {
           {name: 'Order', value: 3},
           {name: 'Family', value: 4},
           {name: 'Genus', value: 5},
-          {name: 'Species', value: 6}];
+          {name: 'Species', value: 6},
+          {name: 'Clean/Contam', value: 7}
+        ];
         $scope.job = data.job;
         $scope.plotService = plotService;
         $scope.color_phylo_level = $scope.color_modes[5];
