@@ -419,8 +419,12 @@ exports.getPCA = function(req, res) {
 exports.addProject = function(req, res) {
   getUser(req, function(user_err, user) {
     if(!user_err) {
-      db.run("INSERT INTO project VALUES (NULL,?,?,?,?,?,?,?,?,?)", [user.id[0], req.body.taxon_display_name, req.body.taxon_domain, req.body.taxon_phylum, req.body.taxon_class, req.body.taxon_order, req.body.taxon_family, req.body.taxon_genus, req.body.taxon_species] );
-      res.json(req.body);
+      db.serialize(function() {
+        db.run("INSERT INTO project VALUES (NULL,?,?,?,?,?,?,?,?,?)", [user.id[0], req.body.taxon_display_name, req.body.taxon_domain, req.body.taxon_phylum, req.body.taxon_class, req.body.taxon_order, req.body.taxon_family, req.body.taxon_genus, req.body.taxon_species] );
+        db.get("SELECT last_insert_rowid()", function(err,row) {
+          res.json({project_id: row['last_insert_rowid()']});
+        });
+      });
     } else {
       console.log(user_err);
       res.json(false);
