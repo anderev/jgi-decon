@@ -11,23 +11,33 @@ my ($blout,$binf,$contigbinf)=@ARGV;
 my $species={};
 my $contigbins={};
 my $genebins={};
+my %counts;
 
 open (PBF,$blout) or die "Couldn't open $blout to read\n";
 while (<PBF>) {
   chomp($_); my $l=$_; my @a=split(/\t/,$l);
   
   # Get gene and contig information
-  my @b=split(/\t/,$a[0]); my $cg=$b[0];
+  my $cg=$a[0];
   $cg=~/(.+)_(\d+_\d+)$/; my ($contig,$g)=($1,$2);
 
-#  #Begin add Issue #9: >70perid over >70% of gene requirement for hits 
-#  if($b[2]<70){
-#	next;
-# }
-#  if(($b[9]-$b[8])/$b[4]<.70){
-#	next;
-#  }
-#  #End add Issue #9
+# #Begin add Issue #9: >70perid over >70% of gene requirement for hits 
+  if($a[2]<30){
+	next;
+  }
+  if(abs(($a[9]-$a[8]+1))/$a[4]<.50){
+	next;
+  }
+  if(exists($counts{$cg})){
+	$counts{$cg}++;
+	if($counts{$cg}>2){
+        	next;
+  	}
+  }
+  else{
+        $counts{$cg}=1;
+  }
+# #End add Issue #9
 
   $contigbins->{$contig}={} unless exists $contigbins->{$contig};
 
@@ -35,8 +45,9 @@ while (<PBF>) {
   my @stitle=split(/ /,pop(@a));
   my $sp;
   ##Issue#1 begin add
+  #print $stitle[0] . "! !" . $stitle[1] . "! !" . $stitle[2]  . "! !" . $stitle[3] . "\n";;
   if($stitle[0]=~/\|/){  
-	if($stitle[1]=~/Candidatus/ || $stitle[1]=~/candidate division/i){
+	if(($stitle[1]=~/Candidatus/ || $stitle[1]=~/candidate/i || $stitle[2]=~/sp\.$/i) and $stitle[3]){
        	 	$sp=$stitle[1] . " " . $stitle[2]  . " " . $stitle[3];
   	}
   	else{
@@ -45,7 +56,7 @@ while (<PBF>) {
   } 
   else{
   ##Issue#1 end add
-  	if($stitle[0]=~/Candidatus/ || $stitle[0]=~/candidate division/i){
+  	if(($stitle[0]=~/Candidatus/ || $stitle[0]=~/candidate/i || $stitle[1]=~/sp\.$/i) and $stitle[2]){
   		$sp=$stitle[0] . " " . $stitle[1]  . " " . $stitle[2];
   	}
   	else{

@@ -24,6 +24,9 @@ w=which(colsum(x)==0)
 if(length(w)>0){
 	x=x[,-w]
 }
+pca=prcomp(as.matrix(x))
+out_pca=paste(dir,"/",jobname,"_Intermediate/",jobname,"_contigs_",k,"mer.pca",sep="")
+write.table(pca$x[,1:3],out_pca,quote=F,append=F,row.names=F,col.names=F,sep="\t")
 sc=read.table(paste(dir,"/",jobname,"_Intermediate/",jobname,"_blast_clean_contigs",sep=""),header=F,sep="\t")
 sd=read.table(paste(dir,"/",jobname,"_Intermediate/",jobname,"_blast_contam_contigs",sep=""),header=F,sep="\t")
 s=rbind(as.matrix(cbind(sc,"clean")),as.matrix(cbind(sd,"contam")))
@@ -56,8 +59,6 @@ if(length(w)>0){
         y=x
 }
 pca=prcomp(y)
-out_pca=paste(dir,"/",jobname,"_Intermediate/",jobname,"_contigs_",k,"mer.pca",sep="")
-write.table(pca$x[,1:3],out_pca,quote=F,append=F,row.names=F,col.names=F,sep="\t")
 d=sapply(1:nrow(y),function(j) dist(rbind(pca$x[j,],rep(0,(ncol(pca$x))))))
 mm=merge(m,cbind(as.character(m[w,1]),d),all=T)
 w=which(as.numeric(as.character(mm[,4]))<cutoff)

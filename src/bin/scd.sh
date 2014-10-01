@@ -97,7 +97,7 @@ then
                 then
                       	BLAST_THREADS=8 
                 fi
-		$blastCmd -query ${INT_DIR}/${JOB_NAME}_genes.fna -out $INT_DIR/${JOB_NAME}_genes.blout -db $NT_LOCATION -evalue .01 -num_threads $BLAST_THREADS -num_alignments 2 -outfmt "6 qseqid sseqid pident length qlen slen mismatch gapopen qstart qend sstart send evalue bitscore stitle"
+		$blastCmd -query ${INT_DIR}/${JOB_NAME}_genes.fna -out $INT_DIR/${JOB_NAME}_genes.blout -db $NT_LOCATION  -num_threads $BLAST_THREADS -num_alignments 10 -outfmt "6 qseqid sseqid pident length qlen slen mismatch gapopen qstart qend sstart send evalue bitscore stitle"
 		scd_analyzeBlastBins.pl ${INT_DIR}/${JOB_NAME}_genes.blout ${INT_DIR}/${JOB_NAME}_bins.contigs ${INT_DIR}/${JOB_NAME}_contigs.bins
 	else
 		echo "Prodigal failed.  ${INT_DIR}/${JOB_NAME}_genes.fna was not created.  Can not run blast." >> ${WORKING_DIR}/${JOB_NAME}_log
@@ -123,6 +123,7 @@ then
 		scd_make_contigLCA.pl $WORKING_DIR $NCBItax $JOB_NAME
 		scd_verify_target.pl $WORKING_DIR $NCBItax $JOB_NAME
 		scd_find_targetbin.pl $WORKING_DIR $JOB_NAME
+		rm ${WORKING_DIR}/${JOB_NAME}_Intermediate/${JOB_NAME}_kmer_contam_contigs
 		scd_classify.pl $WORKING_DIR $BIN $JOB_NAME
 		if [[ -e ${INT_DIR}/${JOB_NAME}_scd_classify.out && ! -e ${WORKING_DIR}/${JOB_NAME}_Intermediate/${JOB_NAME}_kmer_contam_contigs ]]
 		then

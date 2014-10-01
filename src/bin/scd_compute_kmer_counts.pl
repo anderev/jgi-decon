@@ -24,15 +24,17 @@ sub getWordCountsSCD ($$$) {
     $cnthash->{$lexaref[$i]} = 0;
   }
   for (my $i=0; $i<(length($str)-$k+1); $i++) {
-    my $word = substr($str,$i,$k);
-    my $rcword=LexWords::revComp($word);
-    if(exists $cnthash->{$word}) {
-      $cnthash->{$word} = $cnthash->{$word}+1;
-    } elsif(exists $cnthash->{$rcword}) {
-      $cnthash->{$rcword} = $cnthash->{$rcword}+1;
-    } else{
-      print "Hash initialization incorrect for $word\n";
-      exit(1);
+    my $word = uc(substr($str,$i,$k));
+    if($word=~/^[ACTG]+$/){
+      my $rcword=LexWords::revComp($word);
+      if(exists $cnthash->{$word}) {
+        $cnthash->{$word} = $cnthash->{$word}+1;
+      } elsif(exists $cnthash->{$rcword}) {
+        $cnthash->{$rcword} = $cnthash->{$rcword}+1;
+      } else{
+        print "Hash initialization incorrect for $word\n";
+        exit(1);
+      }
     }
   }
 #  my $revstr=LexWords::revComp($str);
@@ -78,12 +80,14 @@ while (my $seqobj=$in->next_seq()) {
   my $str=$seqobj->seq();
   my $k=$w;
   for (my $i=0; $i<(length($str)-$k+1); $i++) {
-    my $word = (substr($str,$i,$k));
-    unless(exists $exist_words{$word}) {
-    	my $rcword=LexWords::revComp($word);
+    my $word = uc(substr($str,$i,$k));
+    if($word=~/^[ACTG]+$/){
+      unless(exists $exist_words{$word}) {
+      	my $rcword=LexWords::revComp($word);
         unless(exists $exist_words{$rcword}) {
         	$exist_words{$word} = 1;
 	}
+      }
     }
   }
   @word_array=keys(%exist_words);

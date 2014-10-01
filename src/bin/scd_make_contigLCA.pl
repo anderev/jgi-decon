@@ -53,7 +53,8 @@ while(my $line=<IN>){
 	print OUTCS "$arr[0]";
 	foreach my $tax (@arr2){
 #	  unless($tax=~/candidate division/ or $tax=~/unclassified candidate/){
-        	my $cmd="grep " . "\"" . $tax . "\$\" $taxfile";my @nts=`$cmd`;
+        	$tax=~s/\s//g;
+		my $cmd="grep " . "\"" . $tax . "\$\" $taxfile";my @nts=`$cmd`;
 		my $pnode='root';
 		foreach my $ctax (@nts){
 			chomp($ctax);
@@ -94,6 +95,7 @@ while(my $line=<IN>){
 
 			}
 			$start=0;
+			last;
 		}
 #	  }
 	}
