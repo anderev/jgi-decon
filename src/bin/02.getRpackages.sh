@@ -10,7 +10,7 @@ fi
 ldir=${1}/lib/
 
 # Install needed R package
-wget -O $ldir/bigmemory.sri.tar.gz http://cran.r-project.org/src/contrib/bigmemory.sri_0.1.2.tar.gz
+wget -O $ldir/bigmemory.sri.tar.gz http://cran.r-project.org/src/contrib/Archive/bigmemory.sri/bigmemory.sri_0.1.2.tar.gz
 wget -O $ldir/bigmemory.tar.gz http://cran.r-project.org/src/contrib/Archive/bigmemory/bigmemory_4.4.5.tar.gz
 wget -O $ldir/BH.tar.gz http://cran.r-project.org/src/contrib/Archive/BH/BH_1.54.0-1.tar.gz 
 wget -O $ldir/biganalytics.tar.gz http://cran.r-project.org/src/contrib/biganalytics_1.1.1.tar.gz
