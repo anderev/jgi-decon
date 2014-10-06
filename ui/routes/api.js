@@ -24,6 +24,7 @@ var getUser = function(req, callback) { // callback = function(err, user)
                 user_res.on('data', function(user_chunk) {
                   xml2js.parseString(user_chunk, function(err2, user_info) {
                     if(!err2) {
+                      console.log('Caching SSO user: '+user_info.user.login);
                       userCache[jgi_session_id] = user_info.user;
                       callback( null, user_info.user );
                     } else {
@@ -517,7 +518,7 @@ exports.addJob = function(req, res) {
                         var cmd_exe = cmd_args.shift();
                         var process = spawn(cmd_exe, cmd_args);
                         process.stdout.on('data', function(data) {
-                          //console.log('stdout: ' + data);
+                          console.log('stdout: ' + data);
                           var parsed = (new String(data)).match(/Your job ([0-9]+)/);
                           if(parsed.length == 2) {
                             var process_id = parseInt(parsed[1]);
