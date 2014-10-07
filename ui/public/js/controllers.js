@@ -86,7 +86,7 @@ function ReadJobCtrl($scope, $http, $routeParams, plotService) {
                   if(data.nuc_seqs) {
                     $scope.nuc_seqs = data.nuc_seqs;
                   }
-                  if(data.points) {
+                  if(data.contigs) {
                     $scope.plotService.init(data, $scope);
                   }
         	});

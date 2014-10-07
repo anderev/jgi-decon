@@ -1,4 +1,4 @@
-exports.parse_pca = function(pointData, callback) {
+exports.parse_pca = function(contigs, callback) {
   return function(err, data) {
 
     if(!err) {
@@ -10,7 +10,7 @@ exports.parse_pca = function(pointData, callback) {
         point.x = line[0];
         point.y = line[1];
         point.z = line[2];
-        pointData.push(point);
+        contigs.push(point);
       }
 
       callback(null);
@@ -21,14 +21,14 @@ exports.parse_pca = function(pointData, callback) {
   }
 };
 
-exports.parse_names = function(pointData, callback) {
+exports.parse_names = function(contigs, callback) {
   return function(err, data) {
 
     if(!err) {
       var lines = data.toString().split('\n');
       var num_lines = lines.length;
       for(var i=0; i<num_lines; ++i) {
-        pointData[i].name = lines[i];
+        contigs[i].name = lines[i];
       }
 
       callback(null);
@@ -39,7 +39,7 @@ exports.parse_names = function(pointData, callback) {
   }
 };
 
-exports.parse_lca = function(pointData, callback) {
+exports.parse_lca = function(contigs, callback) {
   return function(err, data) {
 
     if(!err) {
@@ -55,11 +55,11 @@ exports.parse_lca = function(pointData, callback) {
         }
       }
 
-      for(var j=0; j<pointData.length; j++) {
-        if(pointData[j].name in contig_phylogeny) {
-          pointData[j].phylogeny = (contig_phylogeny[pointData[j].name]);
+      for(var j=0; j<contigs.length; j++) {
+        if(contigs[j].name in contig_phylogeny) {
+          contigs[j].phylogeny = (contig_phylogeny[contigs[j].name]);
         } else {
-          pointData[j].phylogeny = 'Unknown';
+          contigs[j].phylogeny = 'Unknown';
         }
       }
 
@@ -71,7 +71,7 @@ exports.parse_lca = function(pointData, callback) {
   }
 };
 
-exports.parse_blout = function(pointData, callback) {
+exports.parse_blout = function(contigs, callback) {
 
   var parseBloutLine = function(blout) {
     return {
@@ -96,8 +96,8 @@ exports.parse_blout = function(pointData, callback) {
 
     if(!err) {
       var contig_map = {};
-      for(var i=0; i<pointData.length; i++) {
-        contig_map[pointData[i].name] = i;
+      for(var i=0; i<contigs.length; i++) {
+        contig_map[contigs[i].name] = i;
       }
 
       var lines = data.toString().split('\n');
@@ -107,7 +107,7 @@ exports.parse_blout = function(pointData, callback) {
         var gene_name = columns[0].split('_');
         var contig_name = gene_name.slice(0, gene_name.length - 2).join('_');
         if(contig_name in contig_map) {
-          var contig = pointData[contig_map[contig_name]];
+          var contig = contigs[contig_map[contig_name]];
           if(contig) {
             if('genes' in contig) {
               contig.genes[contig.genes.length] = parseBloutLine(columns);
@@ -126,7 +126,7 @@ exports.parse_blout = function(pointData, callback) {
   }
 };
 
-exports.parse_genes_fna = function(pointData, callback) {
+exports.parse_genes_fna = function(callback) {
   return function(err, data) {
 
     if(!err) {

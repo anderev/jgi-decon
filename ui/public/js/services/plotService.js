@@ -1,7 +1,7 @@
 angular.module('myApp.services').service('plotService', function() {
 	
   var axis_camera_ratio = 0.3;
-  var contig_data = null;
+  var plot_data = null;
   var mat_ps = null;
   var color_map = {};
   var attributes = null;
@@ -86,13 +86,13 @@ angular.module('myApp.services').service('plotService', function() {
     var color_mode = this.scope.color_phylo_level.value;
 
     var f_hash = get_hash(color_mode);
-    this.color_map = make_color_map(color_mode, this.contig_data.points);
+    this.color_map = make_color_map(color_mode, this.plot_data.contigs);
     this.scope.update_legend(this.color_map);
 
     if(this.mat_ps) {
       this.attributes.color.value = [];
-      for(var p_i=0; p_i<this.contig_data.points.length; ++p_i) {
-        this.attributes.color.value.push(this.color_map[f_hash(this.contig_data.points[p_i])]);
+      for(var p_i=0; p_i<this.plot_data.contigs.length; ++p_i) {
+        this.attributes.color.value.push(this.color_map[f_hash(this.plot_data.contigs[p_i])]);
       }
       this.mat_ps.needsUpdate = true;
     }
@@ -111,7 +111,7 @@ angular.module('myApp.services').service('plotService', function() {
     var camera = new THREE.PerspectiveCamera(60, width/height, 0.0001, 1000);
     var hud_camera = new THREE.OrthographicCamera(width / -2, width / 2, height / 2, height / -2, 0.0001, 1000);
     var projector = new THREE.Projector();
-    this.contig_data = data;
+    this.plot_data = data;
     var axis_data = [new THREE.Vector3(1,0,0),
                      new THREE.Vector3(0,1,0),
                      new THREE.Vector3(0,0,1)];
@@ -181,39 +181,39 @@ angular.module('myApp.services').service('plotService', function() {
     this.particles = new THREE.Geometry();
     var center_mass = null;
     var num_clean = 0;
-    for(var p_i=0; p_i<this.contig_data.points.length; ++p_i) {
-    	var p = this.contig_data.points[p_i];
-        var vec3 = new THREE.Vector3(parseFloat(p.x), parseFloat(p.y), parseFloat(p.z));
+    for(var p_i=0; p_i<this.plot_data.contigs.length; ++p_i) {
+      var p = this.plot_data.contigs[p_i];
+      var vec3 = new THREE.Vector3(parseFloat(p.x), parseFloat(p.y), parseFloat(p.z));
 
-        //particle system (rendered)
-        this.particles.vertices.push(vec3);
-        this.attributes.color.value.push(this.color_map[f_hash(p)]);
-        if(p.name.match(/clean/g)) {
-          status_size = 32.0;
-          ++num_clean;
-          if(center_mass) {
-            center_mass.add(vec3);
-          } else {
-            center_mass = new THREE.Vector3().copy(vec3);
-          }
-        } else if(p.name.match(/contam/g)) {
-          status_size = 16.0;
-        } else if(p.name.match(/hybrid/g)) {
-          status_size = 16.0;
+      //particle system (rendered)
+      this.particles.vertices.push(vec3);
+      this.attributes.color.value.push(this.color_map[f_hash(p)]);
+      if(p.name.match(/clean/g)) {
+        status_size = 32.0;
+        ++num_clean;
+        if(center_mass) {
+          center_mass.add(vec3);
         } else {
-          status_size = 16.0;
+          center_mass = new THREE.Vector3().copy(vec3);
         }
-        this.attributes.pointSize.value.push(status_size);
-        this.attributes.highlight.value.push(false);
+      } else if(p.name.match(/contam/g)) {
+        status_size = 16.0;
+      } else if(p.name.match(/hybrid/g)) {
+        status_size = 16.0;
+      } else {
+        status_size = 16.0;
+      }
+      this.attributes.pointSize.value.push(status_size);
+      this.attributes.highlight.value.push(false);
 
-        //sprites (picked)
-        var particle = new THREE.Sprite( new THREE.SpriteMaterial({opacity:0}) );
-        particle.position.x = p.x;
-        particle.position.y = p.y;
-        particle.position.z = p.z;
-        particle.scale.x = particle.scale.y = 32;
-        particle.data_i = p_i;
-        picking_scene.add( particle );
+      //sprites (picked)
+      var particle = new THREE.Sprite( new THREE.SpriteMaterial({opacity:0}) );
+      particle.position.x = p.x;
+      particle.position.y = p.y;
+      particle.position.z = p.z;
+      particle.scale.x = particle.scale.y = 32;
+      particle.data_i = p_i;
+      picking_scene.add( particle );
     }
 
     this.bvol = new BoundingVolume(this.particles.vertices);
@@ -246,7 +246,7 @@ angular.module('myApp.services').service('plotService', function() {
       var raycaster = new THREE.Raycaster( vector, new THREE.Vector3(0,0,-1) );
 
       for(var child_i=0; child_i < picking_scene.children.length; child_i++) {
-        var point = that.contig_data.points[picking_scene.children[child_i].data_i];
+        var point = that.plot_data.contigs[picking_scene.children[child_i].data_i];
         vector = new THREE.Vector3(point.x, point.y, point.z);
         projector.projectVector(vector, camera);
         projector.unprojectVector(vector, hud_camera);
@@ -270,7 +270,7 @@ angular.module('myApp.services').service('plotService', function() {
           if( INTERSECTED != intersects[ 0 ].object ) {
 
             INTERSECTED = intersects[0].object;
-            $scope.contig = that.contig_data.points[INTERSECTED.data_i];
+            $scope.contig = that.plot_data.contigs[INTERSECTED.data_i];
             $scope.$apply();
           }
 

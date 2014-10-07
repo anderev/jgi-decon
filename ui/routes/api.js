@@ -310,7 +310,7 @@ exports.getPCA = function(req, res) {
       getUser(req, function(err, user) {
         if(!err) {
           if( user.id[0] == row.user_id || row.is_public ) {
-            var pointData = [];
+            var contigs = [];
             var workingDir = config.working_dir + '/sso_' + row.user_id;
             var job_name = 'job_' + req.params.id;
             var intermediate_dir = workingDir + '/' + job_name + '/' + job_name + '_Intermediate/';
@@ -346,18 +346,18 @@ exports.getPCA = function(req, res) {
                 return;
               }
 
-              fs.readFile(filename_pca, parser.parse_pca(pointData, function(err) {
+              fs.readFile(filename_pca, parser.parse_pca(contigs, function(err) {
                 if(!err) {
-                  fs.readFile(filename_names, parser.parse_names(pointData, function(err) {
+                  fs.readFile(filename_names, parser.parse_names(contigs, function(err) {
                     if(!err) {
-                      fs.readFile(filename_lca, parser.parse_lca(pointData, function(err) {
+                      fs.readFile(filename_lca, parser.parse_lca(contigs, function(err) {
                         if(!err) {
-                          fs.readFile(filename_blout, parser.parse_blout(pointData, function(err) {
+                          fs.readFile(filename_blout, parser.parse_blout(contigs, function(err) {
                             if(!err) {
-                              fs.readFile(filename_genes_fna, parser.parse_genes_fna(pointData, function(nuc_seqs, err) {
+                              fs.readFile(filename_genes_fna, parser.parse_genes_fna(function(nuc_seqs, err) {
                                 if(!err) {
                                   res.json({
-                                    points: pointData,
+                                    contigs: contigs,
                                     nuc_seqs: nuc_seqs
                                     });
                                 } else {
