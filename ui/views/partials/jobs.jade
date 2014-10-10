@@ -25,13 +25,13 @@ div(align="center")
           {{job.notes}}
       td
         a(href='readJob/{{job.job_id}}')
-          | 49%
+          | {{job.gc_percent | number:2}}%
       td
         a(href='readJob/{{job.job_id}}')
-          | 523939
+          | {{job.num_bases}}
       td
         a(href='readJob/{{job.job_id}}')
-          | 398
+          | {{job.num_contigs}}
       td
         a(href='readJob/{{job.job_id}}')
           | {{job.taxon_display_name}}

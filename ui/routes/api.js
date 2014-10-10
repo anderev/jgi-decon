@@ -6,6 +6,7 @@ var https = require('https');
 var xml2js = require('xml2js');
 var config = require('../config.js').Config;
 var parser = require('./parsers.js');
+var stats = require('./stats.js');
 
 
 var userCache = {}; // jgi_session_id -> userObject
@@ -62,7 +63,7 @@ fs.exists(config.working_dir, function(exists) {
 db.serialize(function() {
 
   db.run("CREATE TABLE IF NOT EXISTS project (project_id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, taxon_display_name TEXT, taxon_domain TEXT, taxon_phylum TEXT, taxon_class TEXT, taxon_order TEXT, taxon_family TEXT, taxon_genus TEXT, taxon_species TEXT)");
-  db.run("CREATE TABLE IF NOT EXISTS job (job_id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INT, user_id INTEGER, process_id INT, start_time INT, in_fasta TEXT, notes TEXT, is_public INT, gc_percent REAL, num_bases INTEGER, num_contigs INTEGER)");
+  db.run("CREATE TABLE IF NOT EXISTS job (job_id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INT, user_id INTEGER, process_id INT, start_time INT, in_fasta TEXT, notes TEXT, is_public INT, status INT, gc_percent REAL, num_bases INTEGER, num_contigs INTEGER)");
 });
 
 // GET
@@ -111,20 +112,12 @@ exports.jobs = function(req, res) {
 
   var getJobs = function(req, res, query, params) {
     var jobs = [];
-    /*
-    console.log('query: '+query);
-    console.log('params: '+params);
-    */
     db.each(query, params, function(err, row) {
-      if(err) {
-        console.log(err);
-      /*
+      if(!err) {
+        jobs.push(row);
       } else {
-        console.log(row);
-        */
+        console.log(err);
       }
-      jobs.push(row);
-      //console.log(jobs);
     }, function(err) {
       if(err) {
         console.log(err);
@@ -305,6 +298,20 @@ getFasta = function(type, req, res) {
 };
 
 exports.getPCA = function(req, res) {
+  exports.parseJobFiles(req, res,
+    function(contigs, nucs) {
+      res.json({
+        contigs: contigs,
+        nuc_seqs: nucs
+      });
+    }, function(err) {
+      console.log(err);
+      res.json(false);
+    }
+  );
+};
+
+exports.parseJobFiles = function(req, res, cb_ok, cb_err) {
   db.get('SELECT user_id,is_public FROM job WHERE job_id = ?', [req.params.id], function(err, row) {
     if(!err) {
       getUser(req, function(err, user) {
@@ -356,33 +363,25 @@ exports.getPCA = function(req, res) {
                             if(!err) {
                               fs.readFile(filename_genes_fna, parser.parse_genes_fna(function(nuc_seqs, err) {
                                 if(!err) {
-                                  res.json({
-                                    contigs: contigs,
-                                    nuc_seqs: nuc_seqs
-                                    });
+                                  cb_ok(contigs, nuc_seqs);
                                 } else {
-                                  console.log(err);
-                                  res.json(false);
+                                  cb_err(err);
                                 }
                               }));
                             } else {
-                              console.log(err);
-                              res.json(false);
+                              cb_err(err);
                             }
                           }));
                         } else {
-                          console.log(err);
-                          res.json(false);
+                          cb_err(err);
                         }
                       }));
                     } else {
-                      console.log(err);
-                      res.json(false);
+                      cb_err(err);
                     }
                   }));
                 } else {
-                  console.log(err);
-                  res.json(false);
+                  cb_err(err);
                 }
               }));
 
@@ -442,7 +441,7 @@ exports.addJob = function(req, res) {
       var now = new Date();
       var start_time = now.toDateString() + ' ' + now.toTimeString();
       db.serialize(function() {
-        db.run("INSERT INTO job VALUES (NULL,?,?,?,?,?,?,?)", [req.body.project_id,user.id[0],null,start_time,req.body.in_fasta,req.body.notes,req.body.is_public], function(err) {
+        db.run("INSERT INTO job VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?)", [req.body.project_id,user.id[0],null,start_time,req.body.in_fasta,req.body.notes,req.body.is_public,null,null,null,null], function(err) {
           if(err) {
             console.log('Failed to insert new job into table.');
             console.log(err);
@@ -478,6 +477,17 @@ exports.addJob = function(req, res) {
                 }
 
                 function prepareJob(in_fasta) {
+                  stats.parse_fna(in_fasta, function(fasta_stats) {
+                    db.run("UPDATE job SET gc_percent = ?, num_bases = ?, num_contigs = ? WHERE job_id = ?", [fasta_stats.gc_percent, fasta_stats.num_bases, fasta_stats.num_contigs, job_id], function(err) {
+                      if(!err) {
+                        console.log('Updated job_id ' + job_id + ' with ' + JSON.stringify(fasta_stats));
+                      } else {
+                        console.log(err);
+                      }
+                    });
+                  }, function(err) {
+                    console.log('Error getting stats on fasta: ' + in_fasta);
+                  });
                   cfg.in_fasta = in_fasta;
                   cfg.working_dir = config.working_dir + '/sso_' + user.id[0];
                   cfg.job_name = 'job_'+job_id;
@@ -600,5 +610,13 @@ exports.deleteJob = function(req, res) {
       res.json(false);
     }
   });
+};
+
+var check_jobs = function() {
+
+};
+
+exports.startJobMonitor = function(delay) {
+  setTimeout(check_jobs, delay);
 };
 
