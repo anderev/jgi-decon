@@ -6,12 +6,48 @@ div(align="center")
       th
         | Notes
       th
-        | Project
+        | GC %
+      th
+        | Nucleotides
+      th
+        | Contigs
+      th
+        | Genome
+      th
+        | Phylogeny
+      th
+        | Submitter
+      th
+        | Start Time
     tr(ng-repeat='job in jobs')
       td
         a(href='readJob/{{job.job_id}}')
           {{job.notes}}
       td
-        a(href='readProject/{{job.project_id}}')
-          {{job.taxon_display_name}}
+        a(href='readJob/{{job.job_id}}')
+          | 49%
+      td
+        a(href='readJob/{{job.job_id}}')
+          | 523939
+      td
+        a(href='readJob/{{job.job_id}}')
+          | 398
+      td
+        a(href='readJob/{{job.job_id}}')
+          | {{job.taxon_display_name}}
+      td
+        a(href='readJob/{{job.job_id}}')
+          | {{job.taxon_domain}};
+          | {{job.taxon_phylum}};
+          | {{job.taxon_class}};
+          | {{job.taxon_order}};
+          | {{job.taxon_family}};
+          | {{job.taxon_genus}};
+          | {{job.taxon_species}}
+      td
+        a(href='readJob/{{job.job_id}}')
+          | Evan Andersen
+      td
+        a(href='readJob/{{job.job_id}}')
+          | {{job.start_time}}
 
