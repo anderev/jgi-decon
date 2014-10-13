@@ -15,11 +15,11 @@ config(['$routeProvider', '$locationProvider', function ($routeProvider, $locati
       controller: 'IndexCtrl'
     }).
     when('/myJobs', {
-      templateUrl: 'partials/myJobs',
+      templateUrl: 'partials/jobs',
       controller: 'MyJobsCtrl'
     }).
     when('/publicJobs', {
-      templateUrl: 'partials/publicJobs',
+      templateUrl: 'partials/jobs',
       controller: 'PublicJobsCtrl'
     }).
     when('/addJob', {
