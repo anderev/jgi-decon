@@ -65,6 +65,17 @@ table(align='center')
               | {{job.taxon_display_name}}
           tr
             td
+              | Taxonomy:
+            td
+              | {{job.taxon_domain}};
+              | {{job.taxon_phylum}};
+              | {{job.taxon_class}};
+              | {{job.taxon_order}};
+              | {{job.taxon_family}};
+              | {{job.taxon_genus}};
+              | {{job.taxon_species}}
+          tr
+            td
               | Start Time:
             td
               | {{job.start_time}}
