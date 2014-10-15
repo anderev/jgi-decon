@@ -20,9 +20,9 @@ angular.module('myApp.services').service('plotService', function() {
   get_hash = function(color_mode) {
     if(color_mode >= 0 && color_mode <= 6) { //Taxon
       return function(contig) {
-        var phylo_array = contig.phylogeny.split(';');
-        var end = (phylo_array.length > color_mode) ? (color_mode) : (phylo_array.length-1);
-        return phylo_array.slice(0, end+1).join(';');
+        var taxon_array = contig.taxonomy.split(';');
+        var end = (taxon_array.length > color_mode) ? (color_mode) : (taxon_array.length-1);
+        return taxon_array.slice(0, end+1).join(';');
       };
     } else if(color_mode == 7) {
       return function(contig) {
@@ -51,17 +51,16 @@ angular.module('myApp.services').service('plotService', function() {
       }
 
       var num_colors = 0;
-      for(var phylo in color_map) {
+      for(var taxon in color_map) {
         num_colors++;
       }
 
-      var phylo_i = 0;
-      var phyla_sorted = keys(color_map).sort();
-      console.log(phyla_sorted);
-      for(var phylo in phyla_sorted) {
-        console.log(phyla_sorted[phylo]);
-        color_map[phyla_sorted[phylo]].setHSL(phylo_i / num_colors, HSL_SATURATION, HSL_LIGHTNESS);
-        phylo_i++;
+      var taxon_i = 0;
+      var taxon_sorted = keys(color_map).sort();
+      for(var taxon in taxon_sorted) {
+        console.log(taxon_sorted[taxon]);
+        color_map[taxon_sorted[taxon]].setHSL(taxon_i / num_colors, HSL_SATURATION, HSL_LIGHTNESS);
+        taxon_i++;
       }
     } else if(color_mode==7) {
       color_map.Clean = new THREE.Color().setHSL( 0.333, HSL_SATURATION, HSL_LIGHTNESS );
@@ -83,7 +82,7 @@ angular.module('myApp.services').service('plotService', function() {
   };
 
   this.update_plot_colors = function() {
-    var color_mode = this.scope.color_phylo_level.value;
+    var color_mode = this.scope.color_taxon_level.value;
 
     var f_hash = get_hash(color_mode);
     this.color_map = make_color_map(color_mode, this.plot_data.contigs);
@@ -177,7 +176,7 @@ angular.module('myApp.services').service('plotService', function() {
     this.update_plot_colors();
 
     this.attributes.color.value = [];
-    var f_hash = get_hash($scope.color_phylo_level.value);
+    var f_hash = get_hash($scope.color_taxon_level.value);
     this.particles = new THREE.Geometry();
     var center_mass = null;
     var num_clean = 0;

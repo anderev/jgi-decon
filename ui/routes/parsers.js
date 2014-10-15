@@ -46,20 +46,20 @@ exports.parse_lca = function(contigs, callback) {
 
       var lines = data.toString().split('\n');
       var num_lines = lines.length;
-      var contig_phylogeny = {};
+      var contig_taxonomy = {};
       for(var i=0; i<num_lines; ++i) {
         var tokens = lines[i].split('\t');
-        var cleaned_phylo = (tokens[1] || '').trim().replace('root;cellular organisms;', '');
-        if(cleaned_phylo.length > 0) {
-          contig_phylogeny[tokens[0]] = cleaned_phylo;
+        var cleaned_taxon = (tokens[1] || '').trim().replace('root;cellular organisms;', '');
+        if(cleaned_taxon.length > 0) {
+          contig_taxonomy[tokens[0]] = cleaned_taxon;
         }
       }
 
       for(var j=0; j<contigs.length; j++) {
-        if(contigs[j].name in contig_phylogeny) {
-          contigs[j].phylogeny = (contig_phylogeny[contigs[j].name]);
+        if(contigs[j].name in contig_taxonomy) {
+          contigs[j].taxonomy = (contig_taxonomy[contigs[j].name]);
         } else {
-          contigs[j].phylogeny = 'Unknown';
+          contigs[j].taxonomy = 'Unknown';
         }
       }
 

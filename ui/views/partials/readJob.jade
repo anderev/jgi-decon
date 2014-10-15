@@ -12,7 +12,7 @@ table(align='center')
             | Color By:
             | 
             | 
-            select(ng-model='color_phylo_level', ng-options='option.name for option in color_modes', ng-change='update_plot_colors()')
+            select(ng-model='color_taxon_level', ng-options='option.name for option in color_modes', ng-change='update_plot_colors()')
             | 
             | 
             | Grid Plane:
@@ -28,9 +28,9 @@ table(align='center')
               | {{contig.name}}
           tr
             td
-              | Assigned Phylogeny:
+              | Assigned Taxonomy:
             td
-              | {{contig.phylogeny}}
+              | {{contig.taxonomy}}
           tr
             td(colspan='2')
               div
