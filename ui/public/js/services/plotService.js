@@ -235,6 +235,7 @@ angular.module('myApp.services').service('plotService', function() {
     var savedColor, selectedColor = new THREE.Color(1,1,0);
 
     var lock_selection = false, locked_selection = null;
+    var mouse_is_down = false, mouse_was_dragged = false;
 
     var that = this;
 
@@ -262,7 +263,7 @@ angular.module('myApp.services').service('plotService', function() {
         label_scene_render.add(obj);
       }
 
-      if(!locked_selection) {
+      if(!(locked_selection || mouse_was_dragged)) {
         var intersects = raycaster.intersectObjects( picking_scene.children );
 
         if( intersects.length > 0 ) {
@@ -312,7 +313,6 @@ angular.module('myApp.services').service('plotService', function() {
     renderer.domElement.addEventListener('mouseup', onPlotMouseUp, false);
 
     var screen = {};
-    var mouse_is_down = false, mouse_was_dragged = false;
 
     function onPlotMouseDown(event) {
       console.log('event button: '+event.button);
@@ -324,14 +324,16 @@ angular.module('myApp.services').service('plotService', function() {
 
     function onPlotMouseUp(event) {
       console.log('event button: '+event.button);
-      if( event.button == 0 && !mouse_was_dragged ) {
+      if( event.button == 0 ) {
+        if( !mouse_was_dragged ) {
+          lock_selection = true;
+          if( locked_selection ) {
+            that.attributes.highlight.value[locked_selection.data_i] = false;
+          }
+          locked_selection = null;
+        }
         mouse_is_down = false;
         mouse_was_dragged = false;
-        lock_selection = true;
-        if( locked_selection ) {
-          that.attributes.highlight.value[locked_selection.data_i] = false;
-        }
-        locked_selection = null;
       }
     }
 
