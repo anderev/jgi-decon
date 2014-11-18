@@ -3,9 +3,9 @@ var jar = request.jar();
 var readline = require('readline');
 var fs = require('fs');
 
-var new_project_uri = 'http://scd.jgi-psf.org:8091/api/project';
-var new_job_uri = 'http://scd.jgi-psf.org:8091/api/job';
-var mdm_dir = '/global/projectb/sandbox/omics/sc-decontamination/Test/v1.3.1/mdms';
+var new_project_uri = 'http://prodege.jgi-psf.org/api/project';
+var new_job_uri = 'http://prodege.jgi-psf.org/api/job';
+var mdm_dir = '/global/projectb/sandbox/omics/sc-decontamination/Test/v1.3.1/mdm_75';
 var endo_dir = '/global/projectb/sandbox/omics/sc-decontamination/Test/v1.5t/endos';
 var mdm_regex = /^mdm-.*$/g;
 var endo_regex = /^endo-.*$/g;
