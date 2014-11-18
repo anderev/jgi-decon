@@ -2,47 +2,10 @@ var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database('scd.db');
 var spawn = require('child_process').spawn;
 var fs = require('fs');
-var https = require('https');
-var xml2js = require('xml2js');
 var config = require('../config.js').Config;
 var parser = require('./parsers.js');
 var stats = require('./stats.js');
-
-
-var userCache = {}; // jgi_session_id -> userObject
-var getUser = function(req, callback) { // callback = function(err, user)
-  var jgi_session_id = req.cookies.jgi_session.split('/')[3];
-  if( jgi_session_id in userCache ) {
-    callback( null, userCache[jgi_session_id] );
-  } else {
-    var session_req = https.get({hostname:'signon.jgi-psf.org', path: req.cookies.jgi_session}, function(session_res) {
-      if(session_res.statusCode == 200) {
-        session_res.on('data', function(chunk) {
-          xml2js.parseString(chunk, function(err, session_info) {
-            if(!err) {
-              var user_url = session_info.session.user;
-              var user_req = https.get({hostname:'signon.jgi-psf.org', path: user_url}, function(user_res) {
-                user_res.on('data', function(user_chunk) {
-                  xml2js.parseString(user_chunk, function(err2, user_info) {
-                    if(!err2) {
-                      console.log('Caching SSO user: '+user_info.user.login);
-                      userCache[jgi_session_id] = user_info.user;
-                      callback( null, user_info.user );
-                    } else {
-                      callback( err2, null );
-                    }
-                  });
-                });
-              });
-            } else {
-              callback( err, null );
-            }
-          });
-        });
-      }
-    });
-  }
-};
+var caliban = require('./caliban.js');
 
 /*
 db.on('trace', function(query) {
@@ -68,7 +31,7 @@ db.serialize(function() {
 
 // GET
 exports.projects = function(req, res) {
-  getUser(req, function(user_err, user) {
+  caliban.getSessionUser(req, function(user_err, user) {
     if(!user_err) {
       var projects = [];
       db.each("SELECT project_id,taxon_display_name FROM project WHERE user_id = ?", [user.id[0]], function(err, row) {
@@ -91,7 +54,7 @@ exports.projects = function(req, res) {
 };
 
 exports.project = function(req, res) {
-  getUser(req, function(user_err, user) {
+  caliban.getSessionUser(req, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id;
       db.each("SELECT * FROM project WHERE project_id = ? AND user_id = ?", [id, user.id[0]], function(err, row) {
@@ -112,6 +75,7 @@ exports.jobs = function(req, res) {
 
   var getJobs = function(req, res, query, params) {
     var jobs = [];
+    var id_count = 0;
     db.each(query, params, function(err, row) {
       if(!err) {
         jobs.push(row);
@@ -122,7 +86,25 @@ exports.jobs = function(req, res) {
       if(err) {
         console.log(err);
       }
-      res.json({ jobs: jobs });
+      if( jobs.length > 0 ) {
+        id_count = jobs.length;
+        jobs.map(function(job) {
+          caliban.getUserInfo(job.user_id, function(err, user) {
+            if(!err) {
+              job.user_id = user.first_name + ' ' + user.last_name;
+              --id_count;
+              if(id_count == 0) {
+                res.json({ jobs: jobs });
+              }
+            } else {
+              console.log(err);
+              res.json(false);
+            }
+          });
+        });
+      } else {
+        res.json({ jobs: jobs });
+      }
     });
   };
 
@@ -131,7 +113,7 @@ exports.jobs = function(req, res) {
     var query_param = [];
     getJobs(req, res, query_str, query_param);
   } else {
-    getUser(req, function(user_err, user) {
+    caliban.getSessionUser(req, function(user_err, user) {
       if(!user_err) {
         var query_str = "SELECT * FROM job NATURAL JOIN project WHERE user_id = ? ORDER BY job_id DESC";
         var query_param = [user.id[0]];
@@ -145,7 +127,7 @@ exports.jobs = function(req, res) {
 };
 
 exports.jobsInProject = function(req, res) {
-  getUser(req, function(user_err, user) {
+  caliban.getSessionUser(req, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id
       var jobs = [];
@@ -173,7 +155,7 @@ exports.jobsInProject = function(req, res) {
 };
 
 exports.job = function(req, res) {
-  getUser(req, function(user_err, user) {
+  caliban.getSessionUser(req, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id;
       db.get("SELECT * FROM job NATURAL JOIN project WHERE job_id = ? AND (user_id = ? OR is_public = 1)", [id, user.id[0]], function(err, row) {
@@ -233,7 +215,7 @@ exports.job = function(req, res) {
 };
 
 exports.getSsoUser = function(req, res) {
-  getUser(req, function(user_err, user) {
+  caliban.getSessionUser(req, function(user_err, user) {
     if(!user_err) {
       res.json(user);
     } else {
@@ -244,7 +226,7 @@ exports.getSsoUser = function(req, res) {
 };
 
 getWorkingDir = function(req, callback) { // callback(err,workingdir)
-  getUser(req, function(user_err, user) {
+  caliban.getSessionUser(req, function(user_err, user) {
     if(!user_err) {
       callback(null, config.working_dir + '/sso_' + user.id[0]);
     } else {
@@ -265,7 +247,7 @@ getFasta = function(type, req, res) {
   var id = parseInt(req.params.id);
   db.get('SELECT user_id,is_public FROM job WHERE job_id = ?', [id], function(err, row) {
     if(!err) {
-      getUser(req, function(err, user) {
+      caliban.getSessionUser(req, function(err, user) {
         if(!err) {
           if( user.id[0] == row.user_id || row.is_public ) {
             var workingDir = config.working_dir + '/sso_' + row.user_id;
@@ -314,7 +296,7 @@ exports.getPCA = function(req, res) {
 exports.parseJobFiles = function(req, res, cb_ok, cb_err) {
   db.get('SELECT user_id,is_public FROM job WHERE job_id = ?', [req.params.id], function(err, row) {
     if(!err) {
-      getUser(req, function(err, user) {
+      caliban.getSessionUser(req, function(err, user) {
         if(!err) {
           if( user.id[0] == row.user_id || row.is_public ) {
             var contigs = [];
@@ -403,7 +385,7 @@ exports.parseJobFiles = function(req, res, cb_ok, cb_err) {
 }
 // POST
 exports.addProject = function(req, res) {
-  getUser(req, function(user_err, user) {
+  caliban.getSessionUser(req, function(user_err, user) {
     if(!user_err) {
       db.serialize(function() {
         db.run("INSERT INTO project VALUES (NULL,?,?,?,?,?,?,?,?,?)", [user.id[0], req.body.taxon_display_name, req.body.taxon_domain, req.body.taxon_phylum, req.body.taxon_class, req.body.taxon_order, req.body.taxon_family, req.body.taxon_genus, req.body.taxon_species] );
@@ -419,7 +401,7 @@ exports.addProject = function(req, res) {
 };
 
 exports.uploadFasta = function(req, res) {
-  getUser(req, function(user_err, user) {
+  caliban.getSessionUser(req, function(user_err, user) {
     if(!user_err) {
       var file = req.files.file;
       var newFilename = config.working_dir + '/sso_' + user.id[0] + '/upload.fasta';
@@ -436,7 +418,7 @@ exports.uploadFasta = function(req, res) {
 };
 
 exports.addJob = function(req, res) {
-  getUser(req, function(user_err, user) {
+  caliban.getSessionUser(req, function(user_err, user) {
     if(!user_err) {
       var now = new Date();
       var start_time = now.toDateString() + ' ' + now.toTimeString();
@@ -586,7 +568,7 @@ exports.addJob = function(req, res) {
 
 // DELETE
 exports.deleteProject = function(req, res) {
-  getUser(req, function(user_err, user) {
+  caliban.getSessionUser(req, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id;
       db.run("DELETE FROM project WHERE project_id = ? AND user_id = ?", [id, user.id[0]]);
@@ -600,7 +582,7 @@ exports.deleteProject = function(req, res) {
 };
 
 exports.deleteJob = function(req, res) {
-  getUser(req, function(user_err, user) {
+  caliban.getSessionUser(req, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id;
       db.run("DELETE FROM job WHERE job_id = ? AND user_id = ?", [id, user.id[0]]);

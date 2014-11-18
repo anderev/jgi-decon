@@ -3,6 +3,7 @@ var db = new sqlite3.Database('scd.db');
 var https = require('https');
 var xml2js = require('xml2js');
 var fs = require('fs');
+var caliban = require('./caliban.js');
 
 exports.index = function(req, res){
   res.render('index');
@@ -14,7 +15,7 @@ exports.partials = function (req, res) {
 };
 
 redirectToCaliban = function(req, res) {
-  var jgi_return = 'http://scd.jgi-psf.org/';// + req.get('Host') + req.originalUrl; // req is mangled by Apache
+  var jgi_return = 'http://prodege.jgi-psf.org/';// + req.get('Host') + req.originalUrl; // req is mangled by Apache
   res.cookie('jgi_return', jgi_return, {domain: '.jgi-psf.org'});
   res.redirect('https://signon2.jgi-psf.org');
 }
@@ -30,7 +31,14 @@ exports.caliban = function(req, res, next) {
   }
 
   if( req.cookies && 'jgi_session' in req.cookies) {
-    console.log('jgi_session: ' + req.cookies.jgi_session);
+    caliban.getSessionUser(req, function(err, user) {
+      if(!err) {
+        console.log('request from: ' + user.login);
+      } else {
+        console.log(err);
+      }
+    });
+
     var session_id = req.cookies.jgi_session.split('/')[3];
     if( session_id in session_cache ) {
       next();
