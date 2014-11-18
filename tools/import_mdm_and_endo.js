@@ -7,7 +7,7 @@ var new_project_uri = 'http://prodege.jgi-psf.org/api/project';
 var new_job_uri = 'http://prodege.jgi-psf.org/api/job';
 var mdm_dir = '/global/projectb/sandbox/omics/sc-decontamination/Test/v1.3.1/mdm_75';
 var endo_dir = '/global/projectb/sandbox/omics/sc-decontamination/Test/v1.5t/endos';
-var mdm_regex = /^mdm-.*$/g;
+var mdm_regex = /^[0-9]+$/g;
 var endo_regex = /^endo-.*$/g;
 var data_dirs = [[mdm_dir, mdm_regex], [endo_dir, endo_regex]];
 
