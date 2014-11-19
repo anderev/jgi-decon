@@ -1,6 +1,9 @@
 var https = require('https');
 var xml2js = require('xml2js');
+var caliban = require('./caliban');
+var config = require('../config').Config;
 
+var sessionExpirations = {}; // jgi_session_id -> expiration (when we refresh from Caliban)
 var sessionCache = {}; // jgi_session_id -> userObject
 var sessionRequestQueue = {}; // jgi_session_id -> [callback, callback, ...]
 var userCache = {}; // sso_id -> userObject
@@ -77,3 +80,47 @@ exports.getSessionUser = function(req, callback) { // callback = function(err, u
   }
 };
 
+exports.calibanRoute = function(req, res, next) {
+
+  redirectToCaliban = function(req, res) {
+    var jgi_return = config.caliban_return_URL;// + req.get('Host') + req.originalUrl; // req is mangled by Apache
+    res.cookie('jgi_return', jgi_return, {domain: '.jgi-psf.org'});
+    res.redirect(config.caliban_signon_URL);
+  }
+
+  //remove expired entries first
+  for( var session in sessionExpirations ) {
+    if( sessionExpirations[session] < Date.now() ) {
+      delete sessionExpirations[session];
+    }
+  }
+
+  if( req.cookies && 'jgi_session' in req.cookies) {
+    caliban.getSessionUser(req, function(err, user) {
+      if(!err) {
+        console.log('request from: ' + user.login);
+      } else {
+        console.log(err);
+      }
+    });
+
+    var session_id = req.cookies.jgi_session.split('/')[3];
+    if( session_id in sessionExpirations ) {
+      next();
+    } else {
+      var session_req = https.get({hostname:'signon.jgi-psf.org', path: req.cookies.jgi_session}, function(session_res) {
+        if(session_res.statusCode == 200) {
+            sessionExpirations[session_id] = Date.now() + 60000;
+            next();
+        } else {
+          console.log('session_res.statusCode: ' + session_res.statusCode);
+          redirectToCaliban(req, res);
+        }
+      }).on('error', function(e) {
+        console.log('Error checking session against Caliban: ' + e);
+      });
+    }
+  } else {
+    redirectToCaliban(req, res);
+  }
+}

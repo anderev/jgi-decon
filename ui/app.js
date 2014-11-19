@@ -8,6 +8,7 @@ var express = require('express'),
   api = require('./routes/api'),
   http = require('http'),
   path = require('path'),
+  caliban = require('./routes/caliban'),
   cookie_parser = require('cookie-parser');
 
 var app = module.exports = express();
@@ -44,13 +45,13 @@ if (config.env === 'production') {
  */
 
 var cookieParser = cookie_parser('secret string');
-var caliban = routes.caliban;
+var calibanRoute = caliban.calibanRoute;
 app.get('*', cookieParser);
-app.get('*', caliban);
+app.get('*', calibanRoute);
 app.post('*', cookieParser);
-app.post('*', caliban);
+app.post('*', calibanRoute);
 app.delete('*', cookieParser);
-app.delete('*', caliban);
+app.delete('*', calibanRoute);
 
 app.get('/', routes.index);
 app.get('/partials/:name', routes.partials);
@@ -82,5 +83,5 @@ app.get('*', routes.index);
  */
 
 http.createServer(app).listen(app.get('port'), function () {
-  console.log('SCD server listening on port ' + app.get('port'));
+  console.log(config.env + ' ProDeGe server listening on port ' + app.get('port'));
 });
