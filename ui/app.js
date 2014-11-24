@@ -9,6 +9,7 @@ var express = require('express'),
   http = require('http'),
   path = require('path'),
   caliban = require('./routes/caliban'),
+  download = require('./routes/download'),
   cookie_parser = require('cookie-parser');
 
 var app = module.exports = express();
@@ -55,11 +56,18 @@ app.delete('*', calibanRoute);
 
 app.get('/', routes.index);
 app.get('/partials/:name', routes.partials);
+app.get('/eula', routes.EULA);
+
+// DOWNLOADS
+
+app.get('/download/*', download.checkEULA);
+app.get('/download/clean/:id', download.getClean);
+app.get('/download/contam/:id', download.getContam);
+app.get('/download/src', download.getSrc);
 
 // JSON API
 
-app.get('/api/getCleanFasta/:id', api.getCleanFasta);
-app.get('/api/getContamFasta/:id', api.getContamFasta);
+app.get('/api/acceptEULA', api.acceptEULA);
 app.get('/api/jobs', api.jobs);
 app.get('/api/jobsInProject/:id', api.jobsInProject);
 app.get('/api/job/:id', api.job);

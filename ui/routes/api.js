@@ -2,10 +2,10 @@ var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database('scd.db');
 var spawn = require('child_process').spawn;
 var fs = require('fs');
-var config = require('../config.js').Config;
-var parser = require('./parsers.js');
-var stats = require('./stats.js');
-var caliban = require('./caliban.js');
+var config = require('../config').Config;
+var parser = require('./parsers');
+var stats = require('./stats');
+var caliban = require('./caliban');
 
 /*
 db.on('trace', function(query) {
@@ -15,6 +15,7 @@ db.on('trace', function(query) {
 
 fs.exists(config.working_dir, function(exists) {
   if(!exists) {
+    console.log('Creating ' + config.working_dir);
     fs.mkdir(config.working_dir, function(err) {
       if(err) {
         console.log(err);
@@ -26,7 +27,8 @@ fs.exists(config.working_dir, function(exists) {
 db.serialize(function() {
 
   db.run("CREATE TABLE IF NOT EXISTS project (project_id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, taxon_display_name TEXT, taxon_domain TEXT, taxon_phylum TEXT, taxon_class TEXT, taxon_order TEXT, taxon_family TEXT, taxon_genus TEXT, taxon_species TEXT)");
-  db.run("CREATE TABLE IF NOT EXISTS job (job_id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INT, user_id INTEGER, process_id INT, start_time INT, in_fasta TEXT, notes TEXT, is_public INT, status INT, gc_percent REAL, num_bases INTEGER, num_contigs INTEGER)");
+  db.run("CREATE TABLE IF NOT EXISTS job (job_id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INT, user_id INTEGER, process_id INT, start_time TEXT, in_fasta TEXT, notes TEXT, is_public INT, status INT, gc_percent REAL, num_bases INTEGER, num_contigs INTEGER)");
+  db.run("CREATE TABLE IF NOT EXISTS eula (user_id INTEGER PRIMARY KEY, time_stamp TEXT)");
 });
 
 // GET
@@ -221,60 +223,6 @@ exports.getSsoUser = function(req, res) {
     } else {
       res.json(false);
       console.log('error: ' + user_err);
-    }
-  });
-};
-
-getWorkingDir = function(req, callback) { // callback(err,workingdir)
-  caliban.getSessionUser(req, function(user_err, user) {
-    if(!user_err) {
-      callback(null, config.working_dir + '/sso_' + user.id[0]);
-    } else {
-      callback(user_err, null);
-    }
-  });
-};
-
-exports.getCleanFasta = function(req, res) {
-  getFasta('clean', req, res);
-};
-
-exports.getContamFasta = function(req, res) {
-  getFasta('contam', req, res);
-};
-
-getFasta = function(type, req, res) {
-  var id = parseInt(req.params.id);
-  db.get('SELECT user_id,is_public FROM job WHERE job_id = ?', [id], function(err, row) {
-    if(!err) {
-      caliban.getSessionUser(req, function(err, user) {
-        if(!err) {
-          if( user.id[0] == row.user_id || row.is_public ) {
-            var workingDir = config.working_dir + '/sso_' + row.user_id;
-            var filename = workingDir+'/job_'+id+'/job_'+id+'_output_'+type+'.fna';
-            fs.exists(filename, function(exists) {
-              if(exists) {
-                res.download(filename);
-              } else {
-                console.log('getFasta: ' + filename + ' does not exist.');
-                res.statusCode = 404;
-                res.json(false);
-              }
-            });
-          } else {
-            console.log(user.id[0] + ' attempted to access fasta for job ' + req.params.id + ', owned by ' + row.user_id);
-            res.statusCode = 404;
-            res.json(false);
-          }
-        } else {
-          console.log(err);
-          res.json(false);
-        }
-      });
-    } else {
-      console.log(err);
-      res.statusCode = 404;
-      res.json(false);
     }
   });
 };
@@ -594,11 +542,22 @@ exports.deleteJob = function(req, res) {
   });
 };
 
-var check_jobs = function() {
-
-};
-
-exports.startJobMonitor = function(delay) {
-  setTimeout(check_jobs, delay);
+exports.acceptEULA = function(req, res) {
+  caliban.getSessionUser(req, function(err, user) {
+    if(!err) {
+      var now = new Date();
+      var time_stamp = now.toDateString() + ' ' + now.toTimeString();
+      db.run("INSERT INTO eula VALUES (?,?)", [user.id[0], time_stamp], function() {
+        if('eula_return' in req.cookies) {
+          res.redirect(req.cookies.eula_return);
+        } else {
+          res.redirect('/');
+        }
+      });
+    } else {
+      console.log(err);
+      res.json(false);
+    }
+  });
 };
 
