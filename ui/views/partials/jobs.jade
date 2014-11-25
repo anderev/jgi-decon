@@ -4,7 +4,9 @@ div(align="center")
   table
     tr
       th
-        | Notes
+        | Genome
+      th
+        | Taxonomy
       th
         | GC %
       th
@@ -12,42 +14,33 @@ div(align="center")
       th
         | Contigs
       th
-        | Genome
-      th
-        | Taxonomy
-      th
         | Submitter
       th
         | Start Time
+      th
+        | Notes
     tr(ng-repeat='job in jobs')
-      td
-        a(href='readJob/{{job.job_id}}')
-          {{job.notes}}
-      td
-        a(href='readJob/{{job.job_id}}')
-          | {{job.gc_percent | number:2}}%
-      td
-        a(href='readJob/{{job.job_id}}')
-          | {{job.num_bases}}
-      td
-        a(href='readJob/{{job.job_id}}')
-          | {{job.num_contigs}}
       td
         a(href='readJob/{{job.job_id}}')
           | {{job.taxon_display_name}}
       td
-        a(href='readJob/{{job.job_id}}')
-          | {{job.taxon_domain}};
-          | {{job.taxon_phylum}};
-          | {{job.taxon_class}};
-          | {{job.taxon_order}};
-          | {{job.taxon_family}};
-          | {{job.taxon_genus}};
-          | {{job.taxon_species}}
+        | {{job.taxon_domain}};
+        | {{job.taxon_phylum}};
+        | {{job.taxon_class}};
+        | {{job.taxon_order}};
+        | {{job.taxon_family}};
+        | {{job.taxon_genus}};
+        | {{job.taxon_species}}
       td
-        a(href='readJob/{{job.job_id}}')
-          | {{job.user_id}}
+        | {{job.gc_percent | number:2}}%
       td
-        a(href='readJob/{{job.job_id}}')
-          | {{job.start_time}}
+        | {{job.num_bases}}
+      td
+        | {{job.num_contigs}}
+      td
+        | {{job.user_id}}
+      td
+        | {{job.start_time}}
+      td
+        | {{job.notes}}
 

@@ -54,6 +54,15 @@ exports.jobs = function(req, res) {
               job.user_id = user.first_name + ' ' + user.last_name;
               --id_count;
               if(id_count == 0) {
+                jobs.sort(function(job_a, job_b) {
+                  if(job_a.notes.match(/endo-.*/) && !job_b.notes.match(/endo-.*/)) {
+                    return -1;
+                  } else if (!job_a.notes.match(/endo-.*/) && job_b.notes.match(/endo-.*/)) {
+                    return 1;
+                  } else {
+                    return job_b.job_id - job_a.job_id;
+                  }
+                });
                 res.json({ jobs: jobs });
               }
             } else {
