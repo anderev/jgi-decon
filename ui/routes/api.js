@@ -26,53 +26,11 @@ fs.exists(config.working_dir, function(exists) {
 
 db.serialize(function() {
 
-  db.run("CREATE TABLE IF NOT EXISTS project (project_id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, taxon_display_name TEXT, taxon_domain TEXT, taxon_phylum TEXT, taxon_class TEXT, taxon_order TEXT, taxon_family TEXT, taxon_genus TEXT, taxon_species TEXT)");
-  db.run("CREATE TABLE IF NOT EXISTS job (job_id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INT, user_id INTEGER, process_id INT, start_time TEXT, in_fasta TEXT, notes TEXT, is_public INT, status INT, gc_percent REAL, num_bases INTEGER, num_contigs INTEGER)");
+  db.run("CREATE TABLE IF NOT EXISTS job (job_id INTEGER PRIMARY KEY AUTOINCREMENT, taxon_display_name TEXT, taxon_domain TEXT, taxon_phylum TEXT, taxon_class TEXT, taxon_order TEXT, taxon_family TEXT, taxon_genus TEXT, taxon_species TEXT, user_id INTEGER, process_id INT, start_time TEXT, in_fasta TEXT, notes TEXT, is_public INT, status INT, gc_percent REAL, num_bases INTEGER, num_contigs INTEGER)");
   db.run("CREATE TABLE IF NOT EXISTS eula (user_id INTEGER PRIMARY KEY, time_stamp TEXT)");
 });
 
 // GET
-exports.projects = function(req, res) {
-  caliban.getSessionUser(req, function(user_err, user) {
-    if(!user_err) {
-      var projects = [];
-      db.each("SELECT project_id,taxon_display_name FROM project WHERE user_id = ?", [user.id[0]], function(err, row) {
-        if(err) {
-          console.log(err);
-        } else {
-          projects.push(row);
-        }
-      }, function(err) { // called last
-        if(err) {
-          console.log(err);
-        }
-        res.json({ projects: projects });
-      });
-    } else {
-      console.log(user_err);
-      res.json(false);
-    }
-  });
-};
-
-exports.project = function(req, res) {
-  caliban.getSessionUser(req, function(user_err, user) {
-    if(!user_err) {
-      var id = req.params.id;
-      db.each("SELECT * FROM project WHERE project_id = ? AND user_id = ?", [id, user.id[0]], function(err, row) {
-        if(!err) {
-          res.json({ project: row });
-        } else {
-          res.json(false);
-        }
-      });
-    } else {
-      console.log(user_err);
-      res.json(false);
-    }
-  });
-};
-
 exports.jobs = function(req, res) {
 
   var getJobs = function(req, res, query, params) {
@@ -111,13 +69,13 @@ exports.jobs = function(req, res) {
   };
 
   if( req.query.is_public ) {
-    var query_str = "SELECT * FROM job NATURAL JOIN project WHERE is_public = 1 ORDER BY job_id DESC";
+    var query_str = "SELECT * FROM job WHERE is_public = 1 ORDER BY job_id DESC";
     var query_param = [];
     getJobs(req, res, query_str, query_param);
   } else {
     caliban.getSessionUser(req, function(user_err, user) {
       if(!user_err) {
-        var query_str = "SELECT * FROM job NATURAL JOIN project WHERE user_id = ? ORDER BY job_id DESC";
+        var query_str = "SELECT * FROM job WHERE user_id = ? ORDER BY job_id DESC";
         var query_param = [user.id[0]];
         getJobs(req, res, query_str, query_param);
       } else {
@@ -128,39 +86,11 @@ exports.jobs = function(req, res) {
   }
 };
 
-exports.jobsInProject = function(req, res) {
-  caliban.getSessionUser(req, function(user_err, user) {
-    if(!user_err) {
-      var id = req.params.id
-      var jobs = [];
-        db.each("SELECT * FROM job WHERE project_id = ? AND user_id = ?", [id, user.id[0]], function(err, row) {
-        if(err) {
-          console.log(err);
-        /*
-        } else {
-          console.log(row);
-          */
-        }
-        jobs.push(row);
-        //console.log(jobs);
-      }, function(err) {
-        if(err) {
-          console.log(err);
-        }
-        res.json({ jobs: jobs });
-        });
-    } else {
-      console.log(user_err);
-      res.json(false);
-    }
-  });
-};
-
 exports.job = function(req, res) {
   caliban.getSessionUser(req, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id;
-      db.get("SELECT * FROM job NATURAL JOIN project WHERE job_id = ? AND (user_id = ? OR is_public = 1)", [id, user.id[0]], function(err, row) {
+      db.get("SELECT * FROM job WHERE job_id = ? AND (user_id = ? OR is_public = 1)", [id, user.id[0]], function(err, row) {
         if(!err && row) {
           var process = spawn('qs', ['-j', row.process_id, '--style', 'json']);
           process.stdout.on('data', function(data) {
@@ -332,22 +262,6 @@ exports.parseJobFiles = function(req, res, cb_ok, cb_err) {
   });
 }
 // POST
-exports.addProject = function(req, res) {
-  caliban.getSessionUser(req, function(user_err, user) {
-    if(!user_err) {
-      db.serialize(function() {
-        db.run("INSERT INTO project VALUES (NULL,?,?,?,?,?,?,?,?,?)", [user.id[0], req.body.taxon_display_name, req.body.taxon_domain, req.body.taxon_phylum, req.body.taxon_class, req.body.taxon_order, req.body.taxon_family, req.body.taxon_genus, req.body.taxon_species] );
-        db.get("SELECT last_insert_rowid()", function(err,row) {
-          res.json({project_id: row['last_insert_rowid()']});
-        });
-      });
-    } else {
-      console.log(user_err);
-      res.json(false);
-    }
-  });
-};
-
 exports.uploadFasta = function(req, res) {
   caliban.getSessionUser(req, function(user_err, user) {
     if(!user_err) {
@@ -371,7 +285,7 @@ exports.addJob = function(req, res) {
       var now = new Date();
       var start_time = now.toDateString() + ' ' + now.toTimeString();
       db.serialize(function() {
-        db.run("INSERT INTO job VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?)", [req.body.project_id,user.id[0],null,start_time,req.body.in_fasta,req.body.notes,req.body.is_public,null,null,null,null], function(err) {
+        db.run("INSERT INTO job VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", [req.body.taxon_display_name, req.body.taxon_domain, req.body.taxon_phylum, req.body.taxon_class, req.body.taxon_order, req.body.taxon_family, req.body.taxon_genus, req.body.taxon_species,user.id[0],null,start_time,req.body.in_fasta,req.body.notes,req.body.is_public,null,null,null,null], function(err) {
           if(err) {
             console.log('Failed to insert new job into table.');
             console.log(err);
@@ -380,7 +294,7 @@ exports.addJob = function(req, res) {
         db.get("SELECT last_insert_rowid()", function(err,row) {
           if(row) {
             var job_id = row['last_insert_rowid()'];
-            db.get("SELECT * FROM job natural join project WHERE job_id = ? AND user_id = ?", [job_id, user.id[0]], function(err, row) {
+            db.get("SELECT * FROM job WHERE job_id = ? AND user_id = ?", [job_id, user.id[0]], function(err, row) {
               if(row) {
                 var cfg = row;
                 if(!req.body.in_fasta) {
@@ -515,20 +429,6 @@ exports.addJob = function(req, res) {
 };
 
 // DELETE
-exports.deleteProject = function(req, res) {
-  caliban.getSessionUser(req, function(user_err, user) {
-    if(!user_err) {
-      var id = req.params.id;
-      db.run("DELETE FROM project WHERE project_id = ? AND user_id = ?", [id, user.id[0]]);
-      db.run("DELETE FROM job WHERE project_id = ? AND user_id = ?", [id, user.id[0]]);
-      res.json(true);
-    } else {
-      console.log(user_err);
-      res.json(false);
-    }
-  });
-};
-
 exports.deleteJob = function(req, res) {
   caliban.getSessionUser(req, function(user_err, user) {
     if(!user_err) {

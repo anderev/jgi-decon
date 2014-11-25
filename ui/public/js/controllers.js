@@ -25,10 +25,16 @@ function PublicJobsCtrl($scope, $http) {
 
 function AddJobCtrl($scope, $http, $upload, $location) {
   $scope.form = {};
-  $http.get('/api/projects').
-    success(function(data, status, headers, config) {
-        $scope.projects = data.projects;
-        });
+  $scope.updateTaxonomy = function() {
+    var fields = $scope.form.taxonomy_string.split(';');
+    $scope.form.taxon_domain = fields[0] || '';
+    $scope.form.taxon_phylum = fields[1] || '';
+    $scope.form.taxon_class = fields[2] || '';
+    $scope.form.taxon_order = fields[3] || '';
+    $scope.form.taxon_family = fields[4] || '';
+    $scope.form.taxon_genus = fields[5] || '';
+    $scope.form.taxon_species = fields[6] || '';
+  };
   $scope.onFileSelect = function($files) {
     console.log('onFileSelect');
     for(var i = 0; i < $files.length; i++) {
@@ -101,55 +107,6 @@ function DeleteJobCtrl($scope, $http, $location, $routeParams) {
 
   $scope.deleteJob = function() {
     $http.delete('/api/job/' + $routeParams.id).
-      success(function(data) {
-          $location.url('/');
-          });
-  };
-
-  $scope.home = function() {
-    $location.url('/');
-  };
-}
-
-function AddProjectCtrl($scope, $http, $location) {
-  $scope.form = {};
-  $scope.submitProject = function() {
-    $http.post('/api/project', $scope.form).
-      success(function(data) {
-          $location.path('/');
-          });
-  };
-  $scope.updatePhylogeny = function() {
-    var fields = $scope.form.phylogeny_string.split(';');
-    $scope.form.taxon_domain = fields[0] || '';
-    $scope.form.taxon_phylum = fields[1] || '';
-    $scope.form.taxon_class = fields[2] || '';
-    $scope.form.taxon_order = fields[3] || '';
-    $scope.form.taxon_family = fields[4] || '';
-    $scope.form.taxon_genus = fields[5] || '';
-    $scope.form.taxon_species = fields[6] || '';
-  };
-}
-
-function ReadProjectCtrl($scope, $http, $routeParams) {
-  $http.get('/api/jobsInProject/' + $routeParams.id).
-    success(function(data) {
-        $scope.jobs = data.jobs;
-        });
-  $http.get('/api/project/' + $routeParams.id).
-    success(function(data) {
-        $scope.project = data.project;
-        });
-}
-
-function DeleteProjectCtrl($scope, $http, $location, $routeParams) {
-  $http.get('/api/project/' + $routeParams.id).
-    success(function(data) {
-        $scope.project = data.project;
-        });
-
-  $scope.deleteProject = function() {
-    $http.delete('/api/project/' + $routeParams.id).
       success(function(data) {
           $location.url('/');
           });

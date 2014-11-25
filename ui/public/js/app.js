@@ -34,18 +34,6 @@ config(['$routeProvider', '$locationProvider', function ($routeProvider, $locati
       templateUrl: 'partials/deleteJob',
       controller: 'DeleteJobCtrl'
     }).
-    when('/addProject', {
-      templateUrl: 'partials/addProject',
-      controller: 'AddProjectCtrl'
-    }).
-    when('/readProject/:id', {
-      templateUrl: 'partials/readProject',
-      controller: 'ReadProjectCtrl'
-    }).
-    when('/deleteProject/:id', {
-      templateUrl: 'partials/deleteProject',
-      controller: 'DeleteProjectCtrl'
-    }).
     otherwise({
       redirectTo: '/'
     });

@@ -69,18 +69,12 @@ app.get('/download/src', download.getSrc);
 
 app.get('/api/acceptEULA', api.acceptEULA);
 app.get('/api/jobs', api.jobs);
-app.get('/api/jobsInProject/:id', api.jobsInProject);
 app.get('/api/job/:id', api.job);
 app.get('/api/getPCA/:id', api.getPCA);
 app.get('/api/ssoUser', api.getSsoUser);
 app.post('/api/job', api.addJob);
 app.post('/api/uploadFasta', api.uploadFasta);
 app.delete('/api/job/:id', api.deleteJob);
-
-app.get('/api/projects', api.projects);
-app.get('/api/project/:id', api.project);
-app.post('/api/project', api.addProject);
-app.delete('/api/project/:id', api.deleteProject);
 
 // redirect all others to the index (HTML5 history)
 app.get('*', routes.index);
