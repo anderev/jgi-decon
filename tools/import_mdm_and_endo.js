@@ -33,6 +33,7 @@ var parse_next_config = function() {
       var filename_tokens = config_filename.split('/');
       job['notes'] = 'Automated import of \"'+filename_tokens[filename_tokens.length-2]+'\"';
       job['is_public'] = 1;
+      job['taxon_display_name'] = job['taxon_display_name'] || job['job_name'];
       console.log('Creating job: '+job.job_name);
       request({
         uri: new_job_uri,

@@ -9,7 +9,20 @@ function IndexCtrl($scope, $http) {
         });
 }
 
+var isIMG = function(name) {
+  if(name) {
+    if( name.match(/\d{9,10}/) ) {
+      return '[IMG]';
+    } else {
+      return '';
+    }
+  } else {
+    return '';
+  }
+};
+
 function MyJobsCtrl($scope, $http) {
+  $scope.isIMG = isIMG;
   $http.get('/api/jobs').
     success(function(data, status, headers, config) {
         $scope.jobs = data.jobs;
@@ -17,6 +30,7 @@ function MyJobsCtrl($scope, $http) {
 }
 
 function PublicJobsCtrl($scope, $http) {
+  $scope.isIMG = isIMG;
   $http.get('/api/jobs?is_public=1').
     success(function(data, status, headers, config) {
         $scope.jobs = data.jobs;
@@ -60,6 +74,7 @@ function AddJobCtrl($scope, $http, $upload, $location) {
 }
 
 function ReadJobCtrl($scope, $http, $routeParams, plotService) {
+  $scope.isIMG = isIMG;
   $http.get('/api/job/' + $routeParams.id).
     success(function(data) {
         $scope.projection_modes = [

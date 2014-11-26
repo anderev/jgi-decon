@@ -63,6 +63,8 @@ table(align='center')
               | Project:
             td
               | {{job.taxon_display_name}}
+              a(href='https://img.jgi.doe.gov/cgi-bin/mer/main.cgi?section=TaxonDetail&page=taxonDetail&taxon_oid={{job.taxon_display_name}}')
+                | {{isIMG(job.taxon_display_name)}}
           tr
             td
               | Taxonomy:
