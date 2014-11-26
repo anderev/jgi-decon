@@ -1,7 +1,7 @@
 extends layout
 
 block content
-  div
+  div(style='margin-left:50px;margin-right:15px;margin-top:10px;margin-bottom:50px')
     h1 End User License Agreement
     br
     div(style='width:800px;height:600px;overflow:auto;border:1px solid gray;')
@@ -177,10 +177,11 @@ block content
             | By downloading, installing, or using the Software, and/or clicking
             | the "I Agree" button, you are indicating your acceptance of the
             | terms and conditions herein.
-  form(action='api/acceptEULA',method='get')
-    input(type='hidden',name='accept',value='1')
-    button(type='submit')
-      | I Agree
+        br
+        form(action='api/acceptEULA',method='get')
+          input(type='hidden',name='accept',value='1')
+          button(type='submit')
+            | I Agree
 
   script(src='js/lib/angular-file-upload/angular-file-upload-html5-shim.min.js')
   script(src='js/lib/angular/angular.min.js')
