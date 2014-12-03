@@ -37,7 +37,7 @@ exports.getContam = function(req, res) {
 };
 
 exports.getSrc = function(req, res) {
-  res.download(config.src_bundle);
+  res.download(config.bundle_src, config.bundle_src_name);
 };
 
 getDownload = function(type, req, res) {
