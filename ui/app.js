@@ -10,7 +10,10 @@ var express = require('express'),
   path = require('path'),
   caliban = require('./routes/caliban'),
   download = require('./routes/download'),
-  cookie_parser = require('cookie-parser');
+  cookie_parser = require('cookie-parser'),
+  morgan = require('morgan'),
+  bodyParser = require('body-parser'),
+  busboy = require('connect-busboy');
 
 var app = module.exports = express();
 var config = require('./config.js').Config;
@@ -24,21 +27,11 @@ var config = require('./config.js').Config;
 app.set('port', config.port);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
-app.use(express.logger('dev'));
-app.use(express.bodyParser());
-app.use(express.methodOverride());
+app.use(morgan('combined'));
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(busboy());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(app.router);
-
-// development only
-if (config.env === 'development') {
-  app.use(express.errorHandler());
-}
-
-// production only
-if (config.env === 'production') {
-  // TODO
-}
 
 
 /**
@@ -79,6 +72,16 @@ app.delete('/api/job/:id', api.deleteJob);
 // redirect all others to the index (HTML5 history)
 app.get('*', routes.index);
 
+
+// development only
+if (config.env === 'development') {
+  app.use(express.errorHandler());
+}
+
+// production only
+if (config.env === 'production') {
+  // TODO
+}
 
 /**
  * Start Server

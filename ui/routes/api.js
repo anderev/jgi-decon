@@ -274,13 +274,19 @@ exports.parseJobFiles = function(req, res, cb_ok, cb_err) {
 exports.uploadFasta = function(req, res) {
   caliban.getSessionUser(req, function(user_err, user) {
     if(!user_err) {
-      var file = req.files.file;
-      var newFilename = config.working_dir + '/sso_' + user.id[0] + '/upload.fasta';
-      console.log('rename: ' + file.path + ' => ' + newFilename);
-      fs.createReadStream(file.path).pipe(fs.createWriteStream(newFilename).on('finish', function() {
-        console.log('File upload received: ' + newFilename);
-        res.json(req.body);
-      }));
+      var fstream;
+      req.pipe(req.busboy);
+      req.busboy.on('file', function(fieldname, file, filename) {
+        var newFilename = config.working_dir + '/sso_' + user.id[0] + '/upload.fasta';
+        console.log('Receiving file: ' + filename);
+        fstream = fs.createWriteStream(newFilename);
+        file.pipe(fstream);
+        fstream.on('close', function() {
+          console.log('Finished receiving: ' + filename);
+          res.json(req.body);
+          //res.redirect('back');
+        });
+      });
     } else {
       console.log(user_err);
       res.json(false);
