@@ -1,4 +1,7 @@
 #!/usr/bin/env perl
+#ProDeGe Copyright (c) 2014, The Regents of the University of California,
+#through Lawrence Berkeley National Laboratory (subject to receipt of any
+#required approvals from the U.S. Dept. of Energy).  All rights reserved.
 
 use strict;
 use warnings;
@@ -61,7 +64,7 @@ if(-e $blastcontam){
 	close(IN);
 }
  
-my $txt="";
+my $txt="1.3.4fin";
 open(OUT,">>$log");
 print OUT "$txt\t";
 print OUT "$jobname\t";

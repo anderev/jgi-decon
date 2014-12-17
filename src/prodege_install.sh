@@ -1,6 +1,9 @@
 #!/bin/bash
+#ProDeGe Copyright (c) 2014, The Regents of the University of California,
+#through Lawrence Berkeley National Laboratory (subject to receipt of any
+#required approvals from the U.S. Dept. of Energy).  All rights reserved.
 
-#This installs Single Cell Decontamination (SCD) 1.3.3
+#This installs ProDeGe 
 # Argument = -i installation_directory -n ncbi_nt -t ncbi_taxonomy
 
 usage()
@@ -70,7 +73,7 @@ then
   cp $CURR_DIR/bin/*.R $INSTALL_DIR/bin/
   cp $CURR_DIR/bin/*.sh $INSTALL_DIR/bin/
   cp $CURR_DIR/bin/*.pl $INSTALL_DIR/bin/
-  cp $CURR_DIR"/scd_install.sh" $INSTALL_DIR/bin/
+  cp $CURR_DIR"/prodege_install.sh" $INSTALL_DIR/bin/
   cp $CURR_DIR/README $INSTALL_DIR/
   cp -R $CURR_DIR/Examples $INSTALL_DIR/
 fi
@@ -105,10 +108,10 @@ sh $CURR_DIR/bin/03.createTaxSpeciesfile.sh $CURR_DIR $INSTALL_DIR/NCBI-tax $NCB
 
 if [[ ! -e $INSTALL_DIR/lib/BH/ || ! -e $INSTALL_DIR/lib/bigmemory.sri/ || ! -e $INSTALL_DIR/lib/bigmemory/ || ! -e $INSTALL_DIR/lib/biganalytics/ ]]
 then
-        echo "R packages not installed.  SCD installation unsuccessful."
+        echo "R packages not installed.  ProDeGe installation unsuccessful."
 elif [[ ! -s $INSTALL_DIR/NCBI-tax/ncbi_taxonomy_leafnodes_species.out ]]
 then
-	echo "NCBI Taxonomy not parsed.  SCD installation unsuccessful."	
+	echo "NCBI Taxonomy not parsed.  ProDeGe installation unsuccessful."	
 else
         echo "Installation successful."
 fi

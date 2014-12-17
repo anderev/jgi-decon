@@ -1,16 +1,24 @@
 #R CMD BATCH -dir -k --no-save kmer.R kmer.out 
+#ProDeGe Copyright (c) 2014, The Regents of the University of California,
+#through Lawrence Berkeley National Laboratory (subject to receipt of any
+#required approvals from the U.S. Dept. of Energy).  All rights reserved.
+
 args=commandArgs(trailingOnly=F)
-jobname=args[length(args)-1]
+cutoff=args[length(args)-1]
+cutoff=sub("-","",cutoff)
+jobname=args[length(args)-2]
 jobname=sub("-","",jobname)
-dir=args[length(args)-3]
+dir=args[length(args)-4]
 dir=sub("-","",dir)
-k=args[length(args)-2]
+k=args[length(args)-3]
 k=sub("-","",k)
-bin=args[length(args)-4]
+bin=args[length(args)-5]
 bin=sub("-","",bin)
 out_cutoff=paste(dir,"/",jobname,"_Intermediate/",jobname,"_cutoff",sep="")
 out_kmerclean=paste(dir,"/",jobname,"_Intermediate/",jobname,"_kmer_clean_contigs",sep="")
 out_kmercontam=paste(dir,"/",jobname,"_Intermediate/",jobname,"_kmer_contam_contigs",sep="")
+out_log=paste(dir,"/",jobname,"_log",sep="")
+out_dist=paste(dir,"/",jobname,"_Intermediate/",jobname,"_dist",sep="")
 #out_kmerundecided=paste(dir,"/kmer_undecided_contigs",sep="")
 print(out_cutoff)
 print(dir)
@@ -56,7 +64,13 @@ ctm=rep("contam",nrow(mm))
 #cutoff=0.01025 #0.16 1.00
 #cutoff=0.0103#0.17 1.00
 #cutoff=0.0104 #0.19 0.98 too high
-cutoff=0.01035 #0.19 1.00
+if(cutoff=="DEFAULT"){
+	cutoff=0.01035 #0.19 1.00
+	write.table(paste("prodege_classify_nobintarget.R: The precalibrated cutoff is ",cutoff,".",sep=""),out_log,append=T,row.names=F,col.names=F,quote=F)
+}else{
+	cutoff=as.numeric(cutoff)
+	write.table(paste("prodege_classify_nobintarget.R: Your cutoff is ",cutoff,".",sep=""),out_log,append=T,row.names=F,col.names=F,quote=F)
+}
 w=which(mm$d<cutoff)
 if(length(w)>0){
         ctm[w]="clean"
@@ -71,4 +85,5 @@ if(length(w)>0){
 	f=file(out_kmerclean, "w")
 	close(f)
 }
+write.table(mm,out_dist,quote=F,append=F,row.names=F,col.names=F,sep="\t")
 write.table(cutoff,out_cutoff,append=F,row.names=F,col.names=F,quote=F)

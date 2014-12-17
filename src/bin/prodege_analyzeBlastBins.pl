@@ -1,4 +1,7 @@
 #!/usr/bin/env perl
+#ProDeGe Copyright (c) 2014, The Regents of the University of California,
+#through Lawrence Berkeley National Laboratory (subject to receipt of any
+#required approvals from the U.S. Dept. of Energy).  All rights reserved.
 
 use strict;
 
@@ -21,7 +24,7 @@ while (<PBF>) {
   my $cg=$a[0];
   $cg=~/(.+)_(\d+_\d+)$/; my ($contig,$g)=($1,$2);
 
-# #Begin add Issue #9: >70perid over >70% of gene requirement for hits 
+# #Begin add Issue #9: >30perid over >50% of gene requirement for hits 
   if($a[2]<30){
 	next;
   }
@@ -42,22 +45,39 @@ while (<PBF>) {
   $contigbins->{$contig}={} unless exists $contigbins->{$contig};
 
   # Extract NR subject species
-  my @stitle=split(/ /,pop(@a));
+  my $st=pop(@a);
+  $st=~s/, complete genome//ig;
+  $st=~s/, partial sequence//ig;
+  my @stitle=split(/ /,$st);
   my $sp;
   ##Issue#1 begin add
   #print $stitle[0] . "! !" . $stitle[1] . "! !" . $stitle[2]  . "! !" . $stitle[3] . "\n";;
   if($stitle[0]=~/\|/){  
-	if(($stitle[1]=~/Candidatus/ || $stitle[1]=~/candidate/i || $stitle[2]=~/sp\.$/i) and $stitle[3]){
-       	 	$sp=$stitle[1] . " " . $stitle[2]  . " " . $stitle[3];
+	if(($stitle[1]=~/Candidatus/ || $stitle[1]=~/candidate/i || $stitle[2]=~/sp\.$/i || $stitle[1]=~/uncultured/ || $stitle[1]=~/Uncultured/) and $stitle[3]){
+		#if(defined($stitle[4])){
+		#	$sp=$stitle[1] . " " . $stitle[2]  . " " . $stitle[3] . " " . $stitle[4];
+		#}
+		#else{       	
+ 			$sp=$stitle[1] . " " . $stitle[2]  . " " . $stitle[3];
+		#}
   	}
   	else{
         	$sp=$stitle[1] . " " . $stitle[2];
   	}
+	if($sp=~/,/){
+		my @sparr=split(/,/,$sp);
+		$sp=$sparr[0];
+	}
   } 
   else{
   ##Issue#1 end add
-  	if(($stitle[0]=~/Candidatus/ || $stitle[0]=~/candidate/i || $stitle[1]=~/sp\.$/i) and $stitle[2]){
-  		$sp=$stitle[0] . " " . $stitle[1]  . " " . $stitle[2];
+  	if(($stitle[0]=~/Candidatus/ || $stitle[0]=~/candidate/i || $stitle[1]=~/sp\.$/i || $stitle[0]=~/uncultured/ || $stitle[0]=~/Uncultured/) and $stitle[2]){
+                if(defined($stitle[3])){
+                        $sp=$stitle[0] . " " . $stitle[1]  . " " . $stitle[2] . " " . $stitle[3];
+                }
+                else{
+  			$sp=$stitle[0] . " " . $stitle[1]  . " " . $stitle[2];
+		}
   	}
   	else{
 		$sp=$stitle[0] . " " . $stitle[1];

@@ -1,24 +1,10 @@
 #!/usr/bin/env perl
+#ProDeGe Copyright (c) 2014, The Regents of the University of California,
+#through Lawrence Berkeley National Laboratory (subject to receipt of any
+#required approvals from the U.S. Dept. of Energy).  All rights reserved.
 
 use strict;
 use warnings;
-
-########################################
-#This module parses the contigs.bins file.  
-#It outputs a contig name followed by the
-#LCA of all gene hits (separated by tab).
-########################################
-#Example contigs.bins input file:
-#contig_0_clean_32920	26	Nitrosococcus halophilus,Candidatus Puniceispirillum,Cupriavidus basilensis,Rhodobacteraceae bacterium,Ruegeria sp.,Nostoc punctiforme,Sphaerobacter thermophilus,Chondromyces apiculatus,Halococcus morrhuae,Halococcus thailandensis,Cupriavidus necator,Nostoc sp.,Arthrospira platensis,Schlesneria paludicola,Lyngbya sp.,Ktedonobacter racemifer,Chelativorans sp.,Bacteria ,Scytonema hofmanni,Azoarcus toluclasticus,Myxococcus sp.,Candidatus Solibacter,Thioalkalivibrio sp.,SAR202 cluster,Actinomadura atramentaria,Rivularia sp.
-########################################
-#The algorithm is this:
-#read in lines of contigs.bins
-#  loop over split 3rd argument (string of species)
-#    search for that leaf node in ncbi taxonomy
-#    add the taxonomy (from root to species) into tree data structure
-#  parse tree for LCA
-#  print contig name and LCA, separated by tab
-#######################################
 
 my $usage="$0 <directory which contains input fasta file> <NCBI_tax_leafnodes_species file> <jobname>\n";
 @ARGV==3 or die $usage;
@@ -58,6 +44,7 @@ while(my $line=<IN>){
 		my $pnode='root';
 		foreach my $ctax (@nts){
 			chomp($ctax);
+			$ctax="root\t" . $ctax;
 			my $ostr=$ctax;
 			$ostr=~s/\t/;/g;
 			print OUTCS "," . $ostr;
@@ -133,6 +120,7 @@ while(my $line=<IN>){
 		}
         }
         $tts{$arr[0]}=$str;
+	$str=~s/^ root;//;
         print OUT "$arr[0]\t$str\n";
       }
       else{

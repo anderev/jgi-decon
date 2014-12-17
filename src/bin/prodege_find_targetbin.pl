@@ -1,4 +1,7 @@
 #!/usr/bin/env perl
+#ProDeGe Copyright (c) 2014, The Regents of the University of California,
+#through Lawrence Berkeley National Laboratory (subject to receipt of any
+#required approvals from the U.S. Dept. of Energy).  All rights reserved.
 
 use strict;
 use warnings;
@@ -31,8 +34,9 @@ my $targetfile=$ARGV[0] . "/" . $jobname . "_Intermediate/" . $jobname . "_targe
 #unless(-e $contigLCA) {die "$contigLCA does not exist.\n";}
 #unless(-e $targetfile) {die "$targetfile does not exist.\n";}
 unless(-e $contigLCA) {die;}
-unless(-e $targetfile) {die;}
+unless(-e $targetfile) {exit(0);}
 
+open(LOG,">>$ARGV[0]" . "/" . $jobname . "_log");
 open(IN,$contigLCA);
 my %bh;
 my $tlines=0;
@@ -64,15 +68,16 @@ close(IN);
 chomp($known_target);
 my $full_known_target=$known_target;
 my $c=()=$known_target=~/;/g;
-if($c<3){
+if($c<1){
+	print LOG "Input taxonomy is not deep enough to use blast binning.\n";
 	exit; #not enough to find bin
 }
-if($c>5){
+if($c>3){
 	my @arr=split(/;/,$known_target);
 	while(1){
 		pop(@arr);
 		my $s=@arr;
-		if($s==5){
+		if($s==3){
 			last;
 		}
 	}
@@ -85,8 +90,7 @@ my $last_key="initialized";
 my $bin_target="initialized";
 for(my $i=0;$i<scalar(@sorted_bhkeys);$i++){
 	my $key=$sorted_bhkeys[$i];
-#	if($key!~/^root;cellular organisms;Bacteria;$/ and $key!~/^root;cellular organisms;$/ and $key!~/^root;$/ or $key!~/^root;cellular organisms;Bacteria;Proteobacteria;/ and $key=~/^r/){
-        if($key!~/^root;cellular organisms;Bacteria;$/ and $key!~/^root;cellular organisms;Archaea;$/ and $key!~/^root;cellular organisms;$/ and $key!~/^root;$/ and $key=~/^r/){		
+        if($key!~/^Bacteria;$/ and $key!~/^Archaea;$/ and $key!~/^$/ and $key!~/^;$/){		
 		#print "#$bh{$key}# \t #$known_target# \t #$key#\n#$full_known_target#\n";
 		if($full_known_target=~/$key/ and $bh{$key}>2){
 	                $bin_target=$full_known_target;
@@ -102,7 +106,7 @@ for(my $i=0;$i<scalar(@sorted_bhkeys);$i++){
 
 if(!exists($bh{$bin_target})){
 	my $c=()=$last_key=~/;/g;
-	if($c>=7){
+	if($c>=5){
 		$bin_target=$last_key;
 	}
 }
@@ -112,7 +116,7 @@ if(!exists($bh{$bin_target})){
 	pop(@ba);
 	my $nbh=join(";",@ba) . ";";
         my $c=()=$nbh=~/;/g;
-	if($c>=7 and exists($bh{$nbh})){
+	if($c>=5 and exists($bh{$nbh})){
 	  if($bh{$nbh}>2){
                 $bin_target=$nbh;
 	  }
@@ -131,3 +135,5 @@ if($bin_target!~/initialized/){
 	close(OUT); 
   }
 }
+print LOG "Binning target is $bin_target.\n";
+close(LOG);
