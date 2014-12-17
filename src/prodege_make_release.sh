@@ -20,12 +20,10 @@ mkdir ${fud}/Releases/prodege-${ver}/lib
 mkdir ${fud}/Releases/prodege-${ver}/Examples
 
 cp ${tod}/README ${fud}/Releases/prodege-${ver}/
-cp ${tod}/bin/*py ${fud}/Releases/prodege-${ver}/bin/
 cp ${tod}/bin/*pl ${fud}/Releases/prodege-${ver}/bin/
 cp ${tod}/bin/*sh ${fud}/Releases/prodege-${ver}/bin/
 cp ${tod}/bin/*R ${fud}/Releases/prodege-${ver}/bin/
 cp ${tod}/lib/*pm ${fud}/Releases/prodege-${ver}/lib/
-cp ${tod}/lib/*txt ${fud}/Releases/prodege-${ver}/lib/
 cp -r ${tod}/Examples/* ${fud}/Releases/prodege-${ver}/Examples
 cp ${tod}/prodege_install.sh ${fud}/Releases/prodege-${ver}/
 

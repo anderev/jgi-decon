@@ -54,6 +54,11 @@ then
 	exit 1
 fi
 
+if [ ! -e $WORKING_DIR ]
+then
+        mkdir -p $WORKING_DIR
+fi
+
 num_contigs=`grep -c "^>" $IN_FASTA`;
 three=3
 if [ "$num_contigs" -lt "$three" ]
@@ -72,11 +77,6 @@ then
         cp $IN_FASTA ${WORKING_DIR}/${JOB_NAME}_output_clean.fna
         touch ${WORKING_DIR}/${JOB_NAME}_output_contam.fna
         exit 5
-fi
-
-if [ ! -e $WORKING_DIR ]
-then
-	mkdir -p $WORKING_DIR
 fi
 
 touch ${WORKING_DIR}/${JOB_NAME}_log

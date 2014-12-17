@@ -64,7 +64,7 @@ if(-e $blastcontam){
 	close(IN);
 }
  
-my $txt="1.3.4fin";
+my $txt=" ";
 open(OUT,">>$log");
 print OUT "$txt\t";
 print OUT "$jobname\t";

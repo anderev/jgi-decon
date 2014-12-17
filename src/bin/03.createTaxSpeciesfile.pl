@@ -60,7 +60,7 @@ while(my $line=<IN>){
 		my $id=$f[0];
 		getParentsRecursively($id,$map_nodes,$map_names,\@lineage);
 		@lineage=reverse(@lineage);
-		print OUT join('\t',@lineage) . "\n";
+		print OUT join("\t",@lineage) . "\n";
 		#foreach (@lineage){
 		#	print OUT $_ . "\t";
 		#}

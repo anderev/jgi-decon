@@ -12,4 +12,3 @@ perl ${cdir}/bin/03.createTaxSpeciesfile.pl $ntloc ${ntdir}/ncbi_taxonomy_leafno
 rm $ntloc/*.dmp
 rm $ntloc/*.prt
 rm $ntloc/readme.txt
-rm $ntloc/*gz

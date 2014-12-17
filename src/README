@@ -16,6 +16,8 @@
 # distribute copies to the public, perform publicly and display publicly, and to permit others to do so.
 ############################################################################################################
 
+ProDeGe 2.0: a computational Protocol for fully-automated Decontamination of Genomes
+
 PURPOSE
 The purpose of this software is to decontaminate single amplified genomes and genomes assembled from metagenomes.
 
@@ -23,7 +25,7 @@ REQUIREMENTS
 The user must have this software previously installed before running the install
 script:
 - Blast+ 2.2.28
-- Perl 5.16.0
+- Perl 5.16.0 (with modules Bio::SeqIO and Bio::Perl)
 - Prodigal 2.50
 - R 3.0.1
 The BLASTN_EXE envirnonmental variable is used to run blastn, R_EXE to run R,
@@ -76,7 +78,4 @@ EXAMPLE
 Two examples are included in the Examples folder.  The config.cfg needs to be updated with the install location and
 the working directory.  To run the example type:
 prodege.sh <config file>
-
-
-
 

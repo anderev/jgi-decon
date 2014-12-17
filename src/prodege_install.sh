@@ -3,7 +3,7 @@
 #through Lawrence Berkeley National Laboratory (subject to receipt of any
 #required approvals from the U.S. Dept. of Energy).  All rights reserved.
 
-#This installs ProDeGe 
+#This installs ProDeGe 2.0
 # Argument = -i installation_directory -n ncbi_nt -t ncbi_taxonomy
 
 usage()
@@ -69,7 +69,6 @@ then
   mkdir $INSTALL_DIR/bin
   mkdir $INSTALL_DIR/lib
   cp $CURR_DIR/lib/*.pm $INSTALL_DIR/lib/
-  cp $CURR_DIR/lib/*.txt $INSTALL_DIR/lib/
   cp $CURR_DIR/bin/*.R $INSTALL_DIR/bin/
   cp $CURR_DIR/bin/*.sh $INSTALL_DIR/bin/
   cp $CURR_DIR/bin/*.pl $INSTALL_DIR/bin/
