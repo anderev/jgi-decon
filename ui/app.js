@@ -13,7 +13,8 @@ var express = require('express'),
   cookie_parser = require('cookie-parser'),
   morgan = require('morgan'),
   bodyParser = require('body-parser'),
-  busboy = require('connect-busboy');
+  busboy = require('connect-busboy'),
+  errorhandler = require('errorhandler');
 
 var app = module.exports = express();
 var config = require('./config.js').Config;
@@ -41,10 +42,22 @@ app.use(express.static(path.join(__dirname, 'public')));
 var cookieParser = cookie_parser('secret string');
 var calibanRoute = caliban.calibanRoute;
 app.get('*', cookieParser);
-app.get('*', calibanRoute);
 app.post('*', cookieParser);
-app.post('*', calibanRoute);
 app.delete('*', cookieParser);
+
+// staging only
+if (config.env === 'staging') {
+  caliban.startCalibanStub(app);
+  //app.use(errorhandler);
+}
+
+// production only
+if (config.env === 'production') {
+  // TODO
+}
+
+app.get('*', calibanRoute);
+app.post('*', calibanRoute);
 app.delete('*', calibanRoute);
 
 app.get('/', routes.index);
@@ -72,16 +85,6 @@ app.delete('/api/job/:id', api.deleteJob);
 // redirect all others to the index (HTML5 history)
 app.get('*', routes.index);
 
-
-// development only
-if (config.env === 'development') {
-  app.use(express.errorHandler());
-}
-
-// production only
-if (config.env === 'production') {
-  // TODO
-}
 
 /**
  * Start Server
