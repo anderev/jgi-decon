@@ -11,14 +11,17 @@
     "jade": "^1.8.1",
     "jstoxml": "^0.2.2",
     "morgan": "^1.5.0",
+    "node-sshclient": "^0.2.0",
     "process": "^0.10.0",
+    "q": "^1.2.0",
     "sqlite3": "^3.0.4",
     "xml2js": "^0.4.4"
   },
   "description": "DOE JGI ProDeGe decontamination.",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
   },
   "repository": {
     "type": "git",
