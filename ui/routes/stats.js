@@ -1,5 +1,6 @@
 var fs = require('fs');
 var parser = require('./parsers.js');
+var Q = require('q');
 
 gc_percent = function(nucs) {
   var gc_count = 0;
@@ -26,7 +27,8 @@ num_contigs = function(nucs) {
   return Object.keys(nucs).length;
 };
 
-exports.parse_fna = function(fna_filename, cb_ok, cb_err) {
+exports.parse_fna = function(fna_filename) {
+  var deferred = Q.defer();
   fs.readFile(fna_filename, parser.parse_genes_fna(function(nucs, err) {
     if(!err) {
       var funcs = [[gc_percent, 'gc_percent'], [num_bases, 'num_bases'], [num_contigs, 'num_contigs']];
@@ -35,10 +37,12 @@ exports.parse_fna = function(fna_filename, cb_ok, cb_err) {
         result[func[1]] = func[0](nucs);
       });
 
-      cb_ok(result);
+      deferred.resolve(result);
     } else {
-      cb_err(err);
+      deferred.reject(err);
     }
   }));
+
+  return deferred.promise;
 };
 

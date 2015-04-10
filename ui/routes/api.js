@@ -5,7 +5,8 @@ var config = require('../config').Config;
 var parser = require('./parsers');
 var stats = require('./stats');
 var caliban = require('./caliban');
-var temp = require('temp').track();
+var temp = require('temp');
+var Q = require('q');
 
 var user_uploads = {};
 
@@ -101,14 +102,13 @@ exports.job = function(req, res) {
       var id = req.params.id;
       db.get("SELECT * FROM job WHERE job_id = ? AND (user_id = ? OR is_public = 1)", [id, user.id[0]], function(err, row) {
         if(!err && row) {
-          config.job_status(row.job_id, row.process_id, row.user_id, function(err, str_status) {
-            if(!err) {
-              row.process_status = str_status;
-              res.json({job: row});
-            } else {
-              console.log('error: '+err);
-              res.json(false);
-            }
+          config.job_status(row.job_id, row.process_id, row.user_id)
+          .then(function(str_status) {
+            row.process_status = str_status;
+            res.json({job: row});
+          }, function(reason) {
+            console.log('job status error: '+reason);
+            res.json(false);
           });
         } else {
           res.json(false);
@@ -281,7 +281,8 @@ exports.addJob = function(req, res) {
 
                 fs.exists(temp_fasta_filename, function(exists) {
                   if(exists) {
-                    stats.parse_fna(temp_fasta_filename, function(fasta_stats) {
+                    var parse_promise = stats.parse_fna(temp_fasta_filename)
+                    .then( function(fasta_stats) {
                       db.run("UPDATE job SET gc_percent = ?, num_bases = ?, num_contigs = ? WHERE job_id = ?", [fasta_stats.gc_percent, fasta_stats.num_bases, fasta_stats.num_contigs, job_id], function(err) {
                         if(!err) {
                           console.log('Updated job_id ' + job_id + ' with ' + JSON.stringify(fasta_stats));
@@ -322,26 +323,29 @@ exports.addJob = function(req, res) {
                       }
                     }
 
-                    temp.open('prodege-', function(err, info) {
+                    temp.open('c-', function(err, info) {
                       if(!err) {
                         console.log('Starting job for config: '+info.path);
                         fs.write(info.fd, config_data);
                         fs.close(info.fd, function(err) {
                           if(!err) {
-                            config.job_start(job_id, info.path, temp_fasta_filename, user.id[0], function(err, process_id) {
-                              if(!err) {
-                                db.run("UPDATE job SET process_id = ? WHERE job_id = ?", [process_id, job_id], function(err) {
-                                  if(!err) {
-                                    res.json(req.body);
-                                  } else {
-                                    console.log('Failed to update job with process_id and working_dir.');
-                                    console.log(err);
-                                    res.json(false);
-                                  }
-                                });
-                              } else {
-                                console.log('job_start error: '+err);
-                              }
+                            var job_start_promise = config.job_start(job_id, info.path, temp_fasta_filename, user.id[0])
+                            .then( function(process_id) {
+                              db.run("UPDATE job SET process_id = ? WHERE job_id = ?", [process_id, job_id], function(err) {
+                                if(!err) {
+                                  res.json(req.body);
+                                } else {
+                                  console.log('Failed to update job with process_id and working_dir.');
+                                  console.log(err);
+                                  res.json(false);
+                                }
+                              });
+                            }, function(reason) {
+                              console.log('job_start error: '+err);
+                            });
+                            Q.allSettled([parse_promise, job_start_promise]).done(function() {
+                              fs.unlink(info.path);
+                              fs.unlink(temp_fasta_filename);
                             });
                           }
                         });

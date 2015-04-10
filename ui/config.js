@@ -12,8 +12,8 @@ var Production = function() {
   this.bundle_src_name = 'prodege-2.0.tgz';
 
   //Overrides
-  this.job_start = function(job_id, temp_config_filename, temp_fasta_filename, user_id, cb) { return job_start(job_id, temp_config_filename, temp_fasta_filename, user_id, this.remote_working_dir, cb); };
-  this.job_status = function(job_id, process_id, user_id, cb) { job_status(job_id, process_id, user_id, this.local_working_dir, cb); };
+  this.job_start = function(job_id, temp_config_filename, temp_fasta_filename, user_id) { return job_start(job_id, temp_config_filename, temp_fasta_filename, user_id, this.remote_working_dir); };
+  this.job_status = function(job_id, process_id, user_id) { return job_status(job_id, process_id, user_id, this.local_working_dir); };
   this.remote_working_dir = '/global/projectb/scratch/ewanders/prodege/production';
   this.local_working_dir = '/dna/shared/data/gbp/prodege/production';
   this.upload_dir = process.cwd()+'/uploads';
@@ -88,11 +88,11 @@ function qsub_promise(command) {
   return deferred.promise;
 }
 
-function job_status(jid, pid, user_id, working_dir, cb) {
+function job_status(jid, pid, user_id, working_dir) {
+  var deferred = Q.defer();
   ssh_promise('/usr/common/usg/bin/qs -j '+pid+' --style json')
   .then(function(output) {
     var parsed_job_status = JSON.parse(new String(output).split('\n')[0]);
-    console.log('parsed_job_status: '+parsed_job_status);
     if(parsed_job_status.length === 1) {
       var str_status = '';
       if(parsed_job_status[0].state.match(/qw/)) {
@@ -107,63 +107,68 @@ function job_status(jid, pid, user_id, working_dir, cb) {
       if(parsed_job_status[0].state.match(/E/)) {
         str_status = str_status + ' (ERROR)';
       }
-      if(parsed_job_status[0].state.match(/h/)) {
+      /*if(parsed_job_status[0].state.match(/h/)) {
         str_status = str_status + ' (HOLD)';
-      }
+      }*/
       if(parsed_job_status[0].state.match(/R/)) {
         str_status = str_status + ' (RESUBMITTED)';
       }
-      cb(null, str_status);
+      deferred.resolve(str_status);
     } else {
       console.log('no current job');
       console.log('checking: '+working_dir+'/sso_'+user_id+'/job_'+jid);
       fs.exists(working_dir+'/sso_'+user_id+'/job_'+jid, function(exists) {
         if(exists) {
           console.log('exists');
-          cb(null, 'Complete');
+          deferred.resolve('Complete');
         } else {
           console.log('not exists');
-          cb(null, 'Unknown');
+          deferred.resolve('Unknown');
         }
       });
     }
   }, function(reason) {
-    cb(reason, null);
+    deferred.reject(reason);
   });
+
+  return deferred.promise;
 }
 
-function job_start(job_id, temp_config_filename, temp_fasta_filename, user_id, working_dir, cb) {
+function job_start(job_id, temp_config_filename, temp_fasta_filename, user_id, working_dir) {
+  var deferred = Q.defer();
   var user_working_dir = working_dir+'/sso_'+user_id;
   var remote_config_filename = user_working_dir+'/job_'+job_id+'.cnf';
   var remote_fasta_filename = user_working_dir+'/job_'+job_id+'.fna';
   ssh_promise('mkdir -p '+user_working_dir)
-    .then(function() {
-      console.log('User dir exists: '+user_working_dir);
-      Q.allSettled([
-        scp_promise( temp_config_filename, remote_config_filename ),
-        scp_promise( temp_fasta_filename, remote_fasta_filename )
-        ]).spread(function(config, fasta) {
-          console.log('scp successful');
-          var cmd_line = 'qsub -N $JOBNAME -j y -V -o $LOGFILE -l exclusive.c -l h_rt=12:00:00 -pe pe_slots 8 /global/projectb/sandbox/omics/sc-decontamination/Production/prodege-2.0/bin/prodege.sh $CONF_FILE'
-          .replace('$JOBNAME', 'SCD-job_'+job_id)
-          .replace('$LOGFILE', user_working_dir+'/job_'+job_id+'-qsub.log')
-          .replace('$CONF_FILE', remote_config_filename);
-          qsub_promise(cmd_line)
-          .then(function(jid) {
-            console.log('compute job: ' + jid);
-            qsub_promise('qsub -q xfer.q -hold_jid '+jid+' ~/rsync_prodege_data.sh ~/rsync_'+jid+'.log')
-            .then(function(jid) { console.log('rsync job: '+jid); cb(null, jid); }, function(reason) { cb(reason, null); });
-          },
-          function(reason) {
-            cb(reason, null);
-          });
-        }, function(scp_rejection) {
-          console.log(scp_rejection);
+  .then(function() {
+    console.log('User dir exists: '+user_working_dir);
+    Q.allSettled([
+      scp_promise( temp_config_filename, remote_config_filename ),
+      scp_promise( temp_fasta_filename, remote_fasta_filename )
+      ]).spread(function(config, fasta) {
+        console.log('scp successful');
+        var cmd_line = 'qsub -N $JOBNAME -j y -V -o $LOGFILE -l exclusive.c -l h_rt=12:00:00 -pe pe_slots 8 /global/projectb/sandbox/omics/sc-decontamination/Production/prodege-2.0/bin/prodege.sh $CONF_FILE'
+        .replace('$JOBNAME', 'SCD-job_'+job_id)
+        .replace('$LOGFILE', user_working_dir+'/job_'+job_id+'-qsub.log')
+        .replace('$CONF_FILE', remote_config_filename);
+        qsub_promise(cmd_line)
+        .then(function(jid) {
+          console.log('compute job: ' + jid);
+          qsub_promise('qsub -q xfer.q -hold_jid '+jid+' ~/rsync_prodege_data.sh ~/rsync_'+jid+'.log')
+          .then(function(jid) { console.log('rsync job: '+jid); deferred.resolve(jid); }, function(reason) { deferred.reject(reason); });
+        },
+        function(reason) {
+          deferred.reject(reason);
         });
-    }, function(reason) {
-      console.log('User mkdir failed: '+user_working_dir);
-      console.log(reason);
-    });
+      }, function(scp_rejection) {
+        console.log(scp_rejection);
+      });
+  }, function(reason) {
+    console.log('User mkdir failed: '+user_working_dir);
+    console.log(reason);
+  });
+
+  return deferred.promise;
 }
 
 exports.Config = global.process.env.NODE_ENV === 'production' ? new Production() : new Staging();
