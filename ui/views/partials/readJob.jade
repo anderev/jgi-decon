@@ -6,7 +6,7 @@ table(align='center')
     td
       div(align='left', id='plot_area')
     td
-      table(border='1')
+      table(ng-show='job.process_status == "Complete"', border='1')
         tr
           td
             | Color By:
@@ -81,7 +81,7 @@ table(align='center')
               | Start Time:
             td
               | {{job.start_time}}
-          tr
+          tr(ng-show='job.process_status == "Complete"')
             td
               | Download Fasta:
             td

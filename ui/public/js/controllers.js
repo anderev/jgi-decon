@@ -102,16 +102,18 @@ function ReadJobCtrl($scope, $http, $routeParams, plotService) {
         $scope.update_legend = function(color_map) { $scope.color_map = color_map; };
         $scope.contig = null;
         $scope.nuc_seqs = null;
-        $http.get('/api/getPCA/' + $routeParams.id).
-        	success(function(data) {
-                  if(data.nuc_seqs) {
-                    $scope.nuc_seqs = data.nuc_seqs;
-                  }
-                  if(data.contigs) {
-                    $scope.plotService.init(data, $scope);
-                  }
-        	});
-        });
+        if(data.job.process_status === 'Complete') {
+          $http.get('/api/getPCA/' + $routeParams.id).
+            success(function(data) {
+              if(data.nuc_seqs) {
+                $scope.nuc_seqs = data.nuc_seqs;
+              }
+              if(data.contigs) {
+                $scope.plotService.init(data, $scope);
+              }
+            });
+        }
+    });
 }
 
 function DeleteJobCtrl($scope, $http, $location, $routeParams) {

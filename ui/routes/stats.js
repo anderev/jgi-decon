@@ -9,7 +9,8 @@ gc_percent = function(nucs) {
     var gene = nucs[gene_id];
     var nuc_chars = gene.split('\n')[1];
     nuc_count += nuc_chars.length;
-    gc_count += nuc_chars.match(/[GCgc]/g).length;
+    var matched_nucs = nuc_chars.match(/[GCgc]/g);
+    if(matched_nucs) gc_count += matched_nucs.length;
   }
   return (100.0 * gc_count) / nuc_count;
 };
