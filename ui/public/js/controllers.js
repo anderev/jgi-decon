@@ -49,21 +49,24 @@ function AddJobCtrl($scope, $http, $upload, $location) {
     $scope.form.taxon_genus = fields[5] || '';
     $scope.form.taxon_species = fields[6] || '';
   };
+  $scope.file_selected = null;
+  $scope.file_uploaded = false;
   $scope.onFileSelect = function($files) {
-    console.log('onFileSelect');
-    for(var i = 0; i < $files.length; i++) {
-      var file = $files[i];
-      $scope.upload = $upload.upload({
-        url: '/api/uploadFasta',
-        method: 'POST',
-        data: {in_fasta: $scope.form.in_fasta},
-        file: file
-      }).progress(function(evt) {
-        console.log('percent: ' + parseInt(100.0 * evt.loaded / evt.total));
-      }).success(function(data, status, headers, config) {
-        console.log(data);
-      });
-    }
+    $scope.file_selected = $files[0];
+    $scope.file_uploaded = false;
+    console.log('file_selected: '+$scope.file_selected);
+  };
+  $scope.upload_file = function() {
+    console.log('upload_file');
+    var file = $scope.file_selected;
+    $scope.upload = $upload.upload({
+      url: '/api/uploadFasta',
+      method: 'POST',
+      data: {in_fasta: $scope.form.in_fasta},
+      file: file
+    }).success(function(data, status, headers, config) {
+      $scope.file_uploaded = true;
+    });
   };
   $scope.submitJob = function() {
     $http.post('/api/job', $scope.form).
