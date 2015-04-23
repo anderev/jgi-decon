@@ -1,4 +1,4 @@
-var fs = require('fs');
+var FS = require('fs');
 var parser = require('./parsers.js');
 var Q = require('q');
 
@@ -30,19 +30,17 @@ num_contigs = function(nucs) {
 
 exports.parse_fna = function(fna_filename) {
   var deferred = Q.defer();
-  fs.readFile(fna_filename, parser.parse_genes_fna(function(nucs, err) {
-    if(!err) {
-      var funcs = [[gc_percent, 'gc_percent'], [num_bases, 'num_bases'], [num_contigs, 'num_contigs']];
-      var result = {};
-      funcs.map(function(func) {
-        result[func[1]] = func[0](nucs);
-      });
+  parser.parse_genes_fna(fna_filename).done(function(nucs) {
+    var funcs = [[gc_percent, 'gc_percent'], [num_bases, 'num_bases'], [num_contigs, 'num_contigs']];
+    var result = {};
+    funcs.map(function(func) {
+      result[func[1]] = func[0](nucs);
+    });
 
-      deferred.resolve(result);
-    } else {
-      deferred.reject(err);
-    }
-  }));
+    deferred.resolve(result);
+  }, function(reason) {
+    deferred.reject(reason);
+  });
 
   return deferred.promise;
 };

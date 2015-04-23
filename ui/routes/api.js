@@ -188,38 +188,19 @@ exports.parseJobFiles = function(req, res, cb_ok, cb_err) {
                 return;
               }
 
-              fs.readFile(filename_pca, parser.parse_pca(contigs, function(err) {
-                if(!err) {
-                  fs.readFile(filename_names, parser.parse_names(contigs, function(err) {
-                    if(!err) {
-                      fs.readFile(filename_lca, parser.parse_lca(contigs, function(err) {
-                        if(!err) {
-                          fs.readFile(filename_blout, parser.parse_blout(contigs, function(err) {
-                            if(!err) {
-                              fs.readFile(filename_genes_fna, parser.parse_genes_fna(function(nuc_seqs, err) {
-                                if(!err) {
-                                  cb_ok(contigs, nuc_seqs);
-                                } else {
-                                  cb_err(err);
-                                }
-                              }));
-                            } else {
-                              cb_err(err);
-                            }
-                          }));
-                        } else {
-                          cb_err(err);
-                        }
-                      }));
-                    } else {
-                      cb_err(err);
-                    }
-                  }));
-                } else {
-                  cb_err(err);
-                }
-              }));
-
+              parser.parse_pca(filename_pca).then(function(contigs) {
+                parser.parse_names(filename_names, contigs).then(function(contigs) {
+                  parser.parse_lca(filename_lca, contigs).then(function(contigs) {
+                    parser.parse_blout(filename_blout, contigs).then(function(contigs) {
+                      parser.parse_genes_fna(filename_genes_fna).then(function(nuc_seqs) {
+                        cb_ok(contigs, nuc_seqs);
+                      })
+                    });
+                  });
+                });
+              }).catch(function(reason){
+                cb_err(reason);
+              });
             });
 
 
@@ -291,7 +272,7 @@ exports.addJob = function(req, res) {
                         }
                       });
                     }, function(err) {
-                      console.log('Error getting stats on fasta: ' + temp_fasta_filename);
+                      console.log('Error getting stats on fasta: ' + temp_fasta_filename + ' ERROR: ' + err);
                     });
                     cfg.working_dir = config.remote_working_dir + '/sso_' + user.id[0];
                     cfg.in_fasta = cfg.working_dir + '/job_' + job_id + '.fna';
