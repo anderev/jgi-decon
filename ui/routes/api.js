@@ -246,7 +246,7 @@ exports.addJob = function(req, res) {
       var now = new Date();
       var start_time = now.toDateString() + ' ' + now.toTimeString();
       db.serialize(function() {
-        db.run("INSERT INTO job VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", [req.body.taxon_display_name, req.body.taxon_domain, req.body.taxon_phylum, req.body.taxon_class, req.body.taxon_order, req.body.taxon_family, req.body.taxon_genus, req.body.taxon_species,user.id[0],null,start_time,req.body.in_fasta,req.body.notes,req.body.is_public,null,null,null,null], function(err) {
+        db.run("INSERT INTO job VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", [(req.body.taxon_display_name || '').trim(), (req.body.taxon_domain || '').trim(), (req.body.taxon_phylum || '').trim(), (req.body.taxon_class || '').trim(), (req.body.taxon_order || '').trim(), (req.body.taxon_family || '').trim(), (req.body.taxon_genus || '').trim(), (req.body.taxon_species || '').trim(), user.id[0],null,start_time, req.body.in_fasta, (req.body.notes || '').trim(),req.body.is_public,null,null,null,null], function(err) {
           if(err) {
             console.log('Failed to insert new job into table.');
             console.log(err);
