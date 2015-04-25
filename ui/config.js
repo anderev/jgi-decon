@@ -33,7 +33,12 @@ var Staging = function() {
   this.remote_working_dir = '/global/projectb/scratch/ewanders/prodege/staging';
   this.local_working_dir = '/dna/shared/data/gbp/prodege/staging';
   this.env = 'staging';
-  this.caliban_return_URL = 'https://prodege-dev.jgi-psf.org/';
+  this.port = 80;
+  this.caliban_return_URL = 'http://prodege-dev.jgi-psf.org/';
+  this.job_start = function(job_id, temp_config_filename, temp_fasta_filename, user_id) { return job_start(job_id, temp_config_filename, temp_fasta_filename, user_id, this.remote_working_dir); };
+  this.job_status = function(job_id, process_id, user_id) { return job_status(job_id, process_id, user_id, this.local_working_dir); };
+  this.caliban_api_users = function(user_id, cb) { return https.get({hostname:'signon.jgi-psf.org', port: 4444, path: '/api/users/'+user_id}, cb); };
+  this.caliban_api_session = function(session, cb) { return https.get({hostname:'signon.jgi-psf.org', port: 4444, path: session}, cb); };
 };
 Staging.prototype = Object.create(Production.prototype);
 Staging.prototype.constructor = Staging;
