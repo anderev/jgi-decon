@@ -10,6 +10,7 @@ var Production = function() {
   this.nt_location = '';
   this.bundle_src = './prodege-2.0.tgz';
   this.bundle_src_name = 'prodege-2.0.tgz';
+  this.version = '2.0';
 
   //Overrides
   this.job_start = function(job_id, temp_config_filename, temp_fasta_filename, user_id) { return job_start(job_id, temp_config_filename, temp_fasta_filename, user_id, this.remote_working_dir); };
