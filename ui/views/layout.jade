@@ -4,8 +4,8 @@ html(ng-app="myApp")
     meta(charset='utf8')
     base(href='/')
     title JGI ProDeGe
-    link(rel='stylesheet', href='css/bootstrap.min.css')
-    link(rel='stylesheet', href='http://jgi.doe.gov/wp-content/themes/jgi-apps/style.css')
+    link(rel='stylesheet', href='/css/bootstrap.min.css')
+    link(rel='stylesheet', href='/css/jgi-style.css')
   body
     .site-container
       header.site-header
@@ -16,7 +16,7 @@ html(ng-app="myApp")
             section#text-2.widget.widget_text
               .widget-wrap
                 .textwidget
-                  form.search-form(method='get', action='http://jgi.doe.gov/search-results')
+                  form.search-form(method='get', action='https://jgi.doe.gov/search-results')
                     input(type='search', placeholder='Search JGI websites …', name='q')
                     input(type='submit', value='Search')
             section#nav_menu-2.widget.widget_nav_menu
@@ -27,7 +27,7 @@ html(ng-app="myApp")
                       li#menu-item-10.menu-item.menu-item-type-custom.menu-item-object-custom.menu-item-10
                         | {{ssoUser.login[0]}}
                       li#menu-item-10.menu-item.menu-item-type-custom.menu-item-object-custom.menu-item-10
-                        a(href="javascript: document.cookie='jgi_return=http://' + top.window.location.host + '; domain=.jgi-psf.org; path=/;'; top.window.location.href='https://signon.jgi-psf.org/signon/destroy';")
+                        a(href="javascript: document.cookie='jgi_return=https://' + top.window.location.host + '; domain=.jgi-psf.org; path=/;'; top.window.location.href='https://signon.jgi-psf.org/signon/destroy';")
                           | Sign Out
                       li#menu-item-10.menu-item.menu-item-type-custom.menu-item-object-custom.menu-item-10
                         a(href='http://www.jgi.doe.gov/contact-us/')
@@ -80,26 +80,25 @@ html(ng-app="myApp")
                       ul.smedia_icons.horizontal
                         li
                           a(href='https://twitter.com/doe_jgi')
-                            img(src='images/twitter_icon.png')
+                            img(src='/images/twitter_icon.png')
                         li
                           a(href='http://www.flickr.com/photos/doe_jgi/')
-                            img(src='images/flickr_icon.png')
+                            img(src='/images/flickr_icon.png')
                         li
                           a(href='https://www.facebook.com/JointGenomeInstitute')
-                            img(src='images/fb_icon.png')
+                            img(src='/images/fb_icon.png')
                         li
                           a(href='http://www.youtube.com/user/JointGenomeInstitute')
-                            img(src='images/yt_icon.png')
+                            img(src='/images/yt_icon.png')
                         li
                           a(href='http://www.linkedin.com/groups/DOE-Joint-Genome-Institute-4080297/about')
-                            img(src='images/li_icon.png')
-                        // <li><a href="http://www.scivee.tv/user/7476"><img src='http://jgi.doe.gov/wp-content/uploads/2013/11/Scivee_logo_gray_transparent.png'></a></li>
+                            img(src='/images/li_icon.png')
               .footer-widgets-3.widget-area
                 section#widget_sp_image-2.widget.widget_sp_image
                   .widget-wrap
                     a.widget_sp_image-image-link(title='Department of Energy | Office of Science', target='_blank', href='http://www.doe.gov')
-                      img.attachment-full.alignright(width='232', height='39', style='max-width: 100%;', src='images/DOE_logo.png', alt='')
+                      img.attachment-full.alignright(width='232', height='39', style='max-width: 100%;', src='/images/DOE_logo.png', alt='')
           #footer-left
             p.copyright
-              | © 1997-2014 The Regents of the
+              | © 1997-215 The Regents of the
               | University of California

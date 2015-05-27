@@ -23,7 +23,10 @@ div(style='margin-left:50px;margin-right:15px;margin-top:10px;margin-bottom:50px
     br
     | Species: {{form.taxon_species}}
   label(for='in_fasta') Fasta Input:
-  input(type='file', ng-model='form.in_fasta', name='in_fasta', ng-file-select='onFileSelect($files)')
+  input(type='file', ng-model='form.in_fasta', name='in_fasta' ng-file-select='onFileSelect($files)')
+  button(ng-show='file_selected && !file_uploaded', ng-click='upload_file()') Upload
+  div(ng-show='file_uploaded')
+    | Upload Successful
   br
   br
   label(for='notes') Notes:
@@ -34,5 +37,7 @@ div(style='margin-left:50px;margin-right:15px;margin-top:10px;margin-bottom:50px
   input(ng-model='form.is_public', name='is_public', type='checkbox')
   br
   br
-  button(ng-click='submitJob()') Submit Job
+  button(ng-show='file_uploaded', ng-click='submitJob()') Submit Job
+  div(ng-hide='file_uploaded',style='color:red')
+    | Please select fasta file and click Upload. Once it is uploaded, the Submit button will appear.
 

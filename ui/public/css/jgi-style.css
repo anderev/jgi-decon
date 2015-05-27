@@ -1,0 +1,632 @@
+@import url(https://fonts.googleapis.com/css?family=Karla:400,700|Oswald);
+/*!
+Theme Name: Joint Genome Institute - App Website Template
+Theme URI: http://jgi.doe.gov
+Author: Anca Mosoiu, Leila Hornick
+Description: WordPress theme for the JGI.  Child theme of Genesis 2.0
+Version: 1.0
+License: GNU General Public License
+License URI: license.txt
+Text Domain: jgi
+Tags:
+
+Template: genesis
+
+This theme, like WordPress, is licensed under the GPL.
+Use it to make something cool, have fun, and share what you've learned with others.
+
+Resetting and rebuilding styles have been helped along thanks to the fine work of
+Eric Meyer http://meyerweb.com/eric/tools/css/reset/index.html
+along with Nicolas Gallagher and Jonathan Neal http://necolas.github.com/normalize.css/
+and Blueprint http://www.blueprintcss.org/
+*/
+/** Google web fonts **/
+/* Include our variables and core styles */
+/* column width includes the left and right padding between elements */
+/** =Base */
+/** used for section titles and widget titles **/
+/** =Font-Sizes */
+/** =Brand: Colors and fonts **/
+/** Grid Sizes **/
+/* =Backgrounds
+----------------------------------------------- */
+/* Table of Contents
+
+	+ HTML5 Reset
+		- Baseline Normalize
+		- Box Sizing
+		- Float Clearing
+	- Defaults
+		- Typographical Elements
+		- Headings
+		- Objects
+		- Forms
+		- Tables
+*/
+/* =Reset, HTML5 Reset
+-------------------------------------------------------------- */
+/* Baseline Normalize - HTML5 Reset
+	normalize.css v2.1.2 | MIT License | git.io/normalize
+--------------------------------------------- */
+article, aside, details, figcaption, figure, footer, header, hgroup, main, nav, section, summary { display: block; }
+
+audio, canvas, video { display: inline-block; }
+
+audio:not([controls]) { display: none; height: 0; }
+
+[hidden] { display: none; }
+
+html { font-family: sans-serif; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
+
+body { margin: 0; }
+
+a:focus { outline: thin dotted; }
+
+a:active, a:hover { outline: 0; }
+
+abbr[title] { border-bottom: 1px dotted; }
+
+b, strong { font-weight: bold; }
+
+dfn { font-style: italic; }
+
+hr { -moz-box-sizing: content-box; box-sizing: content-box; height: 0; }
+
+mark { background: #ff0; color: #000; }
+
+code, kbd, pre, samp { font-family: monospace,serif; font-size: 1em; }
+
+pre { white-space: pre-wrap; }
+
+q { quotes: "\201C" "\201D" "\2018" "\2019"; }
+
+small { font-size: 80%; }
+
+sub, sup { font-size: 75%; line-height: 0; position: relative; vertical-align: baseline; }
+
+sup { top: -0.5em; }
+
+sub { bottom: -0.25em; }
+
+img { border: 0; }
+
+svg:not(:root) { overflow: hidden; }
+
+figure { margin: 0; }
+
+fieldset { border: 1px solid silver; margin: 0 2px; padding: .35em .625em .75em; }
+
+legend { border: 0; padding: 0; }
+
+button, input, select, textarea { font-family: inherit; font-size: 100%; margin: 0; }
+
+button, input { line-height: normal; }
+
+button, select { text-transform: none; }
+
+button, html input[type="button"], input[type="reset"], input[type="submit"] { -webkit-appearance: button; cursor: pointer; }
+
+button[disabled], html input[disabled] { cursor: default; }
+
+input[type="checkbox"], input[type="radio"] { box-sizing: border-box; padding: 0; }
+
+input[type="search"] { -webkit-appearance: textfield; -moz-box-sizing: content-box; -webkit-box-sizing: content-box; box-sizing: content-box; }
+
+input[type="search"]::-webkit-search-cancel-button, input[type="search"]::-webkit-search-decoration { -webkit-appearance: none; }
+
+button::-moz-focus-inner, input::-moz-focus-inner { border: 0; padding: 0; }
+
+textarea { overflow: auto; vertical-align: top; }
+
+table { border-collapse: collapse; border-spacing: 0; }
+
+/* Box Sizing
+--------------------------------------------- */
+*, input[type="search"] { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; }
+
+/* Float Clearing
+--------------------------------------------- */
+.archive-pagination:before, .clearfix:before, .entry:before, .entry-pagination:before, .footer-widgets:before, .nav-primary:before, .nav-secondary:before, .site-container:before, .site-footer:before, .site-header:before, .site-inner:before, .wrap:before { content: " "; display: table; }
+
+.archive-pagination:after, .clearfix:after, .entry:after, .entry-pagination:after, .footer-widgets:after, .nav-primary:after, .nav-secondary:after, .site-container:after, .site-footer:after, .site-header:after, .site-inner:after, .wrap:after { clear: both; content: " "; display: table; }
+
+/*  Defaults */
+html { font-size: 62.5%; overflow-y: scroll; /* Keeps page centred in all browsers regardless of content height */ -webkit-text-size-adjust: 100%; /* Prevents iOS text size adjust after orientation change, without disabling user zoom */ -ms-text-size-adjust: 100%; /* www.456bereastreet.com/archive/201012/controlling_text_size_in_safari_for_ios_without_disabling_user_zoom/ */ }
+
+body { background: #e9e9e9; }
+
+ol, ul { list-style: none; -webkit-padding-start: 0; -moz-pading-start: 0; }
+
+table { /* tables still need 'cellspacing="0"' in the markup */ border-collapse: separate; border-spacing: 0; }
+
+caption, th, td { font-weight: normal; text-align: left; }
+
+blockquote:before, blockquote:after, q:before, q:after { content: ""; }
+
+blockquote, q { quotes: "" ""; }
+
+a { text-decoration: underline; }
+
+h1 a, h2 a, h3 a, hf4 a { text-decoration: none; }
+
+a:focus { outline: thin dotted; }
+
+a:focus { outline: thin dotted; }
+a:hover { outline: thin dotted; }
+
+a:hover, a:active { /* Improves readability when focused and also mouse hovered in all browsers people.opera.com/patrickl/experiments/keyboard/test */ outline: 0; }
+
+a img { border: 0; }
+
+/* =Global
+----------------------------------------------- */
+.default-text, body, button, input, select, textarea { color: #5a5a5a; font-family: "Karla", Helvetica, arial, sans-serif; font-size: 15px; font-size: 1.5rem; /* 16 / 10 */ line-height: 19px; line-height: 1.9rem; }
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 { clear: both; font-family: "Karla", Helvetica, arial, sans-serif; font-weight: 400; color: #5a5a5a; margin: 0; }
+
+h1 { font-size: 36px; font-size: 3.6rem; line-height: 40px; line-height: 4rem; margin: 0; }
+
+.h1-look { font-size: 36px; font-size: 3.6rem; margin: 19px 0; }
+
+h2 { font-size: 28px; font-size: 2.8rem; font-weight: normal; line-height: 35px; line-height: 3.5rem; margin-bottom: 12px; }
+
+h3 { font-size: 22px; line-height: 27.5px; line-height: 2.75rem; margin-bottom: 7px; }
+
+h4 { font-size: 18px; line-height: 22.5px; line-height: 2.25rem; margin-bottom: 5px; }
+
+h5 { font-size: 18px; line-height: 22.5px; line-height: 2.25rem; margin-bottom: 5px; }
+
+h6 { font-size: 15px; line-height: 18.75px; line-height: 1.875rem; margin-bottom: 5px; }
+
+hr { background-color: #99bd3c; border: 0; height: 1px; margin: 19px 0; }
+
+/* Text elements */
+p { margin: 0 0 10px; font-size: 15px; font-size: 1.5rem; line-height: 19px; line-height: 1.9rem; }
+
+ul { list-style: disc; list-style-position: inside; }
+
+ol { list-style: decimal; }
+
+.horizontal, ul.horizontal, .entry-content ul.horizontal { -webkit-padding-start: 0; -moz-padding-start: 0; list-style-type: none; }
+.horizontal li, ul.horizontal li, .entry-content ul.horizontal li { display: inline-block; margin-right: 10px; background-image: none; padding-left: 0; }
+.horizontal li:last-child, ul.horizontal li:last-child, .entry-content ul.horizontal li:last-child { margin-right: none; }
+
+ul.plain, ol.plain, .entry-content ul.plain { list-style-type: none; }
+ul.plain li, ol.plain li, .entry-content ul.plain li { background-image: none; }
+
+#content li > ul, #content li > ol { margin-bottom: 0; margin-left: 10px; }
+
+dt { font-weight: bold; }
+
+dd { margin: 0 10px 10px; }
+
+b, strong { font-weight: bold; }
+
+dfn, cite, em, i { font-style: italic; }
+
+blockquote { margin: 0 1.5em; }
+
+address { margin: 0 0 1.5em; }
+
+pre { background: #eee; font-family: "Courier 10 Pitch", Courier, monospace; font-size: 15px; font-size: 1.5rem; line-height: 1.6; margin-bottom: 1.6em; padding: 1.6em; overflow: auto; max-width: 100%; }
+
+code, kbd, tt, var { font: 15px Monaco, Consolas, "Andale Mono", "DejaVu Sans Mono", monospace; }
+
+abbr, acronym { border-bottom: 1px dotted #666; cursor: help; }
+
+mark, ins { background: #fff9c0; text-decoration: none; }
+
+sup, sub { font-size: 75%; height: 0; line-height: 0; position: relative; vertical-align: baseline; }
+
+sup { bottom: 1ex; }
+
+sub { top: .5ex; }
+
+small { font-size: 75%; }
+
+big { font-size: 125%; }
+
+figure { margin: 0; }
+
+table { margin: 0 0 19px; width: 100%; }
+
+th { font-weight: bold; }
+
+.minwidth td { min-width: 120px; }
+
+th, td { border-right: 1px solid #99bd3c; padding: 10px; vertical-align: top; display: table-cell; }
+
+tr:nth-child(even) { background: #fff; }
+
+tr:nth-child(odd) { background: #f8f8f2; }
+
+tr th:last-child, tr td:last-child { border-right: 0; }
+
+th.subhead { border-bottom: 1px solid #99bd3c; border-right: none; background: white; padding-left: 0; }
+th.subhead h2 { margin-bottom: 0; }
+
+img { height: auto; /* Make sure images are scaled correctly. */ max-width: 100%; /* Adhere to container width. */ }
+
+/* Links */
+a { color: #2e669b; }
+
+a:visited { color: #185582; }
+
+a:hover { color: #cd6929; }
+
+a:focus, a:active { color: #fdba4d; }
+
+/* Titles */
+/* Post Title */
+.entry-title a { text-decoration: none; }
+
+/* Alignment */
+.alignleft { display: inline; float: left; margin-right: 20px; }
+
+.alignright { display: inline; float: right; margin-left: 20px; }
+
+.wp-caption.alignright { margin-left: 20px; margin-right: 0; }
+.wp-caption.alignright img { margin: 0; }
+
+.wp-caption.alignleft { margin-right: 20px; margin-left: 0; }
+.wp-caption.alignleft img { margin: 0; }
+
+.aligncenter, .wp-caption.aligncenter { clear: both; display: block; margin: 10px auto; }
+
+/* Text meant only for screen readers */
+.screen-reader-text { clip: rect(1px, 1px, 1px, 1px); position: absolute !important; }
+
+.screen-reader-text:hover, .screen-reader-text:active, .screen-reader-text:focus { background-color: #f1f1f1; border-radius: 3px; box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.6); clip: auto !important; color: #21759b; display: block; font-size: 14px; font-weight: bold; height: auto; left: 5px; line-height: normal; padding: 15px 23px 14px; text-decoration: none; top: 5px; width: auto; z-index: 100000; /* Above WP toolbar */ }
+
+/* =Layout
+----------------------------------------------- */
+/* Content Wrap */
+/* Footer */
+.site-footer { padding: 20px 0; margin-top: 50px; background: #FB4400; }
+
+.site-footer a { text-decoration: none; }
+
+/* =Asides
+----------------------------------------------- */
+.blog .format-aside .entry-title, .archive .format-aside .entry-title { display: none; }
+
+/* =Media
+----------------------------------------------- */
+.page-content img.wp-smiley, .entry-content img.wp-smiley, .comment-content img.wp-smiley { border: none; margin-bottom: 0; margin-top: 0; padding: 0; }
+
+.wp-caption { border-bottom: 1px solid #99bd3c; margin: 10px 0; max-width: 100%; }
+.wp-caption img[class*="wp-image-"] { display: block; }
+
+.wp-caption-text, .gallery .gallery-item dd.wp-caption-text { font-size: 12px; font-size: 1.2rem; line-height: 16px; line-height: 1.6rem; text-align: left; }
+
+p.wp-caption-text { margin-top: 10px; margin-bottom: 0; padding: 10px 0; border-top: 1px solid #99bd3c; }
+
+.site-main .gallery { margin-bottom: 19px; }
+
+.site-main .gallery a img { border: none; height: auto; max-width: 90%; }
+
+.site-main .gallery dd { margin: 0; }
+
+/* Make sure embeds and iframes fit their containers */
+embed, iframe, object { max-width: 100%; }
+
+/* =MoreLnks
+----------------------------------------------- */
+.small-caps, .get-more-info, .jgi.featuredpost p.entry-meta, .featuredpost p.entry-meta, .releases_feed .release_date { text-transform: uppercase; font-size: 11px; font-size: 1.1rem; line-height: 11px; line-height: 1.1rem; }
+
+.morelink, a.more-link { font-size: 14px; font-size: 1.4rem; line-height: 18px; line-height: 1.8rem; /*@extend .small-caps;*/ margin-top: 10px; /* display:block; */ }
+
+/* used in featured post widgets and "learn more" links */
+.get-more-info { display: block; }
+
+/* =Comments
+----------------------------------------------- */
+.comments-area { margin: 50px 0 25px; padding: 15px 0; border-top: 1px solid #a8a8a8; }
+
+.comment-list, .comment-list .children { list-style: none; }
+
+.comment-body { padding: 25px 0; }
+
+.comment-content a { word-wrap: break-word; }
+
+/* Column Classes
+	Link: http://twitter.github.io/bootstrap/assets/css/bootstrap-responsive.css
+--------------------------------------------- */
+.five-sixths, .four-sixths, .one-fourth, .one-half, .one-sixth, .one-third, .three-fourths, .three-sixths, .two-fourths, .two-sixths, .two-thirds { float: left; margin-left: 2.564102564102564%; }
+
+.one-half, .three-sixths, .two-fourths { width: 48.717948717948715%; }
+
+.one-third, .two-sixths { width: 31.623931623931625%; }
+
+.four-sixths, .two-thirds { width: 65.81196581196582%; }
+
+.one-fourth { width: 23.076923076923077%; }
+
+.three-fourths { width: 74.35897435897436%; }
+
+.one-sixth { width: 14.52991452991453%; }
+
+.five-sixths { width: 82.90598290598291%; }
+
+.first { clear: both; margin-left: 0; }
+
+.pagination { margin-bottom: 19px; }
+
+/* = Footer text 
+--------------------------------*/
+.site-footer p { font-size: 13px; font-size: 1.3rem; }
+
+/* = Gallery Images
+---------------------------------------------------*/
+.gallery .gallery-item { padding: 0 10px; }
+.gallery .gallery-item dd { font-size: 14px; font-size: 1.4rem; margin: 0; }
+
+/* colored elements */
+.greyback { background-color: #e9e9e9; }
+
+div.greyback { padding: 10px; }
+
+/* = Organism Names 
+----------------------------------------------- */
+.organism_name { font-style: italic; }
+
+/* Search Styles */
+/*= Google Custom Search
+--------------------------------------*/
+.search-section input, .search-section .gsc-option-menu-container, .search-section table, .search-section td, .search-section tr, .search-section div { box-sizing: content-box; -moz-box-sizing: content-box; -webxit-box-sizing: content-box; }
+.search-section .gsc-search-box-tools .gsc-search-box .gsc-input { padding-top: 2px; }
+.search-section input.gsc-input { font-size: 14px; font-size: 1.4rem; color: #5a5a5a; margin: 0px !important; }
+.search-section input.gsc-search-button-v2 { margin-top: 0 !important; }
+.search-section table { margin: 0; border-top: none; border-bottom: none; }
+.search-section th, .search-section td { border-right: none; border-bottom: none; padding: 0; vertical-align: top; display: table-cell; }
+.search-section td.gsib_a { padding: 2px; height: 1.25rem; }
+.search-section a.gsst_a { padding-top: 6px; }
+.search-section a.gsst_a .gscb_a { font: 25px/13px arial, sans-serif; }
+.search-section .gsc-getlink-box img { max-width: 50px; }
+.search-section tr:nth-child(odd) { background: #fff; }
+.search-section tr:nth-child(even) { background: #fff; }
+.search-section .gsc-input-box { height: auto; }
+.search-section .gssb_c { padding-top: 30px !important; font-family: "Karla", Helvetica, arial, sans-serif !important; }
+.search-section .gsc-completion-selected { color: #cd6929; }
+.search-section .gssb_f { background-color: white; }
+
+/* Define the Grid Containers and sizes for everything */
+.full-width, .site-header, .site-footer { width: 100%; }
+
+.site-container { background-color: #fff; }
+
+.site-header { border-top: 5px solid #99bd3c; padding-top: 30px; }
+
+.site-header .wrap, .content-sidebar-wrap, .nav-primary .wrap, .site-footer > .wrap, #home-feature .wrap, .home-link .wrap { width: 960px; margin: 0 auto 0 20px; }
+
+.nav-primary { background-color: #cd6929; height: 35px; }
+
+.header-widget-area { width: 480px; float: right; padding-top: 5px; }
+
+.site-header .title-area { width: 420px; float: left; height: 70px; background-image: url(/images/jgi_logo.png); background-repeat: no-repeat; background-position: top left; }
+
+.site-footer { background-color: #e9e9e9; min-height: 100px; }
+.site-footer #footer-left { width: 480px; float: left; }
+.site-footer #footer-right { width: 480px; float: right; text-align: right; }
+
+/* Content-Sidebar-Wrapping */
+.sidebar-content .content { width: 730px; float: right; padding-left: 20px; }
+.sidebar-content .sidebar-primary { float: left; width: 230px; padding: 0 10px 0 0; }
+
+/* = Footer Widgets Area
+---------------------------------------------- */
+.footer-widgets { margin-bottom: 10px; }
+.footer-widgets .widget-area { float: left; }
+.footer-widgets .footer-widgets-1 { width: 360px; }
+.footer-widgets .footer-widgets-1 .widget { float: left; width: 180px; padding-right: 10px; }
+.footer-widgets .footer-widgets-3 { width: 300px; padding: 0 10px; }
+.footer-widgets .footer-widgets-2 { width: 300px; padding: 0 0 0 10px; }
+
+/* = Header Links and such 
+------------------------------------*/
+.mainsite-link { margin: 0; text-indent: -9999px; }
+
+a.mainsite-link { text-decoration: none; display: block; color: #fff; height: 70px; }
+
+.home-link .site-title { text-transform: uppercase; font-size: 22px; font-size: 2.2rem; line-height: 22px; line-height: 2.2rem; margin: 10px 0; }
+.home-link .site-title a { color: #5a5a5a; text-decoration: none; }
+.home-link .site-title a:hover { color: #fdba4d; }
+
+.site-header .widget { float: right; }
+
+/* = Home Features
+----------------------------------------------- */
+.home .featured-image { width: 180px; float: left; }
+.home .entry-content { width: 780px; padding-left: 20px; float: right; }
+
+/* =Content areas
+----------------------------------------------- */
+.content h1.entry-title { color: #609a3e; line-height: 29px; line-height: 2.9rem; margin-bottom: 10px; }
+.content h2 { font-size: 20px; font-size: 2rem; line-height: 22px; line-height: 2.2rem; color: #609a3e; margin: 10px 0; }
+.content h3 { color: #5a5a5a; font-size: 18px; font-size: 1.8rem; line-height: 20px; line-height: 2rem; margin-bottom: 10px; }
+
+/* Landing Pages 
+----------------------------------------------- */
+/* Video Caption Box */
+.yellowbox { border-top: 5px solid #fdba4d; border-bottom: 5px solid #fdba4d; padding: 19px 0 10px 0; color: #5a5a5a; font-size: 15px; font-size: 1.5rem; }
+.yellowbox h3 { color: #fdba4d; text-transform: uppercase; font-size: 16px; font-size: 1.6rem; font-weight: normal; margin-bottom: 10px; }
+
+/* one-half */
+.one-half.first { border-right: 1px solid #e9e9e9; padding-right: 19px; }
+
+/* Lists in content */
+.entry-content ul { list-style-type: none; margin-left: 2px; /*li:before{
+	@extend .fa;
+	content: '\f101 ';
+	color:$yellow;
+	padding-left:$grid-padding;
+}*/ }
+.entry-content ul li { background-image: url(images/bullet_carat.png); background-position: 0px 3px; background-repeat: no-repeat; padding-left: 14px; padding-bottom: 10px; }
+
+.entry-content .horizontal li { background-image: none; }
+
+/* Register Button
+------------------------------------------------ */
+button.reg { font-family: "Oswald", Helvetica, sans-serif; background-color: #cd6929; font-size: 15px; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; }
+button.reg a { color: white; text-decoration: none; }
+
+/* Agenda Tables 
+------------------------------------------------ */
+.content table { border-top: 1px solid #609a3e; }
+.content table tr.greyback { background-color: #e9e9e9 !important; }
+.content table tr.greyback td { border-bottom: none; }
+.content table tr:nth-child(even) { background: #fff; }
+.content table tr:nth-child(odd) { background: #fff; }
+.content table th { background-color: #eef4de; border-right: 0; }
+.content table td { border-right: none; border-bottom: 1px solid #99bd3c; background: none; }
+.content table td.noborder { border-bottom: none; }
+
+/* =Navigation - 
+----------------------------------------------- */
+/* = Main Menu
+----------------------------------------------- */
+.nav-primary { margin-bottom: 19px; }
+
+nav ul, .nav-primary ul { list-style-type: none; padding: 0; margin: 0; }
+
+.nav-primary ul > li { display: inline-block; padding: 10px; margin: 0; overflow: visible; position: relative; }
+
+.nav-primary a { font-size: 14px; font-size: 1.4rem; line-height: 15px; line-height: 1.5rem; display: block; text-decoration: none; font-weight: 300; color: white; }
+.nav-primary a:hover { color: #5a5a5a; }
+
+.nav-primary li.current-menu-item > a { color: #cd6929; }
+
+.nav-primary li li a { font-size: 13px; font-size: 1.3rem; line-height: 15px; line-height: 1.5rem; }
+
+.nav-primary li.current-menu-item > ul.sub-menu, .nav-primary li:hover > ul.sub-menu { display: block; }
+
+.nav-primary li.current-menu-item, .nav-primary li.current-page-ancestor, .nav-primary li.current-post-ancestor { background-color: #e9e9e9; }
+
+.nav-primary li:hover { background-color: #e9e9e9; }
+.nav-primary li:hover a { color: #cd6929; }
+.nav-primary li:hover ul li a { color: #5a5a5a; }
+
+.nav-primary li:hover > ul.sub-menu { left: auto; margin-left: -10px; opacity: 1; }
+.nav-primary li:hover > ul.sub-menu li a:hover { color: #cd6929; }
+
+ul.sub-menu { left: -9999px; opacity: 0; position: absolute; top: 30px; width: 180px; padding: 10px 0; z-index: 2; background-color: #e9e9e9; }
+
+ul.sub-menu li, ul.sub-menu li:first-child { padding: 7px 10px; width: 180px; }
+
+ul.sub-menu li:hover a, ul.sub-menu .current-menu-item a, ul.sub-menu .current-page-ancestor a { color: #185582; }
+
+/* = Sidebar Menus
+----------------------------------------------- */
+ul.context-nav { margin-left: 0; padding-left: 0; list-style-type: none; }
+ul.context-nav .subnav { margin: 0 0 0 20px; padding-left: 0; }
+ul.context-nav li { font-weight: bold; list-style-type: none; border-bottom: 1px solid #ced5d9; padding: 10px 0; }
+ul.context-nav li li { font-weight: normal; border-bottom: none; }
+ul.context-nav a { text-decoration: none; }
+ul.context-nav .current_page_item > a { color: #99bd3c; }
+
+/*= Header Menu Widget 
+-----------------------------*/
+.nav-header ul { list-style-type: none; }
+.nav-header ul li { display: inline-block; text-transform: uppercase; padding-left: 10px; font-size: 13px; font-size: 1.3rem; }
+.nav-header ul li a { color: #5a5a5a; }
+.nav-header ul li a:hover { color: #fdba4d; }
+
+.nav-header { padding-right: 10px; }
+
+/*= Footer Menu Widget 
+-----------------------------*/
+.footer-widgets .widget_nav_menu li { font-size: 13px; font-size: 1.3rem; }
+.footer-widgets .widget_nav_menu li a { color: #5a5a5a; text-decoration: underline; }
+.footer-widgets .widget_nav_menu li a:hover { color: #185582; }
+
+button, input, select, textarea { font-size: 100%; /* Corrects font size not being inherited in all browsers */ margin: 0; /* Addresses margins set differently in IE6/7, F3/4, S5, Chrome */ vertical-align: baseline; /* Improves appearance and consistency in all browsers */ *vertical-align: middle; /* Improves appearance and consistency in all browsers */ }
+
+button, input { line-height: normal; /* Addresses FF3/4 setting line-height using !important in the UA stylesheet */ }
+
+button, html input[type="button"], input[type="reset"], input[type="submit"] { border: none; background: #99bd3c; color: white; cursor: pointer; /* Improves usability and consistency of cursor style between image-type 'input' and others */ -webkit-appearance: button; /* Corrects inability to style clickable 'input' types in iOS */ padding: 4px 6px; text-transform: uppercase; font-size: 14px; font-size: 1.4rem; line-height: 14px; line-height: 1.4rem; vertical-align: middle; }
+
+button:hover, html input[type="button"]:hover, input[type="reset"]:hover, input[type="submit"]:hover { color: #f8f2dd; }
+
+button:focus, html input[type="button"]:focus, input[type="reset"]:focus, input[type="submit"]:focus, button:active, html input[type="button"]:active, input[type="reset"]:active, input[type="submit"]:active { color: #fdba4d; }
+
+input[type="checkbox"], input[type="radio"] { box-sizing: border-box; /* Addresses box sizing set to content-box in IE8/9 */ padding: 0; /* Addresses excess padding in IE8/9 */ }
+
+input[type="search"] { -webkit-appearance: textfield; /* Addresses appearance set to searchfield in S5, Chrome */ }
+
+input[type="search"]::-webkit-search-decoration { /* Corrects inner padding displayed oddly in S5, Chrome on OSX */ -webkit-appearance: none; }
+
+button::-moz-focus-inner, input::-moz-focus-inner { /* Corrects inner padding and border displayed oddly in FF3/4 www.sitepen.com/blog/2008/05/14/the-devils-in-the-details-fixing-dojos-toolbar-buttons/ */ border: 0; padding: 0; }
+
+input[type="text"], input[type="email"], input[type="url"], input[type="password"], input[type="search"], textarea { color: #ced5d9; border: 1px solid #e9e9e9; font-size: 14px; font-size: 1.4rem; line-height: 14px; line-height: 1.4rem; }
+
+input[type="text"]:focus, input[type="email"]:focus, input[type="url"]:focus, input[type="password"]:focus, input[type="search"]:focus, textarea:focus { color: #5a5a5a; }
+
+input[type="search"] { padding: 2px; vertical-align: middle; }
+
+input[type="text"], input[type="email"], input[type="url"], input[type="password"] { padding: 3px; }
+
+textarea { overflow: auto; /* Removes default vertical scrollbar in IE6/7/8/9 */ padding-left: 3px; vertical-align: top; /* Improves readability and alignment in all browsers */ width: 98%; }
+
+label { display: block; }
+
+/* Register Button
+------------------------------------------------ */
+button.reg { font-family: "Oswald", Helvetica, sans-serif; background-color: #cd6929; font-size: 15px; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; }
+button.reg a { color: white; text-decoration: none; }
+
+button.reg:hover, button.reg:hover a { color: #f8f2dd; }
+
+button.reg:active, button.reg:active a { color: #fdba4d; }
+
+/* Login Form
+------------------------------------------------ */
+.page-template-page-loginform-php h1.entry-title { text-align: center; }
+.page-template-page-loginform-php #login { width: 320px; margin: auto; border: 1px solid #e9e9e9; padding: 10px; }
+.page-template-page-loginform-php #login input[type="text"], .page-template-page-loginform-php #login input[type="password"] { width: 100%; }
+
+/* =Widgets
+----------------------------------------------- */
+.widget ul { list-style: none; margin: 0; padding: 0; }
+
+/* Make sure select elements fit in widgets */
+.widget select { max-width: 100%; }
+
+/* Search widget */
+.widget_search .search-submit { display: none; }
+
+.home-bottom .widget:first-child { width: 410px; float: left; border-right: 1px solid #ced5d9; margin-right: 10px; }
+
+.home-bottom .widget:last-child { width: 540px; padding-left: 10px; float: left; }
+
+.widgettitle { font-size: 17px; font-size: 1.7rem; line-height: 17px; line-height: 1.7rem; margin: 0; color: #185582; font-weight: 700; padding-bottom: 19px; }
+
+/* widget titles on landing pages */
+.landing-widget-title, .home .widgettitle { font-family: "Oswald", Helvetica, sans-serif; font-size: 29px; font-size: 2.9rem; line-height: 29px; line-height: 2.9rem; color: #678ca7; font-weight: 400; }
+
+/* = Featured posts and pages 
+---------------------------------------------- */
+.jgi.featuredpost h2.entry-title, .featuredpost h2.entry-title { font-size: 17px; font-size: 1.7rem; line-height: 20px; line-height: 2rem; font-weight: 700; font-family: "Karla", Helvetica, arial, sans-serif; margin: 8px 0 0 0; clear: none; }
+.jgi.featuredpost .post, .featuredpost .post { margin-bottom: 5px; }
+.jgi.featuredpost .post:first-child, .featuredpost .post:first-child { padding-top: 0; }
+.jgi.featuredpost .post:last-child, .featuredpost .post:last-child { margin-bottom: 0; }
+.jgi.featuredpost p.entry-meta, .featuredpost p.entry-meta { margin: 0; clear: none; }
+.jgi.featuredpost p.more-from-category, .featuredpost p.more-from-category { margin: 0 0 8px 0; text-transform: uppercase; font-size: 11px; font-size: 1.1rem; }
+
+.jgi_line-separator .widget-wrap .post { border-bottom: 1px solid #ced5d9; padding: 7px 0; margin: 0; }
+.jgi_line-separator .widget-wrap .post:last-child { border-bottom: none; }
+.jgi_line-separator .widget-wrap .post p { font-size: 15px; font-size: 1.5rem; line-height: 18px; line-height: 1.8rem; margin: 0; }
+.jgi_line-separator .widget-wrap h2.widgettitle { padding-bottom: 7px; }
+.jgi_line-separator .widget-wrap .post:first-child { padding: 0 0 7px 0; }
+.jgi_line-separator .widget-wrap p.more-from-category { border-top: 1px solid #ced5d9; padding-top: 8px; margin-top: 8px; }
+
+/* = Releases widget 
+---------------------------------------------- */
+.releases_feed .release_date { display: block; }
+.releases_feed li { margin: 0; padding: 10px 0; border-bottom: 1px solid #e9e9e9; }
+.releases_feed li:last-child { margin-bottom: 10px; }
+.releases_feed li a { font-size: 15px; font-size: 1.5rem; line-height: 18px; line-height: 1.8rem; }
+
+/* = Widgets in sidebar
+---------------------------------------------- */
+.sidebar .widget { background-image: url("images/side_texture.png"); background-repeat: repeat-x repeat-y; padding: 10px; }

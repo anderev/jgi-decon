@@ -47,7 +47,7 @@ getDownload = function(type, req, res) {
       caliban.getSessionUser(req, function(err, user) {
         if(!err) {
           if( user.id[0] == row.user_id || row.is_public ) {
-            var workingDir = config.working_dir + '/sso_' + row.user_id;
+            var workingDir = config.local_working_dir + '/sso_' + row.user_id;
             var filename = workingDir+'/job_'+id+'/job_'+id+'_output_'+type+'.fna';
             fs.exists(filename, function(exists) {
               if(exists) {
