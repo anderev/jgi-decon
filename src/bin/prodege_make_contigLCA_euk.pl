@@ -10,30 +10,17 @@ my $usage="$0 <directory which contains input fasta file> <IMG_taxonomy file> <j
 @ARGV==3 or die $usage;
 my $jobname=$ARGV[2];
 my $int_dir=$ARGV[0] . "/" . $jobname . "_Intermediate/";
-my $contigbin=$int_dir . $jobname . "_contigs.bins";
+my $contigbin=$int_dir . $jobname . "_euk_contigs.bins";
 my $taxfile=$ARGV[1];
-my $outfile=$int_dir . $jobname . "_contigs.LCA";
-my $outcsfile=$int_dir . $jobname . "_contigs.species";
-my $statsfile=$int_dir . $jobname . "_genes.blout.stats";
+my $outfile=$int_dir . $jobname . "_euk_contigs.LCA";
+my $outcsfile=$int_dir . $jobname . "_euk_contigs.species";
+my $blast_contam=$int_dir . $jobname . "_blast_contam_contigs";
+my $statsfile=$int_dir . $jobname . "_genes_euk.blout.stats";
 unless(-e $contigbin) {die "$contigbin does not exist.\n";}
 unless(-e $taxfile) {die "$taxfile does not exist.\n";}
 open(OUT,">$outfile");
 open(IN,$contigbin);
 open(OUTCS,">$outcsfile");
-
-#Begin add for Issue #37
-#my %stats;
-#open(STA,$statsfile);
-#my $line=<STA>;
-#while($line=<STA>){
-#	chomp($line);
-# 	my @a=split(/\t/,$line);
-# 	if(($a[3]>=.5 and $a[1]>2) or ($a[3]>=1 and $a[1]==2)){
-# 		$stats{$a[0]}=1;
-# 	}	
-#}	
-#close(STA);
-#End add for issue #37
 
 my %tts;
 #my $cutoff=.75;
@@ -41,10 +28,23 @@ my $cutoff=0.6;
 #my $cutoff=0.5000000001;
 my $cutoff_10=0.6;
 
-while(my $line=<IN>){
+my %stats;
+open(STA,$statsfile);
+my $line=<STA>;
+while($line=<STA>){
+	chomp($line);
+	my @a=split(/\t/,$line);
+	if($a[3]>=.5 and $a[1]>2){
+		$stats{$a[0]}=1;
+	}	
+}	
+close(STA);
+
+
+while($line=<IN>){
       chomp $line;
       my @arr=split(/\t/,$line);
-#      next if (!exists($stats{$arr[0]})); #Add for issue 37
+      next if (!exists($stats{$arr[0]}));
       if(defined($arr[2])){
 	my @arr2=split(/,/,$arr[2]);
 	my %tree;
@@ -57,7 +57,8 @@ while(my $line=<IN>){
 	foreach my $tax (@arr2){
 #	  unless($tax=~/candidate division/ or $tax=~/unclassified candidate/){
         	$tax=~s/\s$//g;
-		my $cmd="grep " . $tax . " " . $taxfile;
+		my $cmd="grep \"" . $tax . "\" " . $taxfile;
+		#print "$cmd\n";
 		my @nts=`$cmd`;
 		my $pnode='root';
 		foreach my $ctax (@nts){
@@ -140,9 +141,6 @@ while(my $line=<IN>){
         }
         $tts{$arr[0]}=$str;
 	$str=~s/^ root;//;
-	#if($str=~/unclassi/){
-	#	$str=~s/unclassi.*//;
- 	#}	
         print OUT "$arr[0]\t$str\n";
       }
       else{
@@ -152,4 +150,17 @@ while(my $line=<IN>){
 close(IN);
 close(OUT);
 close(OUTCS);
-1;
+
+open(IN,$outfile);
+open(OUT,">$blast_contam");
+while(my $line=<IN>){
+	chomp($line);
+	my @a=split(/\t/,$line);
+	if(defined($a[1])){
+		if($a[1]=~/Eukaryota/){
+			print OUT "$a[0]\n";
+		}
+	}
+}
+close(IN);
+close(OUT);
