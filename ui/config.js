@@ -8,8 +8,8 @@ var ssh_client = require('node-sshclient');
 var Production = function() {
   this.install_location = '/global/projectb/sandbox/omics/sc-decontamination/Production/prodege-2.0';
   this.nt_location = '';
-  this.bundle_src = './prodege-2.0.tgz';
-  this.bundle_src_name = 'prodege-2.0.tgz';
+  this.bundle_src = '/dna/shared/data/gbp/prodege/production/Releases/prodege-2.2.tgz';
+  this.bundle_src_name = 'prodege-2.2.tgz';
   this.version = '2.0';
 
   //Overrides
