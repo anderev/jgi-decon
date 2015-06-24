@@ -1,4 +1,3 @@
-var spawn = require('child_process').spawn;
 var process = require('process');
 var https = require('https');
 var fs = require('fs');
