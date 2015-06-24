@@ -66,10 +66,10 @@ app.get('/eula', routes.EULA);
 
 // DOWNLOADS
 
-app.get('/download/*', download.checkEULA);
-app.get('/download/clean/:id', download.getClean);
-app.get('/download/contam/:id', download.getContam);
-app.get('/download/src', download.getSrc);
+app.get('/downloads?/*', download.checkEULA);
+app.get('/downloads?/clean/:id', download.getClean);
+app.get('/downloads?/contam/:id', download.getContam);
+app.get('/downloads?/src', download.getSrc);
 
 // JSON API
 
