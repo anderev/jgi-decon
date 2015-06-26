@@ -183,7 +183,7 @@ exports.parseJobFiles = function(req, res, cb_ok, cb_err) {
                       parser.parse_genes_fna(filename_genes_fna).then(function(nuc_seqs) {
                         parser.parse_fna(filename_contam_fna).then(function(contam_contigs) {
                           var contam_map = {}
-                          contam_contigs.map(function(contig) { contam_map[contig.id] = true; })
+                          contam_contigs.map(function(contig) { var id = contig.id.split(' ')[0]; contam_map[id] = true; })
                           contigs.map(function(contig) { if (contig.name in contam_map) { contig.is_contam = true; } })
                           cb_ok(contigs, nuc_seqs);
                         })
