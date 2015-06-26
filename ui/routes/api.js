@@ -162,6 +162,7 @@ exports.parseJobFiles = function(req, res, cb_ok, cb_err) {
               var filename_lca = null;
               var filename_blout = null;
               var filename_genes_fna = null;
+              var filename_contam_fna = null;
 
               if( !files ) {
                 res.json(false);
@@ -178,12 +179,14 @@ exports.parseJobFiles = function(req, res, cb_ok, cb_err) {
                   filename_lca = intermediate_dir + filename;
                 } else if (filename.match(/\.blout$/g)) {
                   filename_blout = intermediate_dir + filename;
-                } else if (filename.match(/_genes.fna$/g)) {
+                } else if (filename.match(/_genes\.fna$/g)) {
                   filename_genes_fna = intermediate_dir + filename;
+                } else if (filename.match(/_output_contam\.fna$/g)) {
+                  filename_contam_fna = intermediate_dir + filename;
                 }
               });
 
-              if( !(filename_pca && filename_names && filename_lca && filename_blout && filename_genes_fna) ) {
+              if( !(filename_pca && filename_names && filename_lca && filename_blout && filename_genes_fna && filename_contam_fna) ) {
                 res.json(false);
                 return;
               }
@@ -193,7 +196,10 @@ exports.parseJobFiles = function(req, res, cb_ok, cb_err) {
                   parser.parse_lca(filename_lca, contigs).then(function(contigs) {
                     parser.parse_blout(filename_blout, contigs).then(function(contigs) {
                       parser.parse_genes_fna(filename_genes_fna).then(function(nuc_seqs) {
-                        cb_ok(contigs, nuc_seqs);
+                        parser.parse_fna(filename_contam_fna).then(function(contam_fna) {
+                          contam_fna.map(function(seq) { if (seq.id in contigs) { contigs[seq.id].is_contam = true; } })
+                          cb_ok(contigs, nuc_seqs);
+                        })
                       })
                     });
                   });

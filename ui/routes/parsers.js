@@ -1,5 +1,9 @@
 var FS = require('fs');
 var Q = require('q');
+var fasta = require('bionode-fasta')
+var JSONStream = require('JSONStream')
+var es = require('event-stream')
+
 
 var readFile = function(filename) {
   var deferred = Q.defer();
@@ -8,6 +12,23 @@ var readFile = function(filename) {
   return deferred.promise;
 }
  
+exports.parse_fna = function(filename) {
+  var deferred = Q.defer()
+
+  fs.createReadStream(filename)
+  .pipe(fasta())
+  .pipe(JSONStream.parse())
+  .pipe(es.writeArray(function(err, array) {
+    if(!err) {
+      deferred.resolve(array)
+    } else {
+      deferred.reject(err)
+    }
+  }))
+
+  return deferred.promise
+}
+
 exports.parse_pca = function(filename) {
   var deferred = Q.defer();
   var contigs = [];
@@ -172,3 +193,4 @@ exports.parse_genes_fna = function(filename) {
 
   return deferred.promise;
 };
+
