@@ -9,6 +9,8 @@ var temp = require('temp');
 var Q = require('q');
 
 var user_uploads = {};
+var qReaddir = Q.nfbind(fs.readdir);
+var qReadFile = Q.nfbind(fs.readFile);
 
 fs.exists(config.upload_dir, function(exists) {
   if(!exists) {
@@ -157,33 +159,45 @@ exports.parseJobFiles = function(req, res, cb_ok, cb_err) {
             var job_name = 'job_' + req.params.id;
             var jobDir = workingDir + '/' + job_name;
             var intermediate_dir = jobDir + '/' + job_name + '_Intermediate';
-            var filename_pca = intermediate_dir + '/' + job_name + '_contigs_5mer.pca';
-            var filename_names = intermediate_dir + '/' + job_name + '_contigs_kmervecs_5_names';
             var filename_lca = intermediate_dir + '/' + job_name + '_contigs.LCA';
             var filename_blout = intermediate_dir + '/' + job_name + '_genes.blout';
             var filename_genes_fna = intermediate_dir + '/' + job_name + '_genes.fna';
             var filename_contam_fna = jobDir + '/' + job_name + '_output_contam.fna';
 
-            parser.parse_pca(filename_pca).then(function(contigs) {
-              parser.parse_names(filename_names, contigs).then(function(contigs) {
-                parser.parse_lca(filename_lca, contigs).then(function(contigs) {
-                  parser.parse_blout(filename_blout, contigs).then(function(contigs) {
-                    parser.parse_genes_fna(filename_genes_fna).then(function(nuc_seqs) {
-                      parser.parse_fna(filename_contam_fna).then(function(contam_contigs) {
-                        var contam_map = {}
-                        contam_contigs.map(function(contig) { contam_map[contig.id] = true; })
-                        contigs.map(function(contig) { if (contig.name in contam_map) { contig.is_contam = true; } })
-                        cb_ok(contigs, nuc_seqs);
+            var filename_names;
+            var filename_pca;
+            qReaddir(intermediate_dir)
+            .then(function(filenames) {
+              filenames.map(function(filename) {
+                if(filename.match(/_contigs_kmervecs_.*_names/)) {
+                  filename_names = intermediate_dir + '/' + filename;
+                } else if(filename.match(/_contigs_.*mer\.pca/)) {
+                  filename_pca = intermediate_dir + '/' + filename;
+                }
+              })
+
+              parser.parse_pca(filename_pca).then(function(contigs) {
+                parser.parse_names(filename_names, contigs).then(function(contigs) {
+                  parser.parse_lca(filename_lca, contigs).then(function(contigs) {
+                    parser.parse_blout(filename_blout, contigs).then(function(contigs) {
+                      parser.parse_genes_fna(filename_genes_fna).then(function(nuc_seqs) {
+                        parser.parse_fna(filename_contam_fna).then(function(contam_contigs) {
+                          var contam_map = {}
+                          contam_contigs.map(function(contig) { contam_map[contig.id] = true; })
+                          contigs.map(function(contig) { if (contig.name in contam_map) { contig.is_contam = true; } })
+                          cb_ok(contigs, nuc_seqs);
+                        })
                       })
                     })
                   });
                 });
+              }).catch(function(reason){
+                cb_err(reason)
               });
-            }).catch(function(reason){
-              cb_err(reason);
+            })
+            .fail(function(err) {
+              cb_err(err)
             });
-
-
           } else {
             console.log(user.id[0] + ' attempted to access PCA for job ' + req.params.id + ', owned by ' + row.user_id);
             res.statusCode = 401;
