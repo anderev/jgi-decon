@@ -155,58 +155,32 @@ exports.parseJobFiles = function(req, res, cb_ok, cb_err) {
             var contigs = [];
             var workingDir = config.local_working_dir + '/sso_' + row.user_id;
             var job_name = 'job_' + req.params.id;
-            var intermediate_dir = workingDir + '/' + job_name + '/' + job_name + '_Intermediate/';
-            fs.readdir(intermediate_dir, function(err, files) {
-              var filename_pca = null;
-              var filename_names = null;
-              var filename_lca = null;
-              var filename_blout = null;
-              var filename_genes_fna = null;
-              var filename_contam_fna = null;
+            var jobDir = workingDir + '/' + job_name;
+            var intermediate_dir = jobDir + '/' + job_name + '_Intermediate';
+            var filename_pca = intermediate_dir + '/' + job_name + '_contigs_5mer.pca';
+            var filename_names = intermediate_dir + '/' + job_name + '_contigs_kmervecs_5_names';
+            var filename_lca = intermediate_dir + '/' + job_name + '_contigs.LCA';
+            var filename_blout = intermediate_dir + '/' + job_name + '_genes.blout';
+            var filename_genes_fna = intermediate_dir + '/' + job_name + '_genes.fna';
+            var filename_contam_fna = jobDir + '/' + job_name + '_output_contam.fna';
 
-              if( !files ) {
-                res.json(false);
-                return;
-              }
-
-              files.map(function(filename) {
-
-                if(filename.match(/\.pca$/g)) {
-                  filename_pca = intermediate_dir + filename;
-                } else if (filename.match(/_names$/g)) {
-                  filename_names = intermediate_dir + filename;
-                } else if (filename.match(/\.LCA$/g)) {
-                  filename_lca = intermediate_dir + filename;
-                } else if (filename.match(/\.blout$/g)) {
-                  filename_blout = intermediate_dir + filename;
-                } else if (filename.match(/_genes\.fna$/g)) {
-                  filename_genes_fna = intermediate_dir + filename;
-                } else if (filename.match(/_output_contam\.fna$/g)) {
-                  filename_contam_fna = intermediate_dir + filename;
-                }
-              });
-
-              if( !(filename_pca && filename_names && filename_lca && filename_blout && filename_genes_fna && filename_contam_fna) ) {
-                res.json(false);
-                return;
-              }
-
-              parser.parse_pca(filename_pca).then(function(contigs) {
-                parser.parse_names(filename_names, contigs).then(function(contigs) {
-                  parser.parse_lca(filename_lca, contigs).then(function(contigs) {
-                    parser.parse_blout(filename_blout, contigs).then(function(contigs) {
-                      parser.parse_genes_fna(filename_genes_fna).then(function(nuc_seqs) {
-                        parser.parse_fna(filename_contam_fna).then(function(contam_fna) {
-                          contam_fna.map(function(seq) { if (seq.id in contigs) { contigs[seq.id].is_contam = true; } })
-                          cb_ok(contigs, nuc_seqs);
-                        })
+            parser.parse_pca(filename_pca).then(function(contigs) {
+              parser.parse_names(filename_names, contigs).then(function(contigs) {
+                parser.parse_lca(filename_lca, contigs).then(function(contigs) {
+                  parser.parse_blout(filename_blout, contigs).then(function(contigs) {
+                    parser.parse_genes_fna(filename_genes_fna).then(function(nuc_seqs) {
+                      parser.parse_fna(filename_contam_fna).then(function(contam_contigs) {
+                        var contam_map = {}
+                        contam_contigs.map(function(contig) { contam_map[contig.id] = true; })
+                        contigs.map(function(contig) { if (contig.name in contam_map) { contig.is_contam = true; } })
+                        cb_ok(contigs, nuc_seqs);
                       })
-                    });
+                    })
                   });
                 });
-              }).catch(function(reason){
-                cb_err(reason);
               });
+            }).catch(function(reason){
+              cb_err(reason);
             });
 
 

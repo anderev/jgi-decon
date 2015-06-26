@@ -3,6 +3,7 @@ var Q = require('q');
 var fasta = require('bionode-fasta')
 var JSONStream = require('JSONStream')
 var es = require('event-stream')
+var process = require('process')
 
 
 var readFile = function(filename) {
@@ -15,10 +16,15 @@ var readFile = function(filename) {
 exports.parse_fna = function(filename) {
   var deferred = Q.defer()
 
-  fs.createReadStream(filename)
+  console.log('reading '+filename);
+  FS.createReadStream(filename)
+  .on('error', function(error) {
+    deferred.reject(error);
+  })
   .pipe(fasta())
   .pipe(JSONStream.parse())
   .pipe(es.writeArray(function(err, array) {
+    console.log('done')
     if(!err) {
       deferred.resolve(array)
     } else {
