@@ -8,4 +8,4 @@ Runs like a typical express app, run from the ui folder:
     % node app.js
 
 #### Production
-    % NODE_ENV=production bash -c 'node app.js'
+    % NODE_ENV=production bash -c 'forever -a -l forever.txt -o log.txt -e error.txt app.js'
