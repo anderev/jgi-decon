@@ -41,14 +41,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 var cookieParser = cookie_parser('secret string');
 var calibanRoute = caliban.calibanRoute;
+
+app.get('/api/img/:taxon', api.imgProject);
 app.get('*', cookieParser);
 app.post('*', cookieParser);
 app.delete('*', cookieParser);
 
 // staging only
 if (config.env === 'staging') {
-  caliban.startCalibanStub(app);
-  //app.use(errorhandler);
+  app.use(errorhandler);
 }
 
 // production only
@@ -93,3 +94,4 @@ app.get('*', routes.index);
 http.createServer(app).listen(app.get('port'), function () {
   console.log(config.env + ' ProDeGe server listening on port ' + app.get('port'));
 });
+

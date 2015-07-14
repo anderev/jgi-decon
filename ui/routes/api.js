@@ -381,3 +381,20 @@ exports.acceptEULA = function(req, res) {
   });
 };
 
+exports.imgProject = function(req, res) {
+  var taxon = req.params.taxon;
+  //Currently assumes display name is IMG taxon.
+  db.get("SELECT job_id FROM job WHERE taxon_display_name = ?", [taxon], function(err, row) {
+    if(!err) {
+      if(row) {
+        res.json({url: '/readJob/'+row.job_id})
+      } else {
+        res.json(false)
+      }
+    } else {
+      console.log(err);
+      res.json({error: err})
+    }
+  })
+};
+
