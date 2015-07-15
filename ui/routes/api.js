@@ -389,7 +389,7 @@ exports.imgProject = function(req, res) {
       if(row) {
         res.json({url: '/readJob/'+row.job_id})
       } else {
-        res.json(false)
+        res.json({})
       }
     } else {
       console.log(err);
