@@ -16,7 +16,6 @@ var Production = function() {
   this.job_status = function(job_id, process_id, user_id) { return job_status(job_id, process_id, user_id, this.local_working_dir); };
   this.remote_working_dir = '/global/projectb/scratch/ewanders/prodege/production';
   this.local_working_dir = '/dna/shared/data/gbp/prodege/production';
-  this.upload_dir = process.cwd()+'/uploads';
   this.env = 'production';
   this.port = 3051;
   this.caliban_return_URL = 'https://prodege.jgi-psf.org/';

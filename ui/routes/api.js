@@ -12,21 +12,11 @@ var user_uploads = {};
 var qReaddir = Q.nfbind(fs.readdir);
 var qReadFile = Q.nfbind(fs.readFile);
 
-fs.exists(config.upload_dir, function(exists) {
-  if(!exists) {
-    console.log('Creating ' + config.upload_dir);
-    fs.mkdir(config.upload_dir, function(err) {
-      if(err) {
-        console.log(err);
-      }
-    });
-  }
-});
-
 db.serialize(function() {
 
   db.run("CREATE TABLE IF NOT EXISTS job (job_id INTEGER PRIMARY KEY AUTOINCREMENT, taxon_display_name TEXT, taxon_domain TEXT, taxon_phylum TEXT, taxon_class TEXT, taxon_order TEXT, taxon_family TEXT, taxon_genus TEXT, taxon_species TEXT, user_id INTEGER, process_id INT, start_time TEXT, in_fasta TEXT, notes TEXT, is_public INT, status INT, gc_percent REAL, num_bases INTEGER, num_contigs INTEGER, version TEXT)");
   db.run("CREATE TABLE IF NOT EXISTS eula (user_id INTEGER PRIMARY KEY, time_stamp TEXT)");
+  db.run("CREATE TABLE IF NOT EXISTS admin (user_id INTEGER PRIMARY KEY)");
 });
 
 // GET
@@ -87,8 +77,8 @@ exports.jobs = function(req, res) {
   } else {
     caliban.getSessionUser(req, function(user_err, user) {
       if(!user_err) {
-        var query_str = "SELECT * FROM job WHERE user_id = ? ORDER BY job_id DESC";
-        var query_param = [user.id[0]];
+        var query_str = "SELECT * FROM job WHERE user_id = ? OR EXISTS (SELECT * FROM admin WHERE user_id = ?) ORDER BY job_id DESC";
+        var query_param = [user.id[0], user.id[0]];
         getJobs(req, res, query_str, query_param);
       } else {
         console.log(user_err);
@@ -102,7 +92,7 @@ exports.job = function(req, res) {
   caliban.getSessionUser(req, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id;
-      db.get("SELECT * FROM job WHERE job_id = ? AND (user_id = ? OR is_public = 1)", [id, user.id[0]], function(err, row) {
+      db.get("SELECT * FROM job WHERE job_id = ? AND (user_id = ? OR is_public = 1 OR EXISTS (SELECT * FROM admin WHERE user_id = ?))", [id, user.id[0], user.id[0]], function(err, row) {
         if(!err && row) {
           config.job_status(row.job_id, row.process_id, row.user_id)
           .then(function(str_status) {
@@ -149,11 +139,11 @@ exports.getPCA = function(req, res) {
 };
 
 exports.parseJobFiles = function(req, res, cb_ok, cb_err) {
-  db.get('SELECT user_id,is_public FROM job WHERE job_id = ?', [req.params.id], function(err, row) {
+  caliban.getSessionUser(req, function(err, user) {
     if(!err) {
-      caliban.getSessionUser(req, function(err, user) {
+      db.get('SELECT job_id FROM job WHERE job_id = ? OR is_public = 1 OR EXISTS (SELECT * FROM admin WHERE user_id = ?)', [req.params.id, user.id[0]], function(err, row) {
         if(!err) {
-          if( user.id[0] == row.user_id || row.is_public ) {
+          if( undefined !== row ) {
             var contigs = [];
             var workingDir = config.local_working_dir + '/sso_' + row.user_id;
             var job_name = 'job_' + req.params.id;
