@@ -141,7 +141,7 @@ exports.getPCA = function(req, res) {
 exports.parseJobFiles = function(req, res, cb_ok, cb_err) {
   caliban.getSessionUser(req, function(err, user) {
     if(!err) {
-      db.get('SELECT job_id FROM job WHERE job_id = ? OR is_public = 1 OR EXISTS (SELECT * FROM admin WHERE user_id = ?)', [req.params.id, user.id[0]], function(err, row) {
+      db.get('SELECT user_id FROM job WHERE job_id = ? OR is_public = 1 OR EXISTS (SELECT * FROM admin WHERE user_id = ?)', [req.params.id, user.id[0]], function(err, row) {
         if(!err) {
           if( undefined !== row ) {
             var contigs = [];
