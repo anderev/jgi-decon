@@ -155,16 +155,19 @@ angular.module('myApp.services').service('plotService', function() {
       varying vec3 frag_color;\
       varying float frag_highlight;\
       void main() {\
-        vec2 r = gl_PointCoord - vec2(0.5,0.5);\
+        vec2 r = 2.0 * (gl_PointCoord - vec2(0.5,0.5));\
         float len_r = length(r);\
-        if( bool(frag_highlight) && (len_r <= 0.5 && len_r >= 0.4) ) {\
+        float r_sqr = len_r * len_r;\
+        if( bool(frag_highlight) && (len_r <= 1.0 && len_r >= 0.8) ) {\
           gl_FragColor = vec4(0,0,0,1);\
-        } else if(len_r < 0.4) {\
-          gl_FragColor = vec4(frag_color, max(frag_highlight, 1.0 - sqrt(0.4 - len_r)));\
+        } else if(len_r < 0.8) {\
+          float len_ray = 2.0*sqrt(0.8*0.8 - r_sqr);\
+            float opacity = 1.0 - exp(-len_ray);\
+            gl_FragColor = vec4(frag_color, max(frag_highlight, opacity));\
         } else {\
           discard;\
         }\
-       }';
+      }';
     var mouse = {x:0, y:0};
     var INTERSECTED;
 
