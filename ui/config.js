@@ -18,12 +18,12 @@ var Production = function() {
   this.local_working_dir = '/dna/shared/data/gbp/prodege/production';
   this.env = 'production';
   this.port = 3051;
-  this.caliban_return_URL = 'https://prodege.jgi-psf.org/';
-  this.caliban_signon_URL = 'https://signon2.jgi-psf.org';
-  this.caliban_signoff_URL = 'https://signon.jgi-psf.org/signon/destroy';
-  this.caliban_api_users = function(user_id, cb) { return https.get({hostname:'signon.jgi-psf.org', path: '/api/users/'+user_id}, cb); };
-  this.caliban_api_session = function(session, cb) { return https.get({hostname:'signon.jgi-psf.org', path: session}, cb); };
-  this.caliban_cookie_domain = '.jgi-psf.org';
+  this.caliban_return_URL = 'https://prodege.jgi.doe.gov/';
+  this.caliban_signon_URL = 'https://signon2.jgi.doe.gov';
+  this.caliban_signoff_URL = 'https://signon.jgi.doe.gov/signon/destroy';
+  this.caliban_api_users = function(user_id, cb) { return https.get({hostname:'signon.jgi.doe.gov', path: '/api/users/'+user_id}, cb); };
+  this.caliban_api_session = function(session, cb) { return https.get({hostname:'signon.jgi.doe.gov', path: session}, cb); };
+  this.caliban_cookie_domain = '.jgi.doe.gov';
 };
 
 var Staging = function() {
@@ -33,11 +33,11 @@ var Staging = function() {
   this.local_working_dir = '/dna/shared/data/gbp/prodege/staging';
   this.env = 'staging';
   this.port = 80;
-  this.caliban_return_URL = 'http://prodege-dev.jgi-psf.org/';
+  this.caliban_return_URL = 'http://prodege-dev.jgi.doe.gov/';
   this.job_start = function(job_id, temp_config_filename, temp_fasta_filename, user_id) { return job_start(job_id, temp_config_filename, temp_fasta_filename, user_id, this.remote_working_dir); };
   this.job_status = function(job_id, process_id, user_id) { return job_status(job_id, process_id, user_id, this.local_working_dir); };
-  this.caliban_api_users = function(user_id, cb) { return https.get({hostname:'signon.jgi-psf.org', port: 4444, path: '/api/users/'+user_id}, cb); };
-  this.caliban_api_session = function(session, cb) { return https.get({hostname:'signon.jgi-psf.org', port: 4444, path: session}, cb); };
+  this.caliban_api_users = function(user_id, cb) { return https.get({hostname:'signon.jgi.doe.gov', port: 4444, path: '/api/users/'+user_id}, cb); };
+  this.caliban_api_session = function(session, cb) { return https.get({hostname:'signon.jgi.doe.gov', port: 4444, path: session}, cb); };
 };
 Staging.prototype = Object.create(Production.prototype);
 Staging.prototype.constructor = Staging;
