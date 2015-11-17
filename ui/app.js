@@ -19,6 +19,19 @@ var express = require('express'),
 var app = module.exports = express();
 var config = require('./config.js').Config;
 
+var redirectToExternal = function(req, res, next) {
+  var oldDomainRE = /jgi-psf\.org/;
+  if( req.get('host').match(oldDomainRE) || req.get('x-forwarded-host').match(oldDomainRE) ) {
+    console.log('Redirecting jgi-psf.org to jgi.doe.gov.');
+    res.redirect('https://prodege.jgi.doe.gov'+req.originalUrl);
+  } else {
+    next();
+  }
+}
+
+app.get('*', redirectToExternal);
+app.post('*', redirectToExternal);
+app.delete('*', redirectToExternal);
 
 /**
  * Configuration
