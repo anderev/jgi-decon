@@ -13,17 +13,17 @@ var express = require('express'),
   cookie_parser = require('cookie-parser'),
   morgan = require('morgan'),
   bodyParser = require('body-parser'),
-  busboy = require('connect-busboy'),
-  errorhandler = require('errorhandler');
+  busboy = require('connect-busboy');
 
 var app = module.exports = express();
 var config = require('./config.js').Config;
 
 var redirectToExternal = function(req, res, next) {
+  console.log('Got request.')
   var oldDomainRE = /jgi-psf\.org/;
   if( req.get('host').match(oldDomainRE) || req.get('x-forwarded-host').match(oldDomainRE) ) {
     console.log('Redirecting jgi-psf.org to jgi.doe.gov.');
-    res.redirect('https://prodege.jgi.doe.gov'+req.originalUrl);
+    res.redirect(config.caliban_return_URL.slice(0,-1)+req.originalUrl);
   } else {
     next();
   }
@@ -62,7 +62,7 @@ app.delete('*', cookieParser);
 
 // staging only
 if (config.env === 'staging') {
-  app.use(errorhandler);
+  // TODO
 }
 
 // production only
