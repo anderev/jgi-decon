@@ -26,14 +26,10 @@ angular.module('myApp.services').service('plotService', function() {
       };
     } else if(color_mode == 7) {
       return function(contig) {
-        if(contig.name.match(/clean/g)) {
-          return "Clean";
-        } else if (contig.name.match(/contam/g)) {
+        if('is_contam' in contig) {
           return "Contaminant";
-        } else if (contig.name.match(/hybrid/g)) {
-          return "Hybrid";
         } else {
-          return "Unknown";
+          return "Clean";
         }
       };
     }
@@ -65,7 +61,6 @@ angular.module('myApp.services').service('plotService', function() {
     } else if(color_mode==7) {
       color_map.Clean = new THREE.Color().setHSL( 0.333, HSL_SATURATION, HSL_LIGHTNESS );
       color_map.Contaminant = new THREE.Color().setHSL( 0.0, HSL_SATURATION, HSL_LIGHTNESS );
-      color_map.Hybrid = new THREE.Color().setHSL( 0.666, HSL_SATURATION, HSL_LIGHTNESS );
     } else {
       //Unknown
     }
@@ -160,16 +155,19 @@ angular.module('myApp.services').service('plotService', function() {
       varying vec3 frag_color;\
       varying float frag_highlight;\
       void main() {\
-        vec2 r = gl_PointCoord - vec2(0.5,0.5);\
+        vec2 r = 2.0 * (gl_PointCoord - vec2(0.5,0.5));\
         float len_r = length(r);\
-        if( bool(frag_highlight) && (len_r <= 0.5 && len_r >= 0.4) ) {\
+        float r_sqr = len_r * len_r;\
+        if( bool(frag_highlight) && (len_r <= 1.0 && len_r >= 0.8) ) {\
           gl_FragColor = vec4(0,0,0,1);\
-        } else if(len_r < 0.4) {\
-          gl_FragColor = vec4(frag_color, max(frag_highlight, 1.0 - sqrt(0.4 - len_r)));\
+        } else if(len_r < 0.8) {\
+          float len_ray = 2.0*sqrt(0.8*0.8 - r_sqr);\
+            float opacity = 1.0 - exp(-len_ray);\
+            gl_FragColor = vec4(frag_color, max(frag_highlight, opacity));\
         } else {\
           discard;\
         }\
-       }';
+      }';
     var mouse = {x:0, y:0};
     var INTERSECTED;
 
@@ -187,7 +185,7 @@ angular.module('myApp.services').service('plotService', function() {
       //particle system (rendered)
       this.particles.vertices.push(vec3);
       this.attributes.color.value.push(this.color_map[f_hash(p)]);
-      if(p.name.match(/clean/g)) {
+      if(!('is_contam' in p)) {
         status_size = 32.0;
         ++num_clean;
         if(center_mass) {
@@ -195,10 +193,6 @@ angular.module('myApp.services').service('plotService', function() {
         } else {
           center_mass = new THREE.Vector3().copy(vec3);
         }
-      } else if(p.name.match(/contam/g)) {
-        status_size = 16.0;
-      } else if(p.name.match(/hybrid/g)) {
-        status_size = 16.0;
       } else {
         status_size = 16.0;
       }

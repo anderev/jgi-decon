@@ -9,22 +9,14 @@ var temp = require('temp');
 var Q = require('q');
 
 var user_uploads = {};
-
-fs.exists(config.upload_dir, function(exists) {
-  if(!exists) {
-    console.log('Creating ' + config.upload_dir);
-    fs.mkdir(config.upload_dir, function(err) {
-      if(err) {
-        console.log(err);
-      }
-    });
-  }
-});
+var qReaddir = Q.nfbind(fs.readdir);
+var qReadFile = Q.nfbind(fs.readFile);
 
 db.serialize(function() {
 
   db.run("CREATE TABLE IF NOT EXISTS job (job_id INTEGER PRIMARY KEY AUTOINCREMENT, taxon_display_name TEXT, taxon_domain TEXT, taxon_phylum TEXT, taxon_class TEXT, taxon_order TEXT, taxon_family TEXT, taxon_genus TEXT, taxon_species TEXT, user_id INTEGER, process_id INT, start_time TEXT, in_fasta TEXT, notes TEXT, is_public INT, status INT, gc_percent REAL, num_bases INTEGER, num_contigs INTEGER, version TEXT)");
   db.run("CREATE TABLE IF NOT EXISTS eula (user_id INTEGER PRIMARY KEY, time_stamp TEXT)");
+  db.run("CREATE TABLE IF NOT EXISTS admin (user_id INTEGER PRIMARY KEY)");
 });
 
 // GET
@@ -85,8 +77,8 @@ exports.jobs = function(req, res) {
   } else {
     caliban.getSessionUser(req, function(user_err, user) {
       if(!user_err) {
-        var query_str = "SELECT * FROM job WHERE user_id = ? ORDER BY job_id DESC";
-        var query_param = [user.id[0]];
+        var query_str = "SELECT * FROM job WHERE user_id = ? OR EXISTS (SELECT * FROM admin WHERE user_id = ?) ORDER BY job_id DESC";
+        var query_param = [user.id[0], user.id[0]];
         getJobs(req, res, query_str, query_param);
       } else {
         console.log(user_err);
@@ -100,7 +92,7 @@ exports.job = function(req, res) {
   caliban.getSessionUser(req, function(user_err, user) {
     if(!user_err) {
       var id = req.params.id;
-      db.get("SELECT * FROM job WHERE job_id = ? AND (user_id = ? OR is_public = 1)", [id, user.id[0]], function(err, row) {
+      db.get("SELECT * FROM job WHERE job_id = ? AND (user_id = ? OR is_public = 1 OR EXISTS (SELECT * FROM admin WHERE user_id = ?))", [id, user.id[0], user.id[0]], function(err, row) {
         if(!err && row) {
           config.job_status(row.job_id, row.process_id, row.user_id)
           .then(function(str_status) {
@@ -147,63 +139,55 @@ exports.getPCA = function(req, res) {
 };
 
 exports.parseJobFiles = function(req, res, cb_ok, cb_err) {
-  db.get('SELECT user_id,is_public FROM job WHERE job_id = ?', [req.params.id], function(err, row) {
+  caliban.getSessionUser(req, function(err, user) {
     if(!err) {
-      caliban.getSessionUser(req, function(err, user) {
+      db.get('SELECT user_id FROM job WHERE job_id = ? AND ( user_id = ? OR is_public = 1 OR EXISTS (SELECT * FROM admin WHERE user_id = ?))', [req.params.id, user.id[0], user.id[0]], function(err, row) {
         if(!err) {
-          if( user.id[0] == row.user_id || row.is_public ) {
+          if( undefined !== row ) {
             var contigs = [];
             var workingDir = config.local_working_dir + '/sso_' + row.user_id;
             var job_name = 'job_' + req.params.id;
-            var intermediate_dir = workingDir + '/' + job_name + '/' + job_name + '_Intermediate/';
-            fs.readdir(intermediate_dir, function(err, files) {
-              var filename_pca = null;
-              var filename_names = null;
-              var filename_lca = null;
-              var filename_blout = null;
-              var filename_genes_fna = null;
+            var jobDir = workingDir + '/' + job_name;
+            var intermediate_dir = jobDir + '/' + job_name + '_Intermediate';
+            var filename_lca = intermediate_dir + '/' + job_name + '_contigs.LCA';
+            var filename_blout = intermediate_dir + '/' + job_name + '_genes.blout';
+            var filename_genes_fna = intermediate_dir + '/' + job_name + '_genes.fna';
+            var filename_contam_fna = jobDir + '/' + job_name + '_output_contam.fna';
 
-              if( !files ) {
-                res.json(false);
-                return;
-              }
-
-              files.map(function(filename) {
-
-                if(filename.match(/\.pca$/g)) {
-                  filename_pca = intermediate_dir + filename;
-                } else if (filename.match(/_names$/g)) {
-                  filename_names = intermediate_dir + filename;
-                } else if (filename.match(/\.LCA$/g)) {
-                  filename_lca = intermediate_dir + filename;
-                } else if (filename.match(/\.blout$/g)) {
-                  filename_blout = intermediate_dir + filename;
-                } else if (filename.match(/_genes.fna$/g)) {
-                  filename_genes_fna = intermediate_dir + filename;
+            var filename_names;
+            var filename_pca;
+            qReaddir(intermediate_dir)
+            .then(function(filenames) {
+              filenames.map(function(filename) {
+                if(filename.match(/_contigs_kmervecs_.*_names/)) {
+                  filename_names = intermediate_dir + '/' + filename;
+                } else if(filename.match(/_contigs_.*mer\.pca/)) {
+                  filename_pca = intermediate_dir + '/' + filename;
                 }
-              });
-
-              if( !(filename_pca && filename_names && filename_lca && filename_blout && filename_genes_fna) ) {
-                res.json(false);
-                return;
-              }
+              })
 
               parser.parse_pca(filename_pca).then(function(contigs) {
                 parser.parse_names(filename_names, contigs).then(function(contigs) {
                   parser.parse_lca(filename_lca, contigs).then(function(contigs) {
                     parser.parse_blout(filename_blout, contigs).then(function(contigs) {
                       parser.parse_genes_fna(filename_genes_fna).then(function(nuc_seqs) {
-                        cb_ok(contigs, nuc_seqs);
+                        parser.parse_fna(filename_contam_fna).then(function(contam_contigs) {
+                          var contam_map = {}
+                          contam_contigs.map(function(contig) { var id = contig.id.split(' ')[0]; contam_map[id] = true; })
+                          contigs.map(function(contig) { if (contig.name in contam_map) { contig.is_contam = true; } })
+                          cb_ok(contigs, nuc_seqs);
+                        })
                       })
-                    });
+                    })
                   });
                 });
               }).catch(function(reason){
-                cb_err(reason);
+                cb_err(reason)
               });
+            })
+            .fail(function(err) {
+              cb_err(err)
             });
-
-
           } else {
             console.log(user.id[0] + ' attempted to access PCA for job ' + req.params.id + ', owned by ' + row.user_id);
             res.statusCode = 401;
@@ -385,5 +369,22 @@ exports.acceptEULA = function(req, res) {
       res.json(false);
     }
   });
+};
+
+exports.imgProject = function(req, res) {
+  var taxon = req.params.taxon;
+  //Currently assumes display name is IMG taxon.
+  db.get("SELECT job_id FROM job WHERE taxon_display_name = ?", [taxon], function(err, row) {
+    if(!err) {
+      if(row) {
+        res.json({url: '/readJob/'+row.job_id})
+      } else {
+        res.json({})
+      }
+    } else {
+      console.log(err);
+      res.json({error: err})
+    }
+  })
 };
 

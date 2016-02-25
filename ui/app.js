@@ -13,12 +13,25 @@ var express = require('express'),
   cookie_parser = require('cookie-parser'),
   morgan = require('morgan'),
   bodyParser = require('body-parser'),
-  busboy = require('connect-busboy'),
-  errorhandler = require('errorhandler');
+  busboy = require('connect-busboy');
 
 var app = module.exports = express();
 var config = require('./config.js').Config;
 
+var redirectToExternal = function(req, res, next) {
+  console.log('Got request.')
+  var oldDomainRE = /jgi-psf\.org/;
+  if( req.get('host').match(oldDomainRE) || req.get('x-forwarded-host').match(oldDomainRE) ) {
+    console.log('Redirecting jgi-psf.org to jgi.doe.gov.');
+    res.redirect(config.caliban_return_URL.slice(0,-1)+req.originalUrl);
+  } else {
+    next();
+  }
+}
+
+app.get('*', redirectToExternal);
+app.post('*', redirectToExternal);
+app.delete('*', redirectToExternal);
 
 /**
  * Configuration
@@ -41,14 +54,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 var cookieParser = cookie_parser('secret string');
 var calibanRoute = caliban.calibanRoute;
+
+app.get('/api/img/:taxon', api.imgProject);
 app.get('*', cookieParser);
 app.post('*', cookieParser);
 app.delete('*', cookieParser);
 
 // staging only
 if (config.env === 'staging') {
-  caliban.startCalibanStub(app);
-  //app.use(errorhandler);
+  // TODO
 }
 
 // production only
@@ -66,10 +80,10 @@ app.get('/eula', routes.EULA);
 
 // DOWNLOADS
 
-app.get('/download/*', download.checkEULA);
-app.get('/download/clean/:id', download.getClean);
-app.get('/download/contam/:id', download.getContam);
-app.get('/download/src', download.getSrc);
+app.get('/downloads?/*', download.checkEULA);
+app.get('/downloads?/clean/:id', download.getClean);
+app.get('/downloads?/contam/:id', download.getContam);
+app.get('/downloads?/src', download.getSrc);
 
 // JSON API
 
@@ -93,3 +107,4 @@ app.get('*', routes.index);
 http.createServer(app).listen(app.get('port'), function () {
   console.log(config.env + ' ProDeGe server listening on port ' + app.get('port'));
 });
+

@@ -12,12 +12,12 @@ exports.checkEULA = function(req, res, next) {
           if(row['COUNT(*)'] > 0) {
             next();
           } else {
-            res.cookie('eula_return', req.originalUrl, {domain: '.jgi-psf.org'});
+            res.cookie('eula_return', req.originalUrl, {domain: config.caliban_cookie_domain});
             res.redirect('/eula');
           }
         } else {
           console.log(err);
-          res.cookie('eula_return', req.originalUrl, {domain: '.jgi-psf.org'});
+          res.cookie('eula_return', req.originalUrl, {domain: config.caliban_cookie_domain});
           res.redirect('/eula');
         }
       });
