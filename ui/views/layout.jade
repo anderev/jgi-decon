@@ -6,16 +6,16 @@ html(ng-app="myApp")
     title JGI ProDeGe
     link(rel='stylesheet', href='/css/bootstrap.min.css')
     link(rel='stylesheet', href='/css/jgi-style.css')
+  body
     script(type='text/javascript', src='https://issues.jgi-psf.org/s/4619951a510ae9cef6cb9f0e1aeea93d-T/en_US-2gi36u/6346/86/1.4.16/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=f5a3361c')
     script(type='text/javascript').
     window.ATL_JQ_PAGE_PROPS =  {
-      "triggerFunction": function(showCollectorDialog) {
-        jQuery("#feedback-button").click(function(e) {
-          e.preventDefault();
-          showCollectorDialog();
-        });
-      }
-    };
+    "triggerFunction": function(showCollectorDialog) {
+    jQuery("#feedback-button").click(function(e) {
+    e.preventDefault();
+    showCollectorDialog();
+    });
+    }};
   body 
     .site-container
       header.site-header
