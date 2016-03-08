@@ -6,6 +6,8 @@ html(ng-app="myApp")
     title JGI ProDeGe
     link(rel='stylesheet', href='/css/bootstrap.min.css')
     link(rel='stylesheet', href='/css/jgi-style.css')
+    //Added for issue #33:
+    link(rel='stylesheet', href='/css/pace.css')
   body
     .site-container
       header.site-header
@@ -13,12 +15,6 @@ html(ng-app="myApp")
           .title-area
             a.mainsite-link(href='http://jgi.doe.gov/') Joint Genome Institute
           aside.widget-area.header-widget-area
-            section#text-2.widget.widget_text
-              .widget-wrap
-                .textwidget
-                  form.search-form(method='get', action='https://jgi.doe.gov/search-results')
-                    input(type='search', placeholder='Search JGI websites …', name='q')
-                    input(type='submit', value='Search')
             section#nav_menu-2.widget.widget_nav_menu
               .widget-wrap
                 nav.nav-header
@@ -30,8 +26,14 @@ html(ng-app="myApp")
                         a(href="javascript: document.cookie='jgi_return=https://' + top.window.location.host + '; domain=.jgi-psf.org; path=/;'; top.window.location.href='https://signon.jgi-psf.org/signon/destroy';")
                           | Sign Out
                       li#menu-item-10.menu-item.menu-item-type-custom.menu-item-object-custom.menu-item-10
-                        a(href='http://www.jgi.doe.gov/contact-us/')
-                          | Contact Us
+                        a#feedback-button(href='#')
+                          | Problems? Report feedback
+            section#text-2.widget.widget_text
+              .widget-wrap
+                .textwidget
+                  form.search-form(method='get', action='https://jgi.doe.gov/search-results')
+                    input(type='search', placeholder='Search JGI websites ?~@?', name='q')
+                    input(type='submit', value='Search')
       nav.nav-primary
         .wrap
           ul#menu-sample-menu.menu.menu-primary

@@ -77,6 +77,7 @@ function AddJobCtrl($scope, $http, $upload, $location) {
 }
 
 function ReadJobCtrl($scope, $http, $routeParams, plotService) {
+  window.Pace.restart(); //Added for issue #33
   $scope.isIMG = isIMG;
   $http.get('/api/job/' + $routeParams.id).
     success(function(data) {
