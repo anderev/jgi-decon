@@ -7,7 +7,7 @@ var ssh_client = require('node-sshclient');
 var Production = function() {
   this.install_location = '/global/projectb/sandbox/omics/sc-decontamination/Production/prodege-2.0';
   this.nt_location = '';
-  this.bundle_src = '/dna/shared/data/gbp/prodege/production/Releases/prodege-2.2.tgz';
+  this.bundle_src = '/global/dna/shared/data/gbp/prodege/production/Releases/prodege-2.2.tgz';
   this.bundle_src_name = 'prodege-2.2.tgz';
   this.version = '2.0';
 
@@ -15,7 +15,7 @@ var Production = function() {
   this.job_start = function(job_id, temp_config_filename, temp_fasta_filename, user_id) { return job_start(job_id, temp_config_filename, temp_fasta_filename, user_id, this.remote_working_dir); };
   this.job_status = function(job_id, process_id, user_id) { return job_status(job_id, process_id, user_id, this.local_working_dir); };
   this.remote_working_dir = '/global/projectb/scratch/ewanders/prodege/production';
-  this.local_working_dir = '/dna/shared/data/gbp/prodege/production';
+  this.local_working_dir = '/global/dna/shared/data/gbp/prodege/production';
   this.env = 'production';
   this.port = 3051;
   this.caliban_return_URL = 'https://prodege.jgi.doe.gov/';
@@ -30,7 +30,7 @@ var Staging = function() {
   Production.call(this);
 
   this.remote_working_dir = '/global/projectb/scratch/ewanders/prodege/staging';
-  this.local_working_dir = '/dna/shared/data/gbp/prodege/staging';
+  this.local_working_dir = '/global/dna/shared/data/gbp/prodege/staging';
   this.env = 'staging';
   this.port = 3052;
   this.caliban_return_URL = 'https://prodege-dev.jgi.doe.gov/';
