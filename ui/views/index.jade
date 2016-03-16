@@ -4,6 +4,8 @@ block content
   div
     div(ng-view)
 
+  //pace.js added for issue #33 progress bar:
+  script(src='js/pace.js')  
   script(src='js/lib/angular-file-upload/angular-file-upload-html5-shim.min.js')
   script(src='js/lib/angular/angular.min.js')
   script(src='js/lib/angular-file-upload/angular-file-upload.min.js')
@@ -16,8 +18,6 @@ block content
   script(src='js/controllers.js')
   script(src='js/filters.js')
   script(src='js/directives.js')
-  //Added for issue #33:
-  script(src='js/pace.js')
 
   script(type='text/javascript', src='https://issues.jgi-psf.org/s/4619951a510ae9cef6cb9f0e1aeea93d-T/en_US-2gi36u/6346/86/1.4.16/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=f5a3361c')
   script(type='text/javascript').

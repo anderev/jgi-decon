@@ -77,7 +77,6 @@ function AddJobCtrl($scope, $http, $upload, $location) {
 }
 
 function ReadJobCtrl($scope, $http, $routeParams, plotService) {
-  window.Pace.restart(); //Added for issue #33
   $scope.isIMG = isIMG;
   $http.get('/api/job/' + $routeParams.id).
     success(function(data) {
@@ -107,6 +106,7 @@ function ReadJobCtrl($scope, $http, $routeParams, plotService) {
         $scope.contig = null;
         $scope.nuc_seqs = null;
         if(data.job.process_status === 'Complete') {
+          window.Pace.restart(); //Added for issue #33
           $http.get('/api/getPCA/' + $routeParams.id).
             success(function(data) {
               if(data.nuc_seqs) {
