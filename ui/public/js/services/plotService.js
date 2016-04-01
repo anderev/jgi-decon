@@ -1,629 +1,310 @@
 angular.module('myApp.services').service('plotService', function() {
-	
-  var axis_camera_ratio = 0.3;
-  var plot_data = null;
-  var mat_ps = null;
-  var color_map = {};
-  var attributes = null;
-  var HSL_LIGHTNESS = 0.6;
-  var HSL_SATURATION = 0.75;
-  var NUM_GRID_LINES = 21;
-  var bvol = null;
-  var grid_scene = null;
-  var plane_projection_scene = null;
-  var particles = null;
-  var label_scene_ortho = null;
-  var scope = null;
-  var particle_system = null;
-  var render_scene = null;
-
+  var BoundingVolume, HSL_LIGHTNESS, HSL_SATURATION, NUM_GRID_LINES, get_hash, make_axes, make_color_map, make_projection_plane, parse_point;
+  HSL_LIGHTNESS = 0.6;
+  HSL_SATURATION = 0.75;
+  NUM_GRID_LINES = 21;
+  this.grid_scene = [];
+  parse_point = function(c) {
+    return new IMGPlotter.Vector3(300 * parseFloat(c.x), 300 * parseFloat(c.y), 300 * parseFloat(c.z));
+  };
+  this.update_projection = function() {
+    var c, l, len, len1, m, ref, ref1;
+    if (this.bvol == null) {
+      this.bvol = new BoundingVolume(this.contig_points);
+    }
+    ref = this.grid_scene;
+    for (l = 0, len = ref.length; l < len; l++) {
+      c = ref[l];
+      this.plotter.removeComponent(c);
+    }
+    this.grid_scene = this.bvol.getComponents(this.scope.projection_mode.value).concat(make_projection_plane(this.contig_points, this.scope.projection_mode.value, true, true));
+    ref1 = this.grid_scene;
+    for (m = 0, len1 = ref1.length; m < len1; m++) {
+      c = ref1[m];
+      this.plotter.addComponent(c);
+    }
+    this.plotter.render();
+  };
+  make_projection_plane = function(points, zero_plane, b_draw_points, b_draw_lines) {
+    var line_color, lines, point_color, projected_point_series, projected_points, result;
+    result = [];
+    if (zero_plane < 0 || zero_plane > 2) {
+      return result;
+    }
+    projected_points = points.map(function(v) {
+      return v.clone();
+    });
+    switch (zero_plane) {
+      case 0:
+        projected_points.map(function(v) {
+          return v.setX(0);
+        });
+        break;
+      case 1:
+        projected_points.map(function(v) {
+          return v.setY(0);
+        });
+        break;
+      default:
+        projected_points.map(function(v) {
+          return v.setZ(0);
+        });
+    }
+    if (b_draw_lines) {
+      line_color = (new IMGPlotter.Color).setHSL(0, 0, 0.8);
+      lines = projected_points.map(function(v, i) {
+        return new IMGPlotter.Line(line_color, [v, points[i]]);
+      });
+      result = result.concat(lines);
+    }
+    if (b_draw_points) {
+      point_color = (new IMGPlotter.Color).setHSL(0, 0, 0.2);
+      projected_point_series = new IMGPlotter.DataSeries(projected_points, function() {
+        return point_color;
+      }, function() {
+        return 4;
+      }, function() {
+        return false;
+      }, null, null, null);
+      result.push(projected_point_series);
+    }
+    return result;
+  };
   get_hash = function(color_mode) {
-    if(color_mode >= 0 && color_mode <= 6) { //Taxon
+    if (color_mode >= 0 && color_mode <= 6) {
       return function(contig) {
-        var taxon_array = contig.taxonomy.split(';');
-        var end = (taxon_array.length > color_mode) ? (color_mode) : (taxon_array.length-1);
-        return taxon_array.slice(0, end+1).join(';');
+        var end, taxon_array;
+        taxon_array = contig.taxonomy.split(';');
+        end = taxon_array.length > color_mode ? color_mode : taxon_array.length - 1;
+        return taxon_array.slice(0, +end + 1 || 9e9).join(';');
       };
-    } else if(color_mode == 7) {
+    } else if (color_mode === 7) {
       return function(contig) {
-        if('is_contam' in contig) {
-          return "Contaminant";
+        if ('is_contam' in contig) {
+          return 'Contaminant';
         } else {
-          return "Clean";
+          return 'Clean';
         }
+      };
+    } else {
+      return function(contig) {
+        return 'Unknown';
       };
     }
   };
-
   make_color_map = function(color_mode, contigs) {
-    var f_hash = get_hash(color_mode);
-    var color_map = {};
-    if(color_mode < 7) {
-      for(var p_i=0; p_i<contigs.length; ++p_i) {
-        var the_hash = f_hash(contigs[p_i]);
-        if(!(the_hash in color_map) && the_hash != 'Unknown') {
-          color_map[the_hash] = new THREE.Color();
+    var color_map, f_hash, k, num_colors, p_i, taxon, taxon_i, taxon_sorted, the_hash, v;
+    f_hash = get_hash(color_mode);
+    color_map = {};
+    if (color_mode < 7) {
+      p_i = 0;
+      while (p_i < contigs.length) {
+        the_hash = f_hash(contigs[p_i]);
+        if (!(the_hash in color_map) && the_hash !== 'Unknown') {
+          color_map[the_hash] = new THREE.Color;
         }
+        ++p_i;
       }
-
-      var num_colors = 0;
-      for(var taxon in color_map) {
+      num_colors = 0;
+      for (taxon in color_map) {
         num_colors++;
       }
-
-      var taxon_i = 0;
-      var taxon_sorted = keys(color_map).sort();
-      for(var taxon in taxon_sorted) {
-        console.log(taxon_sorted[taxon]);
+      taxon_i = 0;
+      taxon_sorted = ((function() {
+        var results;
+        results = [];
+        for (k in color_map) {
+          v = color_map[k];
+          results.push(k);
+        }
+        return results;
+      })()).sort();
+      for (taxon in taxon_sorted) {
         color_map[taxon_sorted[taxon]].setHSL(taxon_i / num_colors, HSL_SATURATION, HSL_LIGHTNESS);
         taxon_i++;
       }
-    } else if(color_mode==7) {
-      color_map.Clean = new THREE.Color().setHSL( 0.333, HSL_SATURATION, HSL_LIGHTNESS );
-      color_map.Contaminant = new THREE.Color().setHSL( 0.0, HSL_SATURATION, HSL_LIGHTNESS );
+    } else if (color_mode === 7) {
+      color_map.Clean = (new THREE.Color).setHSL(0.333, HSL_SATURATION, HSL_LIGHTNESS);
+      color_map.Contaminant = (new THREE.Color).setHSL(0.0, HSL_SATURATION, HSL_LIGHTNESS);
     } else {
-      //Unknown
+
     }
-
-    color_map.Unknown = new THREE.Color();
-    color_map.Unknown.setHSL( 0.0, 0.0, HSL_LIGHTNESS );
-
+    color_map.Unknown = new THREE.Color;
+    color_map.Unknown.setHSL(0.0, 0.0, HSL_LIGHTNESS);
     return color_map;
   };
-
-  this.update_projection = function() {
-    this.grid_scene = this.bvol.getGridScene(this.scope.projection_mode.value, this.label_scene_ortho);
-    this.plane_projection_scene = makeProjectionPlane(this.particles, this.scope.projection_mode.value, true, true);
+  make_axes = function(points) {
+    var box, components, line_color;
+    components = [];
+    if (this.bvol == null) {
+      this.bvol = new BoundingVolume(points);
+    }
+    box = this.bvol.box;
+    line_color = (new IMGPlotter.Color).setHSL(0, 0, 0.8);
+    components.push(new IMGPlotter.Line(line_color, [[0, 0, 0], [box.max.z, 0, 0]].map(function(v) {
+      return new IMGPlotter.Vector3(v[0], v[1], v[2]);
+    })));
+    components.push(new IMGPlotter.Line(line_color, [[0, 0, 0], [0, box.max.z, 0]].map(function(v) {
+      return new IMGPlotter.Vector3(v[0], v[1], v[2]);
+    })));
+    components.push(new IMGPlotter.Line(line_color, [[0, 0, 0], [0, 0, box.max.z]].map(function(v) {
+      return new IMGPlotter.Vector3(v[0], v[1], v[2]);
+    })));
+    components.push(new IMGPlotter.SceneLabel(new IMGPlotter.Vector3(box.max.z, 0, 0), 'PCA1'));
+    components.push(new IMGPlotter.SceneLabel(new IMGPlotter.Vector3(0, box.max.z, 0), 'PCA2'));
+    components.push(new IMGPlotter.SceneLabel(new IMGPlotter.Vector3(0, 0, box.max.z), 'PCA3'));
+    return components;
   };
-
-  this.update_plot_colors = function() {
-    var color_mode = this.scope.color_taxon_level.value;
-
-    var f_hash = get_hash(color_mode);
-    this.color_map = make_color_map(color_mode, this.plot_data.contigs);
-    this.scope.update_legend(this.color_map);
-
-    if(this.mat_ps) {
-      this.attributes.color.value = [];
-      for(var p_i=0; p_i<this.plot_data.contigs.length; ++p_i) {
-        this.attributes.color.value.push(this.color_map[f_hash(this.plot_data.contigs[p_i])]);
-      }
-      this.mat_ps.needsUpdate = true;
+  BoundingVolume = (function() {
+    function BoundingVolume(points) {
+      this.box = new THREE.Box3;
+      this.box.setFromPoints(points);
     }
-    
-  };
 
-  this.init = function(data, $scope) {
-    this.scope = $scope;
-    var plot_area = document.getElementById("plot_area");
-    var renderer = new THREE.WebGLRenderer({clearAlpha:1});
-    this.render_scene = new THREE.Scene();
-    var picking_scene = new THREE.Scene();
-    this.label_scene_ortho = new THREE.Scene();
-    var width = 1024;
-    var height = 1024;
-    var camera = new THREE.PerspectiveCamera(60, width/height, 0.0001, 1000);
-    var hud_camera = new THREE.OrthographicCamera(width / -2, width / 2, height / 2, height / -2, 0.0001, 1000);
-    var projector = new THREE.Projector();
-    this.plot_data = data;
-    var axis_data = [new THREE.Vector3(1,0,0),
-                     new THREE.Vector3(0,1,0),
-                     new THREE.Vector3(0,0,1)];
-    this.attributes = {
-      color: { type: 'c', value: []},
-      pointSize: { type: 'f', value: []},
-      highlight: { type: 'f', value: []}
+    BoundingVolume.prototype.center = function() {
+      return this.box.center();
     };
 
-    renderer.setSize(width, height);
-    renderer.setClearColorHex(0xffffff, 1);
-    renderer.autoClear = false;
-    renderer.domElement.style.border='2px solid';
-    plot_area.appendChild(renderer.domElement);
-
-    var controls = new THREE.TrackballControls(camera, renderer.domElement);
-    var PI2 = Math.PI * 2;
-
-    camera.position.y = -0.01;
-    camera.position.x = 0.005;
-    camera.position.z = 0.002;
-    camera.up.set(0,0,1);
-
-    controls.rotateSpeed = 5.0;
-    controls.zoomSpeed = 1.0;
-    controls.panSpeed = 1.0;
-    controls.noZoom = false;
-    controls.noPan = false;
-    controls.staticMoving = true;
-    controls.dynamicDampingFactor = 0.3;
-    controls.keys = [65, 83, 68];
-
-    var vertexShaderSource = '\
-      attribute float pointSize;\
-      attribute vec3 color;\
-      attribute float highlight;\
-      varying vec3 frag_color;\
-      varying float frag_highlight;\
-      void main() {\
-        vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\
-        gl_Position = projectionMatrix * mvPosition;\
-        gl_PointSize = pointSize;\
-        frag_color = color;\
-        frag_highlight = highlight;\
-      }';
-    var fragmentShaderSource = '\
-      varying vec3 frag_color;\
-      varying float frag_highlight;\
-      void main() {\
-        vec2 r = 2.0 * (gl_PointCoord - vec2(0.5,0.5));\
-        float len_r = length(r);\
-        float r_sqr = len_r * len_r;\
-        if( bool(frag_highlight) && (len_r <= 1.0 && len_r >= 0.8) ) {\
-          gl_FragColor = vec4(0,0,0,1);\
-        } else if(len_r < 0.8) {\
-          float len_ray = 2.0*sqrt(0.8*0.8 - r_sqr);\
-            float opacity = 1.0 - exp(-len_ray);\
-            gl_FragColor = vec4(frag_color, max(frag_highlight, opacity));\
-        } else {\
-          discard;\
-        }\
-      }';
-    var mouse = {x:0, y:0};
-    var INTERSECTED;
-
-    this.update_plot_colors();
-
-    this.attributes.color.value = [];
-    var f_hash = get_hash($scope.color_taxon_level.value);
-    this.particles = new THREE.Geometry();
-    var center_mass = null;
-    var num_clean = 0;
-    for(var p_i=0; p_i<this.plot_data.contigs.length; ++p_i) {
-      var p = this.plot_data.contigs[p_i];
-      var vec3 = new THREE.Vector3(parseFloat(p.x), parseFloat(p.y), parseFloat(p.z));
-
-      //particle system (rendered)
-      this.particles.vertices.push(vec3);
-      this.attributes.color.value.push(this.color_map[f_hash(p)]);
-      if(!('is_contam' in p)) {
-        status_size = 32.0;
-        ++num_clean;
-        if(center_mass) {
-          center_mass.add(vec3);
-        } else {
-          center_mass = new THREE.Vector3().copy(vec3);
+    BoundingVolume.prototype.getComponents = function(zero_plane) {
+      var box_points, i, j, l, lerp, line_color, line_geom, line_points, m, n, o, origin_colors, origin_plane_points, plane_i, plane_indices, q, r, ref, ref1, result;
+      result = [];
+      line_color = (new IMGPlotter.Color).setHSL(0, 0, 0.8);
+      box_points = [new IMGPlotter.Vector3(this.box.min.x, this.box.min.y, this.box.min.z), new IMGPlotter.Vector3(this.box.min.x, this.box.min.y, this.box.max.z), new IMGPlotter.Vector3(this.box.max.x, this.box.min.y, this.box.max.z), new IMGPlotter.Vector3(this.box.max.x, this.box.min.y, this.box.min.z), new IMGPlotter.Vector3(this.box.min.x, this.box.max.y, this.box.min.z), new IMGPlotter.Vector3(this.box.min.x, this.box.max.y, this.box.max.z), new IMGPlotter.Vector3(this.box.max.x, this.box.max.y, this.box.max.z), new IMGPlotter.Vector3(this.box.max.x, this.box.max.y, this.box.min.z)];
+      plane_indices = [[0, 4, 5, 1], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7], [0, 1, 2, 3], [4, 5, 6, 7]];
+      lerp = function(a, b, alpha) {
+        return b * alpha + a * (1 - alpha);
+      };
+      for (plane_i = l = 0; l <= 5; plane_i = ++l) {
+        line_points = [];
+        for (i = m = 0; m <= 3; i = ++m) {
+          line_points.push(box_points[plane_indices[plane_i][i]]);
         }
-      } else {
-        status_size = 16.0;
+        line_points.push(box_points[plane_indices[plane_i][0]]);
+        result.push(new IMGPlotter.Line(line_color, line_points));
       }
-      this.attributes.pointSize.value.push(status_size);
-      this.attributes.highlight.value.push(false);
-
-      //sprites (picked)
-      var particle = new THREE.Sprite( new THREE.SpriteMaterial({opacity:0}) );
-      particle.position.x = p.x;
-      particle.position.y = p.y;
-      particle.position.z = p.z;
-      particle.scale.x = particle.scale.y = 32;
-      particle.data_i = p_i;
-      picking_scene.add( particle );
-    }
-
-    this.bvol = new BoundingVolume(this.particles.vertices);
-    this.update_projection();
-
-    if(center_mass) {
-      controls.target = center_mass.multiplyScalar(1.0 / num_clean);
-    }
-
-    this.mat_ps = new THREE.ShaderMaterial({
-      attributes: this.attributes,
-      vertexShader: vertexShaderSource,
-      fragmentShader: fragmentShaderSource,
-      transparent: true
-    });
-    this.particle_system = new THREE.ParticleSystem(this.particles, this.mat_ps);
-    this.particle_system.sortParticles = true;
-    this.render_scene.add(this.particle_system);
-
-    var savedColor, selectedColor = new THREE.Color(1,1,0);
-
-    var lock_selection = false, locked_selection = null;
-    var mouse_is_down = false, mouse_was_dragged = false;
-
-    var that = this;
-
-    render = function() {
-      var vector = new THREE.Vector3( mouse.x, mouse.y, 0.5 );
-      projector.unprojectVector( vector, hud_camera );
-      vector.z = 0;
-      var raycaster = new THREE.Raycaster( vector, new THREE.Vector3(0,0,-1) );
-
-      for(var child_i=0; child_i < picking_scene.children.length; child_i++) {
-        var point = that.plot_data.contigs[picking_scene.children[child_i].data_i];
-        vector = new THREE.Vector3(point.x, point.y, point.z);
-        projector.projectVector(vector, camera);
-        projector.unprojectVector(vector, hud_camera);
-        picking_scene.children[child_i].position = vector;
-      }
-
-      var label_scene_render = new THREE.Scene();
-      for(var i=0; i < that.label_scene_ortho.children.length; i++) {
-        var obj = that.label_scene_ortho.children[i].clone();
-        projector.projectVector(obj.position, camera);
-        obj.position.x += 0.1;
-        obj.position.y -= 0.1;
-        projector.unprojectVector(obj.position, hud_camera);
-        label_scene_render.add(obj);
-      }
-
-      if(!(locked_selection || mouse_was_dragged)) {
-        var intersects = raycaster.intersectObjects( picking_scene.children );
-
-        if( intersects.length > 0 ) {
-          if( INTERSECTED != intersects[ 0 ].object ) {
-
-            INTERSECTED = intersects[0].object;
-            $scope.contig = that.plot_data.contigs[INTERSECTED.data_i];
-            $scope.$apply();
+      origin_colors = [(new IMGPlotter.Color).setHSL(0, HSL_SATURATION, HSL_LIGHTNESS), (new IMGPlotter.Color).setHSL(0.33, HSL_SATURATION, HSL_LIGHTNESS), (new IMGPlotter.Color).setHSL(0.66, HSL_SATURATION, HSL_LIGHTNESS)];
+      origin_plane_points = [
+        ((function() {
+          var len, n, ref, results;
+          ref = [0, 4, 5, 1];
+          results = [];
+          for (n = 0, len = ref.length; n < len; n++) {
+            i = ref[n];
+            results.push(box_points[i]);
           }
-
-          if( lock_selection ) {
-            locked_selection = INTERSECTED;
-            that.attributes.highlight.value[locked_selection.data_i] = true;
+          return results;
+        })()).map(function(v) {
+          return new IMGPlotter.Vector3(0, v.y, v.z);
+        }), ((function() {
+          var len, n, ref, results;
+          ref = [0, 1, 2, 3];
+          results = [];
+          for (n = 0, len = ref.length; n < len; n++) {
+            i = ref[n];
+            results.push(box_points[i]);
           }
-        } else {
-          INTERSECTED = null;
-          $scope.contig = null;
-          $scope.$apply();
-        }
-
-        lock_selection = false;
-      }
-
-      renderer.clear();
-      if(that.grid_scene) {
-        renderer.render(that.grid_scene, camera);
-      }
-      if(that.plane_projection_scene) {
-        renderer.render(that.plane_projection_scene, camera);
-      }
-      renderer.render(that.render_scene, camera);
-      renderer.clearDepth();
-      renderer.render(picking_scene, hud_camera);
-      renderer.clearDepth();
-      renderer.render(label_scene_render, hud_camera);
-    };
-
-    animate = function() {
-      render();
-      requestAnimationFrame(animate);
-      controls.update();
-    };
-
-    controls.addEventListener('change', render);
-    renderer.domElement.addEventListener('mousemove', onPlotMouseMove, false);
-    renderer.domElement.addEventListener('mousedown', onPlotMouseDown, false);
-    renderer.domElement.addEventListener('mouseup', onPlotMouseUp, false);
-
-    var screen = {};
-
-    function onPlotMouseDown(event) {
-      console.log('event button: '+event.button);
-      if( event.button == 0 ) {
-        mouse_is_down = true;
-        mouse_was_dragged = false;
-      }
-    }
-
-    function onPlotMouseUp(event) {
-      console.log('event button: '+event.button);
-      if( event.button == 0 ) {
-        if( !mouse_was_dragged ) {
-          lock_selection = true;
-          if( locked_selection ) {
-            that.attributes.highlight.value[locked_selection.data_i] = false;
+          return results;
+        })()).map(function(v) {
+          return new IMGPlotter.Vector3(v.x, 0, v.z);
+        }), ((function() {
+          var len, n, ref, results;
+          ref = [0, 3, 7, 4];
+          results = [];
+          for (n = 0, len = ref.length; n < len; n++) {
+            i = ref[n];
+            results.push(box_points[i]);
           }
-          locked_selection = null;
-        }
-        mouse_is_down = false;
-        mouse_was_dragged = false;
-      }
-    }
-
-    function onPlotMouseMove(event) {
-      var relx = ( event.pageX - screen.left ) / screen.width;
-      var rely = ( event.pageY - screen.top ) / screen.height;
-      event.preventDefault();
-      mouse.x = relx * 2 - 1;
-      mouse.y = - rely * 2 + 1;
-      if( mouse_is_down ) {
-        mouse_was_dragged = true;
-      }
-    }
-
-    function handleResize() {
-      var box = renderer.domElement.getBoundingClientRect();
-      var d = plot_area.ownerDocument.documentElement;
-      screen.left = box.left + window.pageXOffset - d.clientLeft;
-      screen.top = box.top + window.pageYOffset - d.clientTop;
-      screen.width = box.width;
-      screen.height = box.height;
-    };
-
-    handleResize();
-
-    animate();
-
-  };
-
-  function makeTextSprite( message, parameters )
-  {
-    if ( parameters === undefined ) parameters = {};
-
-    var fontface = parameters.hasOwnProperty("fontface") ? 
-      parameters["fontface"] : "Arial";
-
-    var fontsize = parameters.hasOwnProperty("fontsize") ? 
-      parameters["fontsize"] : 18;
-
-    var borderThickness = parameters.hasOwnProperty("borderThickness") ? 
-      parameters["borderThickness"] : 4;
-
-    var borderColor = parameters.hasOwnProperty("borderColor") ?
-      parameters["borderColor"] : { r:0, g:0, b:0, a:1.0 };
-
-    var backgroundColor = parameters.hasOwnProperty("backgroundColor") ?
-      parameters["backgroundColor"] : { r:255, g:255, b:255, a:1.0 };
-
-    var canvas = document.createElement('canvas');
-    var context = canvas.getContext('2d');
-    context.font = "Bold " + fontsize + "px " + fontface;
-
-    // get size data (height depends only on font size)
-    var metrics = context.measureText( message );
-    var textWidth = metrics.width;
-
-    // background color
-    context.fillStyle   = "rgba(" + backgroundColor.r + "," + backgroundColor.g + ","
-      + backgroundColor.b + "," + backgroundColor.a + ")";
-    // border color
-    context.strokeStyle = "rgba(" + borderColor.r + "," + borderColor.g + ","
-      + borderColor.b + "," + borderColor.a + ")";
-
-    context.lineWidth = borderThickness;
-    //roundRect(context, borderThickness/2, borderThickness/2, textWidth + borderThickness, fontsize * 1.4 + borderThickness, 6);
-    // 1.4 is extra height factor for text below baseline: g,j,p,q.
-
-    // text color
-    context.fillStyle = "rgba(0, 0, 0, 1.0)";
-
-    context.fillText( message, borderThickness, fontsize + borderThickness);
-
-    // canvas contents will be used for a texture
-    var texture = new THREE.Texture(canvas);
-    texture.needsUpdate = true;
-
-    var spriteMaterial = new THREE.SpriteMaterial( 
-        { map: texture } );
-    var sprite = new THREE.Sprite( spriteMaterial );
-    sprite.scale.set(200,100,200);
-    return sprite;  
-  }
-
-  // function for drawing rounded rectangles
-  function roundRect(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x+r, y);
-    ctx.lineTo(x+w-r, y);
-    ctx.quadraticCurveTo(x+w, y, x+w, y+r);
-    ctx.lineTo(x+w, y+h-r);
-    ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
-    ctx.lineTo(x+r, y+h);
-    ctx.quadraticCurveTo(x, y+h, x, y+h-r);
-    ctx.lineTo(x, y+r);
-    ctx.quadraticCurveTo(x, y, x+r, y);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();   
-  }
-  
-  function BoundingVolume(points) {
-    this.box = new THREE.Box3();
-    this.box.setFromPoints(points);
-  }
-
-  BoundingVolume.prototype.center = function() {
-    return this.box.center();
-  }
-
-  BoundingVolume.prototype.getGridScene = function(zero_plane, label_scene) {
-    var result = new THREE.Scene();
-    var line_mat = new THREE.LineBasicMaterial({ color: 0xAAAAAA });
-    var box_points = [
-      new THREE.Vector3().copy(this.box.min),
-      new THREE.Vector3(this.box.min.x, this.box.min.y, this.box.max.z),
-      new THREE.Vector3(this.box.max.x, this.box.min.y, this.box.max.z),
-      new THREE.Vector3(this.box.max.x, this.box.min.y, this.box.min.z),
-      new THREE.Vector3(this.box.min.x, this.box.max.y, this.box.min.z),
-      new THREE.Vector3(this.box.min.x, this.box.max.y, this.box.max.z),
-      new THREE.Vector3().copy(this.box.max),
-      new THREE.Vector3(this.box.max.x, this.box.max.y, this.box.min.z)];
-    var plane_indices = [[0,4,5,1],[1,2,6,5],[2,3,7,6],[3,0,4,7],[0,1,2,3],[4,5,6,7]];
-
-    //render bounding planes
-    for(var plane_i=0; plane_i<6; ++plane_i) {
-      var line_geom = new THREE.Geometry();
-      for(var i=0; i<4; ++i)
-        line_geom.vertices.push(box_points[plane_indices[plane_i][i]]);
-      line_geom.vertices.push(box_points[plane_indices[plane_i][0]]);
-      result.add(new THREE.Line(line_geom, line_mat));
-    }
-
-    var origin_mats = [
-      new THREE.LineBasicMaterial({ color: 0xFFAAAA }),
-      new THREE.LineBasicMaterial({ color: 0xAAFFAA }),
-      new THREE.LineBasicMaterial({ color: 0xAAAAFF })
+          return results;
+        })()).map(function(v) {
+          return new IMGPlotter.Vector3(v.x, v.y, 0);
+        })
       ];
-
-    //origin plane points
-    var origin_plane_points = [
-      [
-        box_points[0].clone().setX(0),
-        box_points[4].clone().setX(0),
-        box_points[5].clone().setX(0),
-        box_points[1].clone().setX(0),
-      ], [
-        box_points[0].clone().setY(0),
-        box_points[1].clone().setY(0),
-        box_points[2].clone().setY(0),
-        box_points[3].clone().setY(0),
-      ], [
-        box_points[0].clone().setZ(0),
-        box_points[3].clone().setZ(0),
-        box_points[7].clone().setZ(0),
-        box_points[4].clone().setZ(0),
-      ]
-    ];
-      
-    //render origin planes
-    for(var i=0; i<3; ++i) {
-      var line_geom = new THREE.Geometry();
-      for(var j=0; j<4; ++j) {
-        line_geom.vertices.push(origin_plane_points[i][j]);
+      for (i = n = 0; n <= 2; i = ++n) {
+        line_geom = [];
+        for (j = o = 0; o <= 3; j = ++o) {
+          line_geom.push(origin_plane_points[i][j]);
+        }
+        line_geom.push(origin_plane_points[i][0]);
+        result.push(new IMGPlotter.Line(origin_colors[i], line_geom));
       }
-      line_geom.vertices.push(origin_plane_points[i][0]);
-      result.add(new THREE.Line(line_geom, origin_mats[i]));
-    }
-    
-    function lerp(a, b, alpha) {
-      return b*alpha + a*(1-alpha);
-    }
-
-    if(zero_plane >= 0 && zero_plane <= 2) {
-      //render zero-plane grid
-      for(var i=0; i<NUM_GRID_LINES; ++i) {
-        var line_geom = new THREE.Geometry();
-        line_geom.vertices.push(origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][3], i/(NUM_GRID_LINES-1)));
-        line_geom.vertices.push(origin_plane_points[zero_plane][1].clone().lerp(origin_plane_points[zero_plane][2], i/(NUM_GRID_LINES-1)));
-        result.add(new THREE.Line(line_geom, origin_mats[zero_plane]));
-
+      if (zero_plane >= 0 && zero_plane <= 2) {
+        for (i = q = 0, ref = NUM_GRID_LINES; 0 <= ref ? q < ref : q > ref; i = 0 <= ref ? ++q : --q) {
+          line_geom = [];
+          line_geom.push(origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][3], i / (NUM_GRID_LINES - 1)));
+          line_geom.push(origin_plane_points[zero_plane][1].clone().lerp(origin_plane_points[zero_plane][2], i / (NUM_GRID_LINES - 1)));
+          result.push(new IMGPlotter.Line(origin_colors[zero_plane], line_geom));
+        }
+        for (i = r = 0, ref1 = NUM_GRID_LINES; 0 <= ref1 ? r < ref1 : r > ref1; i = 0 <= ref1 ? ++r : --r) {
+          line_geom = [];
+          line_geom.push(origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][1], i / (NUM_GRID_LINES - 1)));
+          line_geom.push(origin_plane_points[zero_plane][3].clone().lerp(origin_plane_points[zero_plane][2], i / (NUM_GRID_LINES - 1)));
+          result.push(new IMGPlotter.Line(origin_colors[zero_plane], line_geom));
+        }
       }
-      for(var i=0; i<NUM_GRID_LINES; ++i) {
-        var line_geom = new THREE.Geometry();
-        line_geom.vertices.push(origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][1], i/(NUM_GRID_LINES-1)));
-        line_geom.vertices.push(origin_plane_points[zero_plane][3].clone().lerp(origin_plane_points[zero_plane][2], i/(NUM_GRID_LINES-1)));
-        result.add(new THREE.Line(line_geom, origin_mats[zero_plane]));
-      }
-    }
-
-
-
-    //render origin lines
-    var line_geom = new THREE.Geometry();
-    line_geom.vertices.push(box_points[0].clone().setZ(0).setY(0));
-    line_geom.vertices.push(box_points[3].clone().setZ(0).setY(0));
-    result.add(new THREE.Line(line_geom, origin_mats[0]));
-
-    for(var j=0; j<3; ++j) {
-      var tick_a = new THREE.Vector3();
-      tick_a.setComponent(j, box_points[0].getComponent(j));
-      var tick_b = new THREE.Vector3();
-      tick_b.setComponent(j, box_points[6].getComponent(j));
-      for(var i=0; i<NUM_GRID_LINES; ++i) {
-        var tick = tick_a.clone().lerp(tick_b, i/(NUM_GRID_LINES-1));
-        var label = makeTextSprite(tick.getComponent(j).toFixed(3), {
-          fontsize: 16,
-          fontface: "Georgia",
-          borderColor: {r:0, g:0, b:0, a:1.0},
-          backgroundColor: {r:255, g:255, b:255, a:0.8} } );
-        label.position = tick;
-        label_scene.add(label);
-      }
-    }
-
-
-    var line_geom = new THREE.Geometry();
-    line_geom.vertices.push(box_points[0].clone().setZ(0).setX(0));
-    line_geom.vertices.push(box_points[4].clone().setZ(0).setX(0));
-    result.add(new THREE.Line(line_geom, origin_mats[1]));
-    var line_geom = new THREE.Geometry();
-    line_geom.vertices.push(box_points[0].clone().setX(0).setY(0));
-    line_geom.vertices.push(box_points[1].clone().setX(0).setY(0));
-    result.add(new THREE.Line(line_geom, origin_mats[2]));
-
-    return result;
-
-  }
-
-  function makeProjectionPlane(points_geometry, zero_plane, b_draw_points, b_draw_lines) {
-    var result = new THREE.Scene();
-
-    if(zero_plane < 0 || zero_plane > 2) {
       return result;
+    };
+
+    return BoundingVolume;
+
+  })();
+  this.update_plot_colors = function() {
+    var color_mode;
+    color_mode = this.scope.color_taxon_level.value;
+    this.color_map = make_color_map(color_mode, this.data.contigs);
+    this.scope.update_legend(this.color_map);
+    if (this.dataSeries != null) {
+      this.dataSeries.updateColors();
     }
-
-    var projected_points = points_geometry.clone();
-    if(zero_plane==0) {
-      for(var i=0; i<projected_points.vertices.length; ++i) {
-        projected_points.vertices[i].setX(0);
-      }
-    } else if (zero_plane==1) {
-      for(var i=0; i<projected_points.vertices.length; ++i) {
-        projected_points.vertices[i].setY(0);
-      }
-    } else {
-      for(var i=0; i<projected_points.vertices.length; ++i) {
-        projected_points.vertices[i].setZ(0);
-      }
+    if (this.plotter != null) {
+      this.plotter.render();
     }
-
-
-    if(b_draw_lines) {
-      var line_mat = new THREE.LineBasicMaterial({ color: 0xD0D0D0 });
-      for(var i=0; i<projected_points.vertices.length; ++i) {
-        var line_geom = new THREE.Geometry();
-        line_geom.vertices.push(projected_points.vertices[i]);
-        line_geom.vertices.push(points_geometry.vertices[i]);
-        result.add(new THREE.Line(line_geom, line_mat));
-      }
+  };
+  return this.init = function(data, scope) {
+    var bgcolor, component, l, len, ref;
+    this.data = data;
+    this.scope = scope;
+    this.contig_points = this.data.contigs.map(function(v) {
+      return parse_point(v);
+    });
+    this.selected = void 0;
+    bgcolor = new IMGPlotter.Color;
+    bgcolor.setHSL(0, 0, 1);
+    this.update_plot_colors();
+    this.dataSeries = new IMGPlotter.DynamicDataSeries(this.contig_points, (function(_this) {
+      return function(p, i) {
+        return _this.color_map[get_hash(_this.scope.color_taxon_level.value)(_this.data.contigs[i])];
+      };
+    })(this), (function(_this) {
+      return function(p, i) {
+        if (_this.data.contigs[i].is_contam != null) {
+          return 16;
+        } else {
+          return 32;
+        }
+      };
+    })(this), function() {
+      return false;
+    }, (function(_this) {
+      return function(p, i, cmp) {
+        if (_this.selected != null) {
+          cmp.setSelection(_this.selected, false);
+        }
+        _this.selected = i;
+        cmp.setSelection(i, true);
+        _this.scope.contig = _this.data.contigs[i];
+        _this.scope.$apply();
+        return true;
+      };
+    })(this), null, null);
+    this.plotter = new IMGPlotter.Plotter;
+    ref = make_axes(this.contig_points);
+    for (l = 0, len = ref.length; l < len; l++) {
+      component = ref[l];
+      this.plotter.addComponent(component);
     }
-
-
-    if(b_draw_points) {
-      var vertexShaderSource = '\
-        void main() {\
-          vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\
-          gl_Position = projectionMatrix * mvPosition;\
-          gl_PointSize = 4.0;\
-        }';
-      var fragmentShaderSource = '\
-        void main() {\
-          gl_FragColor = vec4(0,0,0,1);\
-         }';
-      var mat = new THREE.ShaderMaterial({
-        vertexShader: vertexShaderSource,
-        fragmentShader: fragmentShaderSource,
-        transparent: true
-      });
-
-      var particle_system = new THREE.ParticleSystem(projected_points, mat);
-      particle_system.sortParticles = true;
-      result.add(particle_system);
-    }
-
-    return result;
-
-  }
-
-  function keys(obj) {
-    var keys = [];
-    for(var key in obj) {
-      if(obj.hasOwnProperty(key)) {
-        keys.push(key);
-      }
-    }
-    return keys;
-  }
+    this.plotter.addComponent(this.dataSeries);
+    this.plotter.init(1024, 1024, bgcolor, 'plot_area');
+    this.update_projection();
+    this.plotter.run();
+  };
 });
-

@@ -99,7 +99,7 @@ function ReadJobCtrl($scope, $http, $routeParams, plotService) {
         $scope.job = data.job;
         $scope.plotService = plotService;
         $scope.color_taxon_level = $scope.color_modes[5];
-        $scope.projection_mode = $scope.projection_modes[2];
+        $scope.projection_mode = $scope.projection_modes[3];
         $scope.update_plot_colors = function() { plotService.update_plot_colors(); };
         $scope.update_projection = function() { plotService.update_projection(); };
         $scope.update_legend = function(color_map) { $scope.color_map = color_map; };
