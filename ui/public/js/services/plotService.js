@@ -3,24 +3,21 @@ angular.module('myApp.services').service('plotService', function() {
   HSL_LIGHTNESS = 0.6;
   HSL_SATURATION = 0.75;
   NUM_GRID_LINES = 21;
-  this.grid_scene = [];
+  this.dynamicComponents = [];
   parse_point = function(c) {
     return new IMGPlotter.Vector3(300 * parseFloat(c.x), 300 * parseFloat(c.y), 300 * parseFloat(c.z));
   };
   this.update_projection = function() {
-    var c, l, len, len1, m, ref, ref1;
-    if (this.bvol == null) {
-      this.bvol = new BoundingVolume(this.contig_points);
-    }
-    ref = this.grid_scene;
-    for (l = 0, len = ref.length; l < len; l++) {
-      c = ref[l];
+    var c, j, l, len, len1, ref, ref1;
+    ref = this.dynamicComponents;
+    for (j = 0, len = ref.length; j < len; j++) {
+      c = ref[j];
       this.plotter.removeComponent(c);
     }
-    this.grid_scene = this.bvol.getComponents(this.scope.projection_mode.value).concat(make_projection_plane(this.contig_points, this.scope.projection_mode.value, true, true));
-    ref1 = this.grid_scene;
-    for (m = 0, len1 = ref1.length; m < len1; m++) {
-      c = ref1[m];
+    this.dynamicComponents = this.bvol.getComponents(this.scope.projection_mode.value).concat(make_projection_plane(this.contig_points, this.scope.projection_mode.value, true, true));
+    ref1 = this.dynamicComponents;
+    for (l = 0, len1 = ref1.length; l < len1; l++) {
+      c = ref1[l];
       this.plotter.addComponent(c);
     }
     this.plotter.render();
@@ -133,13 +130,9 @@ angular.module('myApp.services').service('plotService', function() {
     color_map.Unknown.setHSL(0.0, 0.0, HSL_LIGHTNESS);
     return color_map;
   };
-  make_axes = function(points) {
-    var box, components, line_color;
+  make_axes = function(points, box) {
+    var components, line_color;
     components = [];
-    if (this.bvol == null) {
-      this.bvol = new BoundingVolume(points);
-    }
-    box = this.bvol.box;
     line_color = (new IMGPlotter.Color).setHSL(0, 0, 0.8);
     components.push(new IMGPlotter.Line(line_color, [[0, 0, 0], [box.max.z, 0, 0]].map(function(v) {
       return new IMGPlotter.Vector3(v[0], v[1], v[2]);
@@ -166,7 +159,7 @@ angular.module('myApp.services').service('plotService', function() {
     };
 
     BoundingVolume.prototype.getComponents = function(zero_plane) {
-      var box_points, i, j, l, lerp, line_color, line_geom, line_points, m, n, o, origin_colors, origin_plane_points, plane_i, plane_indices, q, r, ref, ref1, result;
+      var box_points, i, j, l, lerp, line_color, line_geom, line_points, m, n, origin_colors, origin_plane_points, plane_i, plane_indices, ref, ref1, result;
       result = [];
       line_color = (new IMGPlotter.Color).setHSL(0, 0, 0.8);
       box_points = [new IMGPlotter.Vector3(this.box.min.x, this.box.min.y, this.box.min.z), new IMGPlotter.Vector3(this.box.min.x, this.box.min.y, this.box.max.z), new IMGPlotter.Vector3(this.box.max.x, this.box.min.y, this.box.max.z), new IMGPlotter.Vector3(this.box.max.x, this.box.min.y, this.box.min.z), new IMGPlotter.Vector3(this.box.min.x, this.box.max.y, this.box.min.z), new IMGPlotter.Vector3(this.box.min.x, this.box.max.y, this.box.max.z), new IMGPlotter.Vector3(this.box.max.x, this.box.max.y, this.box.max.z), new IMGPlotter.Vector3(this.box.max.x, this.box.max.y, this.box.min.z)];
@@ -174,9 +167,9 @@ angular.module('myApp.services').service('plotService', function() {
       lerp = function(a, b, alpha) {
         return b * alpha + a * (1 - alpha);
       };
-      for (plane_i = l = 0; l <= 5; plane_i = ++l) {
+      for (plane_i = j = 0; j <= 5; plane_i = ++j) {
         line_points = [];
-        for (i = m = 0; m <= 3; i = ++m) {
+        for (i = l = 0; l <= 3; i = ++l) {
           line_points.push(box_points[plane_indices[plane_i][i]]);
         }
         line_points.push(box_points[plane_indices[plane_i][0]]);
@@ -185,33 +178,33 @@ angular.module('myApp.services').service('plotService', function() {
       origin_colors = [(new IMGPlotter.Color).setHSL(0, HSL_SATURATION, HSL_LIGHTNESS), (new IMGPlotter.Color).setHSL(0.33, HSL_SATURATION, HSL_LIGHTNESS), (new IMGPlotter.Color).setHSL(0.66, HSL_SATURATION, HSL_LIGHTNESS)];
       origin_plane_points = [
         ((function() {
-          var len, n, ref, results;
+          var len, m, ref, results;
           ref = [0, 4, 5, 1];
           results = [];
-          for (n = 0, len = ref.length; n < len; n++) {
-            i = ref[n];
+          for (m = 0, len = ref.length; m < len; m++) {
+            i = ref[m];
             results.push(box_points[i]);
           }
           return results;
         })()).map(function(v) {
           return new IMGPlotter.Vector3(0, v.y, v.z);
         }), ((function() {
-          var len, n, ref, results;
+          var len, m, ref, results;
           ref = [0, 1, 2, 3];
           results = [];
-          for (n = 0, len = ref.length; n < len; n++) {
-            i = ref[n];
+          for (m = 0, len = ref.length; m < len; m++) {
+            i = ref[m];
             results.push(box_points[i]);
           }
           return results;
         })()).map(function(v) {
           return new IMGPlotter.Vector3(v.x, 0, v.z);
         }), ((function() {
-          var len, n, ref, results;
+          var len, m, ref, results;
           ref = [0, 3, 7, 4];
           results = [];
-          for (n = 0, len = ref.length; n < len; n++) {
-            i = ref[n];
+          for (m = 0, len = ref.length; m < len; m++) {
+            i = ref[m];
             results.push(box_points[i]);
           }
           return results;
@@ -219,22 +212,14 @@ angular.module('myApp.services').service('plotService', function() {
           return new IMGPlotter.Vector3(v.x, v.y, 0);
         })
       ];
-      for (i = n = 0; n <= 2; i = ++n) {
-        line_geom = [];
-        for (j = o = 0; o <= 3; j = ++o) {
-          line_geom.push(origin_plane_points[i][j]);
-        }
-        line_geom.push(origin_plane_points[i][0]);
-        result.push(new IMGPlotter.Line(origin_colors[i], line_geom));
-      }
       if (zero_plane >= 0 && zero_plane <= 2) {
-        for (i = q = 0, ref = NUM_GRID_LINES; 0 <= ref ? q < ref : q > ref; i = 0 <= ref ? ++q : --q) {
+        for (i = m = 0, ref = NUM_GRID_LINES; 0 <= ref ? m < ref : m > ref; i = 0 <= ref ? ++m : --m) {
           line_geom = [];
           line_geom.push(origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][3], i / (NUM_GRID_LINES - 1)));
           line_geom.push(origin_plane_points[zero_plane][1].clone().lerp(origin_plane_points[zero_plane][2], i / (NUM_GRID_LINES - 1)));
           result.push(new IMGPlotter.Line(origin_colors[zero_plane], line_geom));
         }
-        for (i = r = 0, ref1 = NUM_GRID_LINES; 0 <= ref1 ? r < ref1 : r > ref1; i = 0 <= ref1 ? ++r : --r) {
+        for (i = n = 0, ref1 = NUM_GRID_LINES; 0 <= ref1 ? n < ref1 : n > ref1; i = 0 <= ref1 ? ++n : --n) {
           line_geom = [];
           line_geom.push(origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][1], i / (NUM_GRID_LINES - 1)));
           line_geom.push(origin_plane_points[zero_plane][3].clone().lerp(origin_plane_points[zero_plane][2], i / (NUM_GRID_LINES - 1)));
@@ -260,7 +245,7 @@ angular.module('myApp.services').service('plotService', function() {
     }
   };
   return this.init = function(data, scope) {
-    var bgcolor, component, l, len, ref;
+    var bgcolor, component, j, len, ref;
     this.data = data;
     this.scope = scope;
     this.contig_points = this.data.contigs.map(function(v) {
@@ -296,10 +281,11 @@ angular.module('myApp.services').service('plotService', function() {
         return true;
       };
     })(this), null, null);
+    this.bvol = new BoundingVolume(this.contig_points);
     this.plotter = new IMGPlotter.Plotter;
-    ref = make_axes(this.contig_points);
-    for (l = 0, len = ref.length; l < len; l++) {
-      component = ref[l];
+    ref = make_axes(this.contig_points, this.bvol.box);
+    for (j = 0, len = ref.length; j < len; j++) {
+      component = ref[j];
       this.plotter.addComponent(component);
     }
     this.plotter.addComponent(this.dataSeries);

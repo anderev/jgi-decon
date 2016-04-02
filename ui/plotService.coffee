@@ -2,7 +2,7 @@ angular.module('myApp.services').service 'plotService', ->
   HSL_LIGHTNESS = 0.6
   HSL_SATURATION = 0.75
   NUM_GRID_LINES = 21
-  @grid_scene = []
+  @dynamicComponents = []
 
   parse_point = (c) ->
     new IMGPlotter.Vector3(
@@ -12,11 +12,10 @@ angular.module('myApp.services').service 'plotService', ->
     )
 
   @update_projection = ->
-    @bvol ?= new BoundingVolume(@contig_points)
-    @plotter.removeComponent( c ) for c in @grid_scene
-    @grid_scene = @bvol.getComponents(@scope.projection_mode.value)
+    @plotter.removeComponent( c ) for c in @dynamicComponents
+    @dynamicComponents = @bvol.getComponents(@scope.projection_mode.value)
       .concat(make_projection_plane(@contig_points, @scope.projection_mode.value, true, true))
-    @plotter.addComponent( c ) for c in @grid_scene
+    @plotter.addComponent( c ) for c in @dynamicComponents
     @plotter.render()
     return
 
@@ -96,10 +95,8 @@ angular.module('myApp.services').service 'plotService', ->
     color_map.Unknown.setHSL 0.0, 0.0, HSL_LIGHTNESS
     color_map
 
-  make_axes = (points) ->
+  make_axes = (points, box) ->
     components = []
-    @bvol ?= new BoundingVolume(points)
-    box = @bvol.box
     line_color = (new IMGPlotter.Color).setHSL(0,0,0.8)
     components.push( new IMGPlotter.Line line_color, [[0,0,0],[box.max.z,0,0]].map((v) ->(new IMGPlotter.Vector3(v[0], v[1], v[2]))) )
     components.push( new IMGPlotter.Line line_color, [[0,0,0],[0,box.max.z,0]].map((v) ->(new IMGPlotter.Vector3(v[0], v[1], v[2]))) )
@@ -154,13 +151,6 @@ angular.module('myApp.services').service 'plotService', ->
         (box_points[i] for i in [0,1,2,3]).map((v) ->(new IMGPlotter.Vector3(v.x,0,v.z)))
         (box_points[i] for i in [0,3,7,4]).map((v) ->(new IMGPlotter.Vector3(v.x,v.y,0)))
       ]
-      #render origin planes
-      for i in [0..2]
-        line_geom = []
-        for j in [0..3]
-          line_geom.push origin_plane_points[i][j]
-        line_geom.push origin_plane_points[i][0]
-        result.push new (IMGPlotter.Line)(origin_colors[i], line_geom)
       if zero_plane >= 0 and zero_plane <= 2
         #render zero-plane grid
         for i in [0...NUM_GRID_LINES]
@@ -218,8 +208,9 @@ angular.module('myApp.services').service 'plotService', ->
       null #onrender
     )
 
+    @bvol = new BoundingVolume(@contig_points)
     @plotter = new IMGPlotter.Plotter
-    @plotter.addComponent( component ) for component in make_axes(@contig_points)
+    @plotter.addComponent( component ) for component in make_axes(@contig_points, @bvol.box)
     @plotter.addComponent @dataSeries
     @plotter.init(1024, 1024, bgcolor, 'plot_area')
     @update_projection()
