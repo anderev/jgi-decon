@@ -183,6 +183,9 @@ angular.module('myApp.services').service 'plotService', ->
     bgcolor = new IMGPlotter.Color
     bgcolor.setHSL(0,0,1)
 
+    @dataSeries = undefined
+    @plotter = undefined
+
     @update_plot_colors()
 
     @dataSeries = new IMGPlotter.DynamicDataSeries(

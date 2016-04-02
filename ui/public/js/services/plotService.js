@@ -254,6 +254,8 @@ angular.module('myApp.services').service('plotService', function() {
     this.selected = void 0;
     bgcolor = new IMGPlotter.Color;
     bgcolor.setHSL(0, 0, 1);
+    this.dataSeries = void 0;
+    this.plotter = void 0;
     this.update_plot_colors();
     this.dataSeries = new IMGPlotter.DynamicDataSeries(this.contig_points, (function(_this) {
       return function(p, i) {
