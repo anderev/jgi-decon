@@ -6,9 +6,9 @@ angular.module('myApp.services').service 'plotService', ->
 
   parse_point = (c) ->
     new IMGPlotter.Vector3(
-      300*parseFloat(c.x)
-      300*parseFloat(c.y)
-      300*parseFloat(c.z)
+      parseFloat(c.x)
+      parseFloat(c.y)
+      parseFloat(c.z)
     )
 
   @update_projection = ->
@@ -178,15 +178,16 @@ angular.module('myApp.services').service 'plotService', ->
   @init = (@data, @scope) ->
 
     @contig_points = @data.contigs.map((v) ->parse_point(v))
-    @selected = undefined
-
-    bgcolor = new IMGPlotter.Color
-    bgcolor.setHSL(0,0,1)
+    bv = new BoundingVolume(@contig_points)
+    normalizer = 100 / (bv.box.max.z - bv.box.min.z)
+    @contig_points.map((v) ->v.multiplyScalar(normalizer))
 
     @dataSeries = undefined
     @plotter = undefined
 
     @update_plot_colors()
+
+    @selected = undefined
 
     @dataSeries = new IMGPlotter.DynamicDataSeries(
       @contig_points
@@ -213,8 +214,12 @@ angular.module('myApp.services').service 'plotService', ->
 
     @bvol = new BoundingVolume(@contig_points)
     @plotter = new IMGPlotter.Plotter
+
     @plotter.addComponent( component ) for component in make_axes(@contig_points, @bvol.box)
     @plotter.addComponent @dataSeries
+
+    bgcolor = new IMGPlotter.Color
+    bgcolor.setHSL(0,0,1)
     @plotter.init(1024, 1024, bgcolor, 'plot_area')
     @update_projection()
     @plotter.run()

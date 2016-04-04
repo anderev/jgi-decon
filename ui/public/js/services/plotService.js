@@ -5,7 +5,7 @@ angular.module('myApp.services').service('plotService', function() {
   NUM_GRID_LINES = 21;
   this.dynamicComponents = [];
   parse_point = function(c) {
-    return new IMGPlotter.Vector3(300 * parseFloat(c.x), 300 * parseFloat(c.y), 300 * parseFloat(c.z));
+    return new IMGPlotter.Vector3(parseFloat(c.x), parseFloat(c.y), parseFloat(c.z));
   };
   this.update_projection = function() {
     var c, j, l, len, len1, ref, ref1;
@@ -245,18 +245,21 @@ angular.module('myApp.services').service('plotService', function() {
     }
   };
   return this.init = function(data, scope) {
-    var bgcolor, component, j, len, ref;
+    var bgcolor, bv, component, j, len, normalizer, ref;
     this.data = data;
     this.scope = scope;
     this.contig_points = this.data.contigs.map(function(v) {
       return parse_point(v);
     });
-    this.selected = void 0;
-    bgcolor = new IMGPlotter.Color;
-    bgcolor.setHSL(0, 0, 1);
+    bv = new BoundingVolume(this.contig_points);
+    normalizer = 100 / (bv.box.max.z - bv.box.min.z);
+    this.contig_points.map(function(v) {
+      return v.multiplyScalar(normalizer);
+    });
     this.dataSeries = void 0;
     this.plotter = void 0;
     this.update_plot_colors();
+    this.selected = void 0;
     this.dataSeries = new IMGPlotter.DynamicDataSeries(this.contig_points, (function(_this) {
       return function(p, i) {
         return _this.color_map[get_hash(_this.scope.color_taxon_level.value)(_this.data.contigs[i])];
@@ -291,6 +294,8 @@ angular.module('myApp.services').service('plotService', function() {
       this.plotter.addComponent(component);
     }
     this.plotter.addComponent(this.dataSeries);
+    bgcolor = new IMGPlotter.Color;
+    bgcolor.setHSL(0, 0, 1);
     this.plotter.init(1024, 1024, bgcolor, 'plot_area');
     this.update_projection();
     this.plotter.run();
