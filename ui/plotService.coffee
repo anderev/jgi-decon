@@ -140,11 +140,6 @@ angular.module('myApp.services').service 'plotService', ->
         line_points.push box_points[plane_indices[plane_i][0]]
         result.push( new IMGPlotter.Line(line_color, line_points))
 
-      origin_colors = [
-        (new IMGPlotter.Color).setHSL(0, HSL_SATURATION, HSL_LIGHTNESS)
-        (new IMGPlotter.Color).setHSL(0.33, HSL_SATURATION, HSL_LIGHTNESS)
-        (new IMGPlotter.Color).setHSL(0.66, HSL_SATURATION, HSL_LIGHTNESS)
-      ]
       #origin plane points
       origin_plane_points = [
         (box_points[i] for i in [0,4,5,1]).map((v) ->(new IMGPlotter.Vector3(0,v.y,v.z)))
@@ -157,12 +152,12 @@ angular.module('myApp.services').service 'plotService', ->
           line_geom = []
           line_geom.push origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][3], i / (NUM_GRID_LINES - 1))
           line_geom.push origin_plane_points[zero_plane][1].clone().lerp(origin_plane_points[zero_plane][2], i / (NUM_GRID_LINES - 1))
-          result.push new (IMGPlotter.Line)(origin_colors[zero_plane], line_geom)
+          result.push new (IMGPlotter.Line)(line_color, line_geom)
         for i in [0...NUM_GRID_LINES]
           line_geom = []
           line_geom.push origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][1], i / (NUM_GRID_LINES - 1))
           line_geom.push origin_plane_points[zero_plane][3].clone().lerp(origin_plane_points[zero_plane][2], i / (NUM_GRID_LINES - 1))
-          result.push new (IMGPlotter.Line)(origin_colors[zero_plane], line_geom)
+          result.push new (IMGPlotter.Line)(line_color, line_geom)
       result
 
   @update_plot_colors = ->

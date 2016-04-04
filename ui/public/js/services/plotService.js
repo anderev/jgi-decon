@@ -159,7 +159,7 @@ angular.module('myApp.services').service('plotService', function() {
     };
 
     BoundingVolume.prototype.getComponents = function(zero_plane) {
-      var box_points, i, j, l, lerp, line_color, line_geom, line_points, m, n, origin_colors, origin_plane_points, plane_i, plane_indices, ref, ref1, result;
+      var box_points, i, j, l, lerp, line_color, line_geom, line_points, m, n, origin_plane_points, plane_i, plane_indices, ref, ref1, result;
       result = [];
       line_color = (new IMGPlotter.Color).setHSL(0, 0, 0.8);
       box_points = [new IMGPlotter.Vector3(this.box.min.x, this.box.min.y, this.box.min.z), new IMGPlotter.Vector3(this.box.min.x, this.box.min.y, this.box.max.z), new IMGPlotter.Vector3(this.box.max.x, this.box.min.y, this.box.max.z), new IMGPlotter.Vector3(this.box.max.x, this.box.min.y, this.box.min.z), new IMGPlotter.Vector3(this.box.min.x, this.box.max.y, this.box.min.z), new IMGPlotter.Vector3(this.box.min.x, this.box.max.y, this.box.max.z), new IMGPlotter.Vector3(this.box.max.x, this.box.max.y, this.box.max.z), new IMGPlotter.Vector3(this.box.max.x, this.box.max.y, this.box.min.z)];
@@ -175,7 +175,6 @@ angular.module('myApp.services').service('plotService', function() {
         line_points.push(box_points[plane_indices[plane_i][0]]);
         result.push(new IMGPlotter.Line(line_color, line_points));
       }
-      origin_colors = [(new IMGPlotter.Color).setHSL(0, HSL_SATURATION, HSL_LIGHTNESS), (new IMGPlotter.Color).setHSL(0.33, HSL_SATURATION, HSL_LIGHTNESS), (new IMGPlotter.Color).setHSL(0.66, HSL_SATURATION, HSL_LIGHTNESS)];
       origin_plane_points = [
         ((function() {
           var len, m, ref, results;
@@ -217,13 +216,13 @@ angular.module('myApp.services').service('plotService', function() {
           line_geom = [];
           line_geom.push(origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][3], i / (NUM_GRID_LINES - 1)));
           line_geom.push(origin_plane_points[zero_plane][1].clone().lerp(origin_plane_points[zero_plane][2], i / (NUM_GRID_LINES - 1)));
-          result.push(new IMGPlotter.Line(origin_colors[zero_plane], line_geom));
+          result.push(new IMGPlotter.Line(line_color, line_geom));
         }
         for (i = n = 0, ref1 = NUM_GRID_LINES; 0 <= ref1 ? n < ref1 : n > ref1; i = 0 <= ref1 ? ++n : --n) {
           line_geom = [];
           line_geom.push(origin_plane_points[zero_plane][0].clone().lerp(origin_plane_points[zero_plane][1], i / (NUM_GRID_LINES - 1)));
           line_geom.push(origin_plane_points[zero_plane][3].clone().lerp(origin_plane_points[zero_plane][2], i / (NUM_GRID_LINES - 1)));
-          result.push(new IMGPlotter.Line(origin_colors[zero_plane], line_geom));
+          result.push(new IMGPlotter.Line(line_color, line_geom));
         }
       }
       return result;
