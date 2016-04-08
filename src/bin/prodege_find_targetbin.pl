@@ -28,9 +28,10 @@ sub Checkcomp{
 my $usage="$0 <directory which contains input fasta file> <jobname>\n";
 @ARGV==2 or die $usage;
 my $jobname=$ARGV[1];
-my $contigLCA=$ARGV[0] . "/" . $jobname . "_Intermediate/" . $jobname . "_contigs.LCA";
-my $outfile=$ARGV[0] . "/" . $jobname . "_Intermediate/" . $jobname . "_binning_target";
-my $targetfile=$ARGV[0] . "/" . $jobname . "_Intermediate/" . $jobname . "_target";
+my $int_dir=$ARGV[0] . "/" . $jobname . "_Intermediate/";
+my $contigLCA=$int_dir . $jobname . "_contigs.LCA";
+my $outfile=$int_dir . $jobname . "_binning_target";
+my $targetfile=$int_dir . $jobname . "_target";
 #unless(-e $contigLCA) {die "$contigLCA does not exist.\n";}
 #unless(-e $targetfile) {die "$targetfile does not exist.\n";}
 unless(-e $contigLCA) {die;}

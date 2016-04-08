@@ -30,7 +30,7 @@ sub parsetax($) {
 			my @f =split(/\t\|/,$line);
 			if ($f[3] eq "\tscientific name") {
 				my $id=$f[0];
-				my $n=substr($f[1],1);
+				my $n=lc substr($f[1],1); #lc for Issue #52
 				$map{$id}=$n;
 			}
 		}		

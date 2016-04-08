@@ -16,7 +16,7 @@
 # distribute copies to the public, perform publicly and display publicly, and to permit others to do so.
 ############################################################################################################
 
-ProDeGe 2.0: a computational Protocol for fully-automated Decontamination of Genomes
+ProDeGe 2.3: a computational Protocol for fully-automated Decontamination of Genomes
 
 PURPOSE
 The purpose of this software is to decontaminate single amplified genomes and genomes assembled from metagenomes.

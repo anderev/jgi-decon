@@ -6,7 +6,7 @@
 use strict;
 use warnings;
 
-unless(@ARGV==3){print "Usage: $0 <working dir> <NCBI tax file> <jobname>\n"; exit;}
+unless(@ARGV==3){print "Usage: $0 <working dir> <IMG taxonomy file> <jobname>\n"; exit;}
 my $wdir=$ARGV[0];
 my $taxfile=$ARGV[1];
 my $jobname=$ARGV[2];
@@ -16,7 +16,7 @@ open(IN,$targetfile) or die "$targetfile does not exist\n";
 my $known_target=<IN>;
 close(IN);
 chomp($known_target);
-$known_target=~s/Actinobacteridae/Actinobacteria/;#add for issue10
+#$known_target=~s/Actinobacteridae/Actinobacteria/;#add for issue10
 $known_target=~s/;;;;;;;/;/g;
 $known_target=~s/;;;;;;/;/g;
 $known_target=~s/;;;;;/;/g;

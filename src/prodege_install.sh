@@ -3,7 +3,7 @@
 #through Lawrence Berkeley National Laboratory (subject to receipt of any
 #required approvals from the U.S. Dept. of Energy).  All rights reserved.
 
-#This installs ProDeGe 2.0
+#This installs ProDeGe 2.3
 # Argument = -i installation_directory -n ncbi_nt -t ncbi_taxonomy
 
 usage()
@@ -12,8 +12,6 @@ usage()
   echo OPTIONS:
   echo   -h	Show this message
   echo   -i	installation_directory
-  echo   "-n	location_of_ncbi_nt"
-  echo   "-t	location_directory_of_ncbi_taxonomy"
 }
 
 if [[ $# -eq 0 ]]
@@ -25,8 +23,10 @@ fi
 INSTALL_DIR=
 NCBI_NT=
 NCBI_TAX=
+IMG_DB=
+IMG_TAX=
 
-while getopts "ht:i:n:t" OPTION
+while getopts "hi:" OPTION
 do
   case $OPTION in
     h)
@@ -35,12 +35,6 @@ do
       ;;
     i)
       INSTALL_DIR=$OPTARG
-      ;;
-    n)
-      NCBI_NT=$OPTARG
-      ;;
-    t)
-      NCBI_TAX=$OPTARG
       ;;
     ?)
       usage
@@ -74,44 +68,50 @@ then
   cp $CURR_DIR/bin/*.pl $INSTALL_DIR/bin/
   cp $CURR_DIR"/prodege_install.sh" $INSTALL_DIR/bin/
   cp $CURR_DIR/README $INSTALL_DIR/
+  cp $CURR_DIR/LICENSE $INSTALL_DIR/
   cp -R $CURR_DIR/Examples $INSTALL_DIR/
 fi
 
-if [[ -z $NCBI_NT ]]
+NCBI_NT=$INSTALL_DIR/NCBI-nt-euk
+if [ ! -e $NCBI_NT ]
 then
-  NCBI_NT=$INSTALL_DIR/NCBI-nt
-  if [ ! -e $NCBI_NT ]
-  then
-    mkdir $NCBI_NT
-  fi
-  if [ ! -e $NCBI_NT/nt ]
-  then
-    sh $CURR_DIR/bin/00.createNT.sh $NCBI_NT
-  fi
+  mkdir $NCBI_NT
+fi
+NCBI_TAX=$INSTALL_DIR/NCBI-nt-tax
+if [ ! -e $NCBI_TAX ]
+then
+  mkdir $NCBI_TAX
+fi
+IMG_DB=$INSTALL_DIR/IMG-db
+if [ ! -e $IMG_DB ]
+then
+  mkdir $IMG_DB
+fi
+IMG_TAX=$INSTALL_DIR/IMG-tax
+if [ ! -e $IMG_TAX ]
+then
+  mkdir $IMG_TAX
 fi
 
-if [[ -z $NCBI_TAX ]]
-then
-  NCBI_TAX=$INSTALL_DIR/NCBI-tax
-  if [ ! -e $NCBI_TAX ]
-  then
-    mkdir $NCBI_TAX
-    sh $CURR_DIR/bin/01.downloadTaxonomy.sh $NCBI_TAX
-  fi
-else
-  mkdir $INSTALL_DIR/NCBI-tax
-fi
-
+sh $CURR_DIR/bin/01.downloadTaxonomy.sh $INSTALL_DIR
 sh $CURR_DIR/bin/02.getRpackages.sh $INSTALL_DIR
-sh $CURR_DIR/bin/03.createTaxSpeciesfile.sh $CURR_DIR $INSTALL_DIR/NCBI-tax $NCBI_TAX
+sh $CURR_DIR/bin/03.buildDatabases.sh $INSTALL_DIR
 
 if [[ ! -e $INSTALL_DIR/lib/BH/ || ! -e $INSTALL_DIR/lib/bigmemory.sri/ || ! -e $INSTALL_DIR/lib/bigmemory/ || ! -e $INSTALL_DIR/lib/biganalytics/ ]]
 then
         echo "R packages not installed.  ProDeGe installation unsuccessful."
-elif [[ ! -s $INSTALL_DIR/NCBI-tax/ncbi_taxonomy_leafnodes_species.out ]]
+elif [[ ! -s $NCBI_TAX/ncbi_taxonomy.txt ]]
 then
 	echo "NCBI Taxonomy not parsed.  ProDeGe installation unsuccessful."	
+elif [[ ! -s $IMG_TAX/img_taxonomy.txt ]]
+then
+        echo "IMG Taxonomy not installed.  ProDeGe installation unsuccessful."    
+elif [[ ! -s $NCBI_NT/nt_euks.00.nhr ]]
+then
+        echo "NCBI euk database not installed.  ProDeGe installation unsuccessful."    
+elif [[ ! -s $IMG_DB/imgdb.00.nhr ]]
+then
+        echo "IMG database not installed.  ProDeGe installation unsuccessful."    
 else
         echo "Installation successful."
 fi
-
