@@ -46,6 +46,7 @@ while($line=<IN>){
       my @arr=split(/\t/,$line);
       next if (!exists($stats{$arr[0]}));
       if(defined($arr[2])){
+	$arr[2]=lc $arr[2];                 #lc for Issue #52
 	my @arr2=split(/,/,$arr[2]);
 	my %tree;
 	my %etree;

@@ -25,12 +25,13 @@ cd ${1}/IMG-db/
 tar xvf imgdb.fna.tar.gz
 rm imgdb.fna.tar.gz
 
-# Format for blast queries
-echo "Formatting blast database"
-cd ${1}/NCBI-nt-euk/ 
-$blastCmd -in nt_euks.fna -out nt_euks -dbtype nucl
-rm nt_euks.fna
-cd ${1}/IMG-db/
-$blastCmd -in imgdb.fna -out imgdb -dbtype nucl
-rm imgdb.fna
+# Format for blast queries, not needed since tar contains formatted files
+## Format for blast queries
+#echo "Formatting blast database"
+#cd ${1}/NCBI-nt-euk/ 
+#$blastCmd -in nt_euks.fna -out nt_euks -dbtype nucl
+#rm nt_euks.fna
+#cd ${1}/IMG-db/
+#$blastCmd -in imgdb.fna -out imgdb -dbtype nucl
+#rm imgdb.fna
 

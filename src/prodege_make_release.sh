@@ -20,6 +20,7 @@ mkdir ${fud}/Releases/prodege-${ver}/lib
 mkdir ${fud}/Releases/prodege-${ver}/Examples
 
 cp ${tod}/README ${fud}/Releases/prodege-${ver}/
+cp ${tod}/LICENSE ${fud}/Releases/prodege-${ver}/
 cp ${tod}/bin/*pl ${fud}/Releases/prodege-${ver}/bin/
 cp ${tod}/bin/*sh ${fud}/Releases/prodege-${ver}/bin/
 cp ${tod}/bin/*R ${fud}/Releases/prodege-${ver}/bin/

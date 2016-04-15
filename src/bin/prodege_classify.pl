@@ -14,7 +14,8 @@ my $bin=$ARGV[1];
 my $lib=$ARGV[1] . "/../lib/";
 my $jobname=$ARGV[2];
 my $kcutoff=$ARGV[3];
-my $fbin_target=$wdir . "/" . $jobname . "_Intermediate/" . $jobname . "_binning_target";
+my $int_dir=$wdir . "/" . $jobname . "_Intermediate/";
+my $fbin_target=$int_dir . $jobname . "_binning_target";
 my $log=$wdir . "/" . $jobname . "_log";
 open(LOG,">>$log");
 
@@ -31,13 +32,13 @@ if(-e $fbin_target){
 
   my %cl;
   my @counts=(0,0,0);
-  my $contigLCA=$wdir . "/" . $jobname . "_Intermediate/" . $jobname . "_contigs.LCA"; 
-  my $blast_clean=$wdir . "/" . $jobname . "_Intermediate/" . $jobname . "_blast_clean_contigs";
-  my $blast_contam=$wdir . "/" . $jobname . "_Intermediate/" . $jobname . "_blast_contam_contigs";
-  my $blast_undecided=$wdir . "/" . $jobname . "_Intermediate/" . $jobname . "_blast_undecided_contigs";
-  my $species_file=$wdir . "/" . $jobname . "_Intermediate/" . $jobname . "_contigs.species";
-  my $kmer_clean=$wdir . "/" . $jobname . "_Intermediate/" . $jobname . "_kmer_clean_contigs";
-  my $kmer_contam=$wdir . "/" . $jobname . "_Intermediate/" . $jobname . "_kmer_contam_contigs";
+  my $contigLCA=$int_dir . $jobname . "_contigs.LCA"; 
+  my $blast_clean=$int_dir . $jobname . "_blast_clean_contigs";
+  my $blast_contam=$int_dir . $jobname . "_blast_contam_contigs";
+  my $blast_undecided=$int_dir . $jobname . "_blast_undecided_contigs";
+  my $species_file=$int_dir . $jobname . "_contigs.species";
+  my $kmer_clean=$int_dir . $jobname . "_kmer_clean_contigs";
+  my $kmer_contam=$int_dir . $jobname . "_kmer_contam_contigs";
 
   my %species;
   open(IN,$species_file) or die;
@@ -47,14 +48,28 @@ if(-e $fbin_target){
 	$species{$arr[0]}=$line;
   }
   close(IN);
-  
+ 
+  my %eukcontam;
+  if(-e $blast_contam){
+    open(IN,$blast_contam);
+    while(my $line=<IN>){
+	chomp($line);
+	$eukcontam{$line}=1;
+	$counts[2]++; #contam
+   }
+    close(IN);
+  }
+ 
   open(IN,$contigLCA) or die;
   open(OUTC,">$blast_clean");
-  open(OUTD,">$blast_contam");
+  open(OUTD,">>$blast_contam");
   open(OUTU,">$blast_undecided");
   while(my $line=<IN>){
 	chomp($line);
         my @arr=split(/\t/,$line);
+	if(exists($eukcontam{$arr[0]})){
+		next;
+        }
         if(defined($arr[1])){
         	$arr[1]=~s/^ //;
 		$cl{$arr[0]}=$arr[1];
@@ -118,35 +133,28 @@ if(-e $fbin_target){
   close(OUTD);
   close(OUTU);
 
-  my $targetfile=$ARGV[0] . "/" . $jobname . "_Intermediate/" . $jobname . "_target";
+  my $targetfile=$int_dir . $jobname . "_target";
   open(IN,$targetfile);
   my $known_target=<IN>;
   close(IN);
   chomp($known_target);
 
   my $cmd;
-#  if($counts[1]==0){
-#        print LOG "$0: Undecided bin is empty.  No need to perform k-mer analysis.\n";
-#	$cmd="cp $blast_clean $wdir/" . $jobname . "_Intermediate/" . $jobname . "_kmer_clean_contigs; cp $blast_contam $wdir/" . $jobname .  "_Intermediate/" . $jobname . "_kmer_contam_contigs";
-#	exit;
-#  }
   if($counts[0]==0){
 	$cmd="rm " . $blast_clean;
         system($cmd);
   }
   if($counts[0]==0 or $known_target=~/^Bacteria;$/ or $known_target=~/^Archaea;$/ ){
         print LOG "prodege_classify.pl: Clean bin is empty.  Using 9-mer with standard cutoff.\n";
-	$cmd="perl $bin/prodege_compute_kmer_counts.pl $wdir 9 $jobname; $RCmd CMD BATCH -" . $lib . " -" . $wdir . " -" . 9 . " -" . $jobname .  " -" . $kcutoff . " --no-save " . $bin . "/prodege_classify_noclean.R " . $wdir . "/" . $jobname . "_Intermediate/" . $jobname . "_prodege_classify.out";
+	$cmd="perl $bin/prodege_compute_kmer_counts.pl $wdir 9 $jobname; $RCmd CMD BATCH -" . $lib . " -" . $wdir . " -" . 9 . " -" . $jobname .  " -" . $kcutoff . " --no-save " . $bin . "/prodege_classify_noclean.R " . $int_dir . $jobname . "_prodege_classify.out";
   }
   elsif($counts[2]==0){
-	#print LOG "scd_classify.pl: Blast contam bin is empty, cannot precalibrate. Using 5-mer with standard cutoff.\n";
-        #$cmd="cp " . $blast_clean . " " . $kmer_clean;
         print LOG "prodege_classify.pl: Blast contam bin is empty, cannot precalibrate.  Using 5-mer with standard cutoff.\n";
-        $cmd="perl $bin/prodege_compute_kmer_counts.pl $wdir 5 $jobname; $RCmd CMD BATCH -" . $lib . " -" . $wdir . " -" . 5 . " -" . $jobname . " -" . $kcutoff . " --no-save " . $bin . "/prodege_classify_nocontam.R " . $wdir . "/" . $jobname . "_Intermediate/" . $jobname . "_prodege_classify.out";
+        $cmd="perl $bin/prodege_compute_kmer_counts.pl $wdir 5 $jobname; $RCmd CMD BATCH -" . $lib . " -" . $wdir . " -" . 5 . " -" . $jobname . " -" . $kcutoff . " --no-save " . $bin . "/prodege_classify_nocontam.R " . $int_dir . $jobname . "_prodege_classify.out";
   }
   else{
         print LOG "prodege_classify.pl: Using 5-mer with refined calibration.\n";
-        $cmd="perl $bin/prodege_compute_kmer_counts.pl $wdir 5 $jobname; $RCmd CMD BATCH -" . $lib . " -" . $wdir . " -" . 5 . " -" . $jobname . " -" . $kcutoff . " --no-save " . $bin . "/prodege_classify_cleanandcontam.R " . $wdir . "/" . $jobname . "_Intermediate/" . $jobname . "_prodege_classify.out";
+        $cmd="perl $bin/prodege_compute_kmer_counts.pl $wdir 5 $jobname; $RCmd CMD BATCH -" . $lib . " -" . $wdir . " -" . 5 . " -" . $jobname . " -" . $kcutoff . " --no-save " . $bin . "/prodege_classify_cleanandcontam.R " . $int_dir . $jobname . "_prodege_classify.out";
   }
   system($cmd);
 
@@ -182,8 +190,7 @@ if(-e $fbin_target){
 }
 else{
   print LOG "prodege_classify.pl: No binning target.  Using 9-mer with standard cutoff.\n";
-  #my $cmd="$RCmd CMD BATCH -" . $lib . " -" . $wdir . " -" . 9 . " -" . $jobname . " --no-save " . $bin . "/scd_classify_nobintarget.R " . $wdir . "/" . $jobname . "_Intermediate/" . $jobname . "_scd_classify.out";
-  my $cmd="perl $bin/prodege_compute_kmer_counts.pl $wdir 9 $jobname; $RCmd CMD BATCH -" . $lib . " -" . $wdir . " -" . 9 . " -" . $jobname . " -" . $kcutoff . " --no-save " . $bin . "/prodege_classify_nobintarget.R " . $wdir . "/" . $jobname . "_Intermediate/" . $jobname . "_prodege_classify.out";
+  my $cmd="perl $bin/prodege_compute_kmer_counts.pl $wdir 9 $jobname; $RCmd CMD BATCH -" . $lib . " -" . $wdir . " -" . 9 . " -" . $jobname . " -" . $kcutoff . " --no-save " . $bin . "/prodege_classify_nobintarget.R " . $int_dir . $jobname . "_prodege_classify.out";
   system($cmd);
 }
 

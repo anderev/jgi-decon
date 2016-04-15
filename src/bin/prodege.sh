@@ -20,7 +20,7 @@ source ${1}
 #Begin add Issue #3
 if [[ -z $INSTALL_LOCATION ]]
 then
-	module load prodege 
+	module load prodege
 	INSTALL_LOCATION=$PRODEGE_DIR
 fi
 if [[ -z $INSTALL_LOCATION ]]
@@ -40,12 +40,19 @@ PATH=$PATH:${INSTALL_LOCATION}/bin
 WORKING_DIR=${WORKING_DIR}/${JOB_NAME}/
 INT_DIR=${WORKING_DIR}/${JOB_NAME}_Intermediate/
 BIN=${INSTALL_LOCATION}/bin/
-NCBItax=${INSTALL_LOCATION}/NCBI-tax/ncbi_taxonomy_leafnodes_species.out
+IMG_TAX=${INSTALL_LOCATION}/IMG-tax/img_taxonomy.txt
+NCBI_TAX=${INSTALL_LOCATION}/NCBI-nt-tax/ncbi_taxonomy.txt
 
-if [ ! -e $NCBItax ]
+if [ ! -e $IMG_TAX ]
 then
-	echo "$NCBItax does not exist."
+	echo "$IMG_TAX does not exist."
 	exit 1
+fi
+
+if [ ! -e $NCBI_TAX ]
+then
+        echo "$NCBI_TAX does not exist."
+        exit 1
 fi
 
 if [ ! -e $IN_FASTA ] 
@@ -80,7 +87,7 @@ then
 fi
 
 touch ${WORKING_DIR}/${JOB_NAME}_log
-echo `date` "### Begin ProDeGe" >> ${WORKING_DIR}/${JOB_NAME}_log
+echo `date` "### Begin ProDeGe 2.3" >> ${WORKING_DIR}/${JOB_NAME}_log
 
 cp $IN_FASTA ${WORKING_DIR}/${JOB_NAME}_input.fna 
 
@@ -89,9 +96,13 @@ then
 	mkdir $INT_DIR
 fi
 
-if [ ! -e "$NT_LOCATION" ]
+if [ ! -e "$DB_LOCATION" ]
 then
-       	NT_LOCATION=${INSTALL_LOCATION}/NCBI-nt/nt
+       	DB_LOCATION=${INSTALL_LOCATION}/IMG-db/imgdb
+fi
+if [ ! -e "$DB_EUK_LOCATION" ]
+then
+        DB_EUK_LOCATION=${INSTALL_LOCATION}/NCBI-nt-euk/nt_euks
 fi
 
 if [ "${RUN_GENECALL}" == "1" ]
@@ -121,11 +132,17 @@ then
                 then
                       	BLAST_THREADS=8 
                 fi
-		echo `date` "### Begin blastn" >> ${WORKING_DIR}/${JOB_NAME}_log
-		$blastCmd -query ${INT_DIR}/${JOB_NAME}_genes.fna -out $INT_DIR/${JOB_NAME}_genes.blout -db $NT_LOCATION  -num_threads $BLAST_THREADS -num_alignments 10 -outfmt "6 qseqid sseqid pident length qlen slen mismatch gapopen qstart qend sstart send evalue bitscore stitle"
+		echo `date` "### Begin eukarytoic blastn" >> ${WORKING_DIR}/${JOB_NAME}_log
+		$blastCmd -query ${INT_DIR}/${JOB_NAME}_genes.fna -out $INT_DIR/${JOB_NAME}_genes_euk.blout -db $DB_EUK_LOCATION  -num_threads $BLAST_THREADS -num_alignments 10 -evalue .1 -outfmt "6 qseqid sseqid pident length qlen slen mismatch gapopen qstart qend sstart send evalue bitscore stitle"
+		echo `date` "### End eukaryotic blastn" >> ${WORKING_DIR}/${JOB_NAME}_log
+                echo `date` "### Begin blastn" >> ${WORKING_DIR}/${JOB_NAME}_log
+		$blastCmd -query ${INT_DIR}/${JOB_NAME}_genes.fna -out $INT_DIR/${JOB_NAME}_genes.blout -db $DB_LOCATION  -num_threads $BLAST_THREADS -num_alignments 10 -outfmt "6 qseqid sseqid pident length qlen slen mismatch gapopen qstart qend sstart send evalue bitscore stitle"
 		echo `date` "### End blastn" >> ${WORKING_DIR}/${JOB_NAME}_log
+                echo `date` "### Begin gene filtering and eukaryotic binning" >> ${WORKING_DIR}/${JOB_NAME}_log
+                prodege_analyzeBlastBins.pl ${INT_DIR}/${JOB_NAME}_genes_euk.blout ${INT_DIR}/${JOB_NAME}_euk_bins.contigs ${INT_DIR}/${JOB_NAME}_euk_contigs.bins ${INT_DIR}/${JOB_NAME}_genes.fna
+                echo `date` "### End gene filtering and eukaryotic binning" >> ${WORKING_DIR}/${JOB_NAME}_log
 		echo `date` "### Begin gene filtering and species binning" >> ${WORKING_DIR}/${JOB_NAME}_log
-		prodege_analyzeBlastBins.pl ${INT_DIR}/${JOB_NAME}_genes.blout ${INT_DIR}/${JOB_NAME}_bins.contigs ${INT_DIR}/${JOB_NAME}_contigs.bins
+		prodege_analyzeBlastBins.pl ${INT_DIR}/${JOB_NAME}_genes.blout ${INT_DIR}/${JOB_NAME}_bins.contigs ${INT_DIR}/${JOB_NAME}_contigs.bins ${INT_DIR}/${JOB_NAME}_genes.fna 
  		echo `date` "### End gene filtering and species binning" >> ${WORKING_DIR}/${JOB_NAME}_log
 	else
 		echo "Prodigal failed.  ${INT_DIR}/${JOB_NAME}_genes.fna was not created.  Can not run blast." >> ${WORKING_DIR}/${JOB_NAME}_log
@@ -150,23 +167,26 @@ then
         	TAX="$TAXON_DOMAIN;$TAXON_PHYLUM;$TAXON_CLASS;$TAXON_ORDER;$TAXON_FAMILY;$TAXON_GENUS;"
 		echo $TAX > ${INT_DIR}/${JOB_NAME}_target
 		prodege_check_size_fasta.pl $WORKING_DIR $JOB_NAME
- 		echo `date` "### Begin contig LCA assignments" >> ${WORKING_DIR}/${JOB_NAME}_log
-		prodege_make_contigLCA.pl $WORKING_DIR $NCBItax $JOB_NAME
+ 		echo `date` "### Begin contig eukaryotic binning" >> ${WORKING_DIR}/${JOB_NAME}_log
+                prodege_make_contigLCA_euk.pl $WORKING_DIR $NCBI_TAX $JOB_NAME
+                echo `date` "### End contig eukaryotic binning" >> ${WORKING_DIR}/${JOB_NAME}_log
+                echo `date` "### Begin contig LCA assignments" >> ${WORKING_DIR}/${JOB_NAME}_log
+		prodege_make_contigLCA.pl $WORKING_DIR $IMG_TAX $JOB_NAME
 		echo `date` "### End LCA assignments" >> ${WORKING_DIR}/${JOB_NAME}_log
 		echo `date` "### Begin verify target" >> ${WORKING_DIR}/${JOB_NAME}_log
-		prodege_verify_target.pl $WORKING_DIR $NCBItax $JOB_NAME
+		prodege_verify_target.pl $WORKING_DIR $IMG_TAX $JOB_NAME
 		echo `date` "### End verify input target bin" >> ${WORKING_DIR}/${JOB_NAME}_log
 		echo `date` "### Begin find target bin from LCA assignments" >> ${WORKING_DIR}/${JOB_NAME}_log
 		prodege_find_targetbin.pl $WORKING_DIR $JOB_NAME
 		echo `date` "### End find target bin" >> ${WORKING_DIR}/${JOB_NAME}_log
-		if [[ -e ${WORKING_DIR}/${JOB_NAME}_Intermediate/${JOB_NAME}_kmer_contam_contigs ]]
+		if [[ -e ${INT_DIR}/${JOB_NAME}_kmer_contam_contigs ]]
 		then
-			rm ${WORKING_DIR}/${JOB_NAME}_Intermediate/${JOB_NAME}_kmer_contam_contigs
+			rm ${INT_DIR}/${JOB_NAME}_kmer_contam_contigs
 		fi
 		echo `date` "### Begin classify contigs" >> ${WORKING_DIR}/${JOB_NAME}_log
 		prodege_classify.pl $WORKING_DIR $BIN $JOB_NAME $KMER_CUTOFF
 		echo `date` "### End classify contigs" >> ${WORKING_DIR}/${JOB_NAME}_log
-		if [[ -e ${INT_DIR}/${JOB_NAME}_prodege_classify.out && ! -e ${WORKING_DIR}/${JOB_NAME}_Intermediate/${JOB_NAME}_kmer_contam_contigs ]]
+		if [[ -e ${INT_DIR}/${JOB_NAME}_prodege_classify.out && ! -e ${INT_DIR}/${JOB_NAME}_kmer_contam_contigs ]]
 		then
 			line=`grep elapsed ${INT_DIR}/${JOB_NAME}_prodege_classify.out`
 			if [ -z "${line}" ] 

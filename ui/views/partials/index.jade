@@ -1,11 +1,20 @@
 div(style='margin-left:100px;margin-right:150px;margin-top:10px;margin-bottom:10px')
   div
-    | Abstract:
+    H4 Abstract
     br
     | In the past few years, we have witnessed a sharp proliferation of technologies that enable sampling of uncultured species, namely single amplified genomes and genomes assembled from metagenomes. However, both of these products are plagued by contamination. Since sequences from these draft genomes are making their way into public databases, it has become necessary to define rigorous quality controls and decontamination protocols. Here we present ProDeGe, a stepwise protocol for fully automated decontamination of draft genomes. ProDeGe classifies contigs into three classes -- clean, contaminated, and undecided -- using a combination of homology and feature-based methodologies. On average, 90% of contigs from the non-target organism are removed from the dataset and 75% of the contigs from the target organism are retained. The procedure operates successfully at a rate of about 0.33 cpu core hours per megabase of sequence and can be applied to any type of genome sequence.
     br
     br
     | ProDeGe decontaminates datasets through through a combination of homology and feature-based methods.  The NCBI taxonomy and the contigs of the uncultured organism are required inputs.  First, gene calling and sequence alignment are used in the context of the specified taxonomy to classify each contig as Clean, Contaminated, or Undecided.  Clean contigs are used to calibrate the cluster distance cutoff in the subsequent k-mer based binning module, that classifies Undecided contigs as Clean or Contaminated using a k-mer frequencies. When datasets do not have known taxonomy deeper than phylum, or a single confident taxonomic bin cannot be detected using sequence alignment, solely 9-mer based binning is used. A precalibrated cutoff is used to separate the Clean from Contaminated contigs in the resulting PCA of the 9-mer frequency matrix.
+    br
+    br
+    H4 Citation
+    br
+    | If you have found ProDeGe to be helpful in your work, please cite our publication:
+    br
+    ul#pubs
+      | <li> Tennessen K., Andersen E., Clingenpeel S., et al. (2015). <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4681846/">ProDeGe: a computational protocol for fully automated decontamination of genomes.</a> ISME J. 10 269-272. 
   br
+  H4 Schema
 p(align='center')
   img(src='images/Slide03.png')
