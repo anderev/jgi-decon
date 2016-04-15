@@ -4,6 +4,21 @@ var fs = require('fs');
 var Q = require('q');
 var ssh_client = require('node-sshclient');
 
+var server_config = {
+  production: {
+    port: 3051,
+    url: 'https://prodege.jgi.doe.gov/'
+  },
+  dev: {
+    port: 3052,
+    url: 'https://prodege-dev.jgi.doe.gov/'
+  },
+  dev2: {
+    port: 3053,
+    url: 'https://prodege-dev2.jgi.doe.gov/'
+  }
+}
+
 var Production = function() {
   this.install_location = '/global/projectb/sandbox/omics/sc-decontamination/Production/prodege-2.0';
   this.nt_location = '';
@@ -17,8 +32,8 @@ var Production = function() {
   this.remote_working_dir = '/global/projectb/scratch/ewanders/prodege/production';
   this.local_working_dir = '/global/dna/shared/data/gbp/prodege/production';
   this.env = 'production';
-  this.port = 3051;
-  this.caliban_return_URL = 'https://prodege.jgi.doe.gov/';
+  this.port = server_config.production.port;
+  this.caliban_return_URL = server_config.production.url;
   this.caliban_signon_URL = 'https://signon2.jgi.doe.gov';
   this.caliban_signoff_URL = 'https://signon.jgi.doe.gov/signon/destroy';
   this.caliban_api_users = function(user_id, cb) { return https.get({hostname:'signon.jgi.doe.gov', path: '/api/users/'+user_id}, cb); };
@@ -32,8 +47,8 @@ var Staging = function() {
   this.remote_working_dir = '/global/projectb/scratch/ewanders/prodege/staging';
   this.local_working_dir = '/global/dna/shared/data/gbp/prodege/staging';
   this.env = 'staging';
-  this.port = 3052;
-  this.caliban_return_URL = 'https://prodege-dev.jgi.doe.gov/';
+  this.port = server_config.dev.port;
+  this.caliban_return_URL = server_config.dev.url;
   /*
   this.job_start = function(job_id, temp_config_filename, temp_fasta_filename, user_id) { return job_start(job_id, temp_config_filename, temp_fasta_filename, user_id, this.remote_working_dir); };
   this.job_status = function(job_id, process_id, user_id) { return job_status(job_id, process_id, user_id, this.local_working_dir); };
@@ -96,45 +111,44 @@ function qsub_promise(command) {
 
 function job_status(jid, pid, user_id, working_dir) {
   var deferred = Q.defer();
-  ssh_promise('/usr/common/usg/bin/qs -j '+pid+' --style json')
-  .then(function(output) {
-    var parsed_job_status = JSON.parse(new String(output).split('\n')[0]);
-    if(parsed_job_status.length === 1) {
-      var str_status = '';
-      if(parsed_job_status[0].state.match(/qw/)) {
-        str_status = 'Waiting in Queue';
-      } else if(parsed_job_status[0].state.match(/r/)) {
-        str_status = 'Running';
-      } else if(parsed_job_status[0].state.match(/t/)) {
-        str_status = 'Transfer';
-      } else {
-        str_status = 'Unknown';
-      }
-      if(parsed_job_status[0].state.match(/E/)) {
-        str_status = str_status + ' (ERROR)';
-      }
-      /*if(parsed_job_status[0].state.match(/h/)) {
-        str_status = str_status + ' (HOLD)';
-      }*/
-      if(parsed_job_status[0].state.match(/R/)) {
-        str_status = str_status + ' (RESUBMITTED)';
-      }
-      deferred.resolve(str_status);
+  console.log('checking: '+working_dir+'/sso_'+user_id+'/job_'+jid);
+  fs.exists(working_dir+'/sso_'+user_id+'/job_'+jid, function(exists) {
+    if(exists) {
+      console.log('exists');
+      deferred.resolve('Complete');
     } else {
-      console.log('no current job');
-      console.log('checking: '+working_dir+'/sso_'+user_id+'/job_'+jid);
-      fs.exists(working_dir+'/sso_'+user_id+'/job_'+jid, function(exists) {
-        if(exists) {
-          console.log('exists');
-          deferred.resolve('Complete');
+      console.log('not exists');
+      ssh_promise('/usr/common/usg/bin/qs -j '+pid+' --style json')
+      .then(function(output) {
+        var parsed_job_status = JSON.parse(new String(output).split('\n')[0]);
+        if(parsed_job_status.length === 1) {
+          var str_status = '';
+          if(parsed_job_status[0].state.match(/qw/)) {
+            str_status = 'Waiting in Queue';
+          } else if(parsed_job_status[0].state.match(/r/)) {
+            str_status = 'Running';
+          } else if(parsed_job_status[0].state.match(/t/)) {
+            str_status = 'Transfer';
+          } else {
+            str_status = 'Unknown';
+          }
+          if(parsed_job_status[0].state.match(/E/)) {
+            str_status = str_status + ' (ERROR)';
+          }
+          /*if(parsed_job_status[0].state.match(/h/)) {
+            str_status = str_status + ' (HOLD)';
+          }*/
+          if(parsed_job_status[0].state.match(/R/)) {
+            str_status = str_status + ' (RESUBMITTED)';
+          }
+          deferred.resolve(str_status);
         } else {
-          console.log('not exists');
-          deferred.resolve('Unknown');
+          console.log('no current job');
         }
+      }, function(reason) {
+        deferred.reject(reason);
       });
     }
-  }, function(reason) {
-    deferred.reject(reason);
   });
 
   return deferred.promise;
